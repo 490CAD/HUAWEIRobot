@@ -120,28 +120,36 @@ def cal_point_x_y(origin_x: float, origin_y: float, target_x: float, target_y):
 def drt_point_x_y(origin_x: float, origin_y: float, target_x: float, target_y):
     return math.atan2(target_y - origin_y, target_x - origin_x)
 def find_nearest_target_sell(x, y, workbenchs, target_workbench_list, workbench_type_num, take_thing):
-    ava_list = []
-    for i in target_workbench_list:
-        type_num_list = workbench_type_num[i]
-        for j in type_num_list:
-            ava_list.append(j)
     target_workbench_ids = -1
     target_workbench_distance=300
-    for workbench_ids in ava_list:
-        if workbenchs[workbench_ids].work_type in [4, 5, 6, 7]:
-            if  workbenchs[workbench_ids].is_targeted_flag[take_thing] == 1:
-                continue
-        # if ((1 << take_thing) & workbenchs[workbench_ids].origin_thing) == 0:
-        R_W_distance = cal_point_x_y(x, y, workbenchs[workbench_ids].x, workbenchs[workbench_ids].y)
-        if target_workbench_distance > R_W_distance:
-            target_workbench_ids, target_workbench_distance = workbench_ids, R_W_distance
+    for workbench in workbenchs:
+        if workbench.work_type in target_workbench_list and workbench.is_targeted_flag[take_thing] == 0:
+            R_W_distance = cal_point_x_y(x, y, workbench.x, workbench.y)
+            if target_workbench_distance > R_W_distance:
+                target_workbench_ids, target_workbench_distance = workbench.table_id, R_W_distance
     return target_workbench_ids
+    # ava_list = []
+    # for i in target_workbench_list:
+    #     type_num_list = workbench_type_num[i]
+    #     for j in type_num_list:
+    #         ava_list.append(j)
+    # target_workbench_ids = -1
+    # target_workbench_distance=300
+    # for workbench_ids in ava_list:
+    #     if workbenchs[workbench_ids].work_type in [4, 5, 6, 7]:
+    #         if  workbenchs[workbench_ids].is_targeted_flag[take_thing] == 1:
+    #             continue
+    #     # if ((1 << take_thing) & workbenchs[workbench_ids].origin_thing) == 0:
+    #     R_W_distance = cal_point_x_y(x, y, workbenchs[workbench_ids].x, workbenchs[workbench_ids].y)
+    #     if target_workbench_distance > R_W_distance:
+    #         target_workbench_ids, target_workbench_distance = workbench_ids, R_W_distance
+    # return target_workbench_ids
 def get_simple_job(free_robots, robots, simpe_job_workbenchs, workbenchs, workbench_type_num):
     robot_id, target0, target1 = -1, -1, -1
-    simpe_job_workbenchs_len = len(simple_job_workbenchs.keys())
 
-    for i in range(simpe_job_workbenchs_len):
-        target0 = max(simpe_job_workbenchs, key=simpe_job_workbenchs.get)
+    job_list = dict(sorted(simpe_job_workbenchs.items(),key=lambda x:x[1],reverse=True))
+    for job in job_list.keys():
+        target0 = job
         if not workbenchs[target0].is_targeted_flag[0]:
             if workbenchs[target0].work_type == 1:
                 # find nearest 4 5 9
@@ -153,9 +161,8 @@ def get_simple_job(free_robots, robots, simpe_job_workbenchs, workbenchs, workbe
                 # find nearest 5 6 9
                 target_workbench_list = [5, 6, 9]
             target1 = find_nearest_target_sell(workbenchs[target0].x ,workbenchs[target0].y, workbenchs, target_workbench_list, workbench_type_num, workbenchs[target0].work_type)
-            if target1 != -1:
-                break
-        simpe_job_workbenchs[target0] = 0
+        if target1 != -1:
+            break
     if target1 == -1:
         return robot_id, target0, target1 
     distance = 300
@@ -205,12 +212,12 @@ def get_job(free_robots, robots, free_jobs, workbenchs, workbench_type_num):
         elif workbenchs[target0].work_type == 7:
             # find nearest 5 6 9
             target_workbench_list = [8, 9]
-        target1 = find_nearest_target_sell(workbenchs[workbench].x ,workbenchs[workbench].y, workbenchs, target_workbench_list, workbench_type_num, workbenchs[workbench].work_type)
+        target1 = find_nearest_target_sell(workbenchs[target0].x ,workbenchs[target0].y, workbenchs, target_workbench_list, workbench_type_num, workbenchs[target0].work_type)
         if target1 != -1:
             break
     
     if target1 == -1:
-        return -1, -1, -1
+        return robot_id, target0, target1
 
     distance = 300
     for robot in free_robots:
@@ -305,6 +312,7 @@ if __name__ == '__main__':
             # 分配任务
             free_robots = find_free_robot(robots)
             free_jobs = find_free_job(workbenchs)
+            log.write(f'{free_jobs}\n')
             for i in range(len(free_robots)):
                 employ_robot, target0, target1 = get_job(free_robots, robots, free_jobs, workbenchs, workbench_type_num)
                 if target1 == -1:
@@ -415,7 +423,6 @@ if __name__ == '__main__':
                     # sell and turn 0
                     take_thing = robots[robot_id].take_thing
                     if robots[robot_id].work_space == robots[robot_id].target_workbench_ids[1] and not ((1 << robots[robot_id].take_thing) & workbenchs[robots[robot_id].target_workbench_ids[1]].origin_thing):
-                        take_thing
                         sys.stdout.write('sell %d\n' % robot_id)
                         # 将相应原料的卖操作解锁
                         workbenchs[robots[robot_id].target_workbench_ids[1]].is_targeted_flag[take_thing] = 0
