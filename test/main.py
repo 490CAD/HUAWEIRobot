@@ -38,7 +38,7 @@ class Robot():
         self.state = 0
         # next target workbench
         self.target_workbench_ids = [-1, -1]
-        self.s_pid=PID.PID(10, 0.01, 300, 0)
+        self.s_pid=PID.PID(50, 0.01, 500, 0)
         # 0.8 0.005
         self.w_pid=PID.PID(10, 0.01, 3, 0)
 
@@ -71,13 +71,17 @@ class Robot():
         """
         if abs(steering) < tolerance0:
             steering = 0
-        if distance < tolerance1:
+        if abs(distance) < tolerance1:
             distance = 0
         
         # apply pid
         sys.stdout.write('rotate %d %f\n' % (self.robot_id, steering))
-        speed = min(6, distance)
-        sys.stdout.write('forward %d %f\n' % (robot_id, speed))
+
+        if distance < 0:
+            sys.stdout.write('forward %d %f\n' % (robot_id, -2))
+        else:
+            speed = min(6, distance)
+            sys.stdout.write('forward %d %f\n' % (robot_id, speed))
 
     def move_to_target(self, direction, distance):
         direction1=direction-self.toward
@@ -85,7 +89,11 @@ class Robot():
             direction1 += -2*PI
         elif direction1 <= -PI:
             direction1 += 2*PI
-        steering = -self.w_pid.control(direction1)
+
+        if direction1 > PI / 2 or direction1 < -PI / 2:
+            distance = - distance
+        
+        steering = self.w_pid.control(-direction1)
         move_distance = self.s_pid.control(-distance)
         self.move(steering, move_distance)
 
