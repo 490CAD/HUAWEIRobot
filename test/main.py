@@ -10,7 +10,9 @@ ROBOT_RHO = 20
 ROBOT_NUM = 4
 MAP_SIZE = 100
 PI = math.pi
-log = open("log.txt","a")
+THING_VALUE = [0, 3000, 3200, 3400, 7100, 7800, 8300, 29000]
+DIS_MP = None
+# log = open("log.txt","a")
 # Robots and Craft Tables
 class Robot():
     def __init__(self, id):
@@ -23,6 +25,7 @@ class Robot():
         self.toward = 0.0
         self.x, self.y = 0.0, 0.0
         self.robot_id = id
+        self.task_by_time = 0.0
         # work_frame means start work from this frame
         # state 0 means staying
         # state 1 means walking towards the workbench
@@ -119,23 +122,55 @@ def cal_point_x_y(origin_x: float, origin_y: float, target_x: float, target_y):
 
 def drt_point_x_y(origin_x: float, origin_y: float, target_x: float, target_y):
     return math.atan2(target_y - origin_y, target_x - origin_x)
+
 def find_nearest_target_sell(x, y, workbenchs, target_workbench_list, workbench_type_num, take_thing):
     ava_list = []
     for i in target_workbench_list:
         type_num_list = workbench_type_num[i]
         for j in type_num_list:
             ava_list.append(j)
+    # log.write(f'ava_list: {ava_list}\n')
     target_workbench_ids = -1
-    target_workbench_distance=300
-    for workbench_ids in ava_list:
-        if workbenchs[workbench_ids].work_type in [4, 5, 6, 7]:
-            if  workbenchs[workbench_ids].is_targeted_flag[take_thing] == 1 or (1 << take_thing) & workbenchs[workbench_ids].origin_thing != 0:
+    target_workbench_distance = 300
+    for i in ava_list:
+        if workbenchs[i].work_type in [4, 5, 6, 7]:
+            if  workbenchs[i].is_targeted_flag[take_thing] == 1 or ((1 << take_thing) & workbenchs[i].origin_thing) != 0:
                 continue
         # if ((1 << take_thing) & workbenchs[workbench_ids].origin_thing) == 0:
-        R_W_distance = cal_point_x_y(x, y, workbenchs[workbench_ids].x, workbenchs[workbench_ids].y)
+        R_W_distance = cal_point_x_y(x, y, workbenchs[i].x, workbenchs[i].y)
         if target_workbench_distance > R_W_distance:
-            target_workbench_ids, target_workbench_distance = workbench_ids, R_W_distance
+            target_workbench_ids, target_workbench_distance = i, R_W_distance
     return target_workbench_ids
+
+def get_price_simple_by_time(free_robots, robots, simple_job_workbenchs, workbenchs, workbench_type_num):
+    robot_id, target0_id, target1_id = -1, -1, -1
+    workbench_list = list(simple_job_workbenchs.keys())
+    best_val_dis = 0.0
+    for robot in free_robots:
+        for workbench in workbench_list:
+            target0 = workbench
+            if workbenchs[target0].is_targeted_flag[0] == 1:
+                continue
+            robot_dis = cal_point_x_y(robots[robot].x, robots[robot].y, workbenchs[target0].x, workbenchs[target0].y)
+            if workbenchs[target0].work_type == 1:
+                target_workbench_list = [4, 5, 9]
+            elif workbenchs[target0].work_type == 2:
+                target_workbench_list = [4, 6, 9]
+            elif workbenchs[target0].work_type == 3:
+                target_workbench_list = [5, 6, 9]
+            target1 = find_nearest_target_sell(workbenchs[target0].x ,workbenchs[target0].y, workbenchs, target_workbench_list, workbench_type_num, workbenchs[target0].work_type)
+            
+            if target1 == -1:
+                continue
+            all_dis = robot_dis + DIS_MP[target0][target1]
+            temp_val = THING_VALUE[workbenchs[target0].work_type]
+            temp_val_dis = temp_val / all_dis
+            if temp_val_dis > best_val_dis:
+                robot_id, target0_id, target1_id = robot, target0, target1
+                best_val_dis = temp_val_dis
+
+    return robot_id, target0_id, target1_id
+
 def get_simple_job(free_robots, robots, simpe_job_workbenchs, workbenchs, workbench_type_num):
     robot_id, target0, target1 = -1, -1, -1
 
@@ -191,10 +226,38 @@ def find_free_job(workbenchs):
     for workbench in workbenchs:
         if workbench.output == 1 and workbench.work_type in [7,6,5,4] and workbench.is_targeted_flag[0] == 0:
             free_job[workbench.table_id] = workbench.work_type
+        
     return dict(sorted(free_job.items(),key=lambda x:x[1],reverse=True))
 
-def get_job(free_robots, robots, free_jobs, workbenchs, workbench_type_num):
+def get_price_by_time(free_robots, robots, free_jobs, workbenchs, workbench_type_num):
     workbench_list = list(free_jobs.keys())
+    robot_id, target0_id, target1_id = -1, -1, -1
+    best_val_dis = 0.0
+    for robot in free_robots:
+        for workbench in workbench_list:
+            target0 = workbench
+            robot_dis = cal_point_x_y(robots[robot].x, robots[robot].y, workbenchs[target0].x, workbenchs[target0].y)
+            if workbenchs[target0].work_type in [4, 5, 6]:
+                # find nearest 7, 9
+                target_workbench_list = [7, 9]
+            elif workbenchs[target0].work_type == 7:
+                # find nearest 5 6 9
+                target_workbench_list = [8, 9]
+            target1 = find_nearest_target_sell(workbenchs[workbench].x ,workbenchs[workbench].y, workbenchs, target_workbench_list, workbench_type_num, workbenchs[workbench].work_type)
+            if target1 == -1:
+                continue
+            all_dis = robot_dis + DIS_MP[target0][target1]
+            temp_val = THING_VALUE[workbenchs[workbench].work_type]
+            temp_val_dis = temp_val / all_dis
+            if temp_val_dis > best_val_dis:
+                robot_id, target0_id, target1_id = robot, target0, target1
+                best_val_dis = temp_val_dis
+    return robot_id, target0_id, target1_id
+
+def get_job(free_robots, robots, free_jobs, workbenchs, workbench_type_num):
+    # 按照顺序给任务
+    workbench_list = list(free_jobs.keys())
+    # log.write(f'{workbench_list}\n')
     robot_id, target0, target1 = -1, -1, -1
     for workbench in workbench_list:
         target0 = workbench
@@ -225,7 +288,7 @@ def finish():
 # Main
 if __name__ == '__main__':
     # input env_map
-    env_mp, dis_mp = read_map(), [[50.0 * 50.0 for j in range(50)] for i in range(50)]
+    env_mp, DIS_MP = read_map(), [[50.0 * 50.0 for j in range(50)] for i in range(50)]
     finish()
 
     # init Craft_Table and robots
@@ -244,6 +307,7 @@ if __name__ == '__main__':
         # input every frame
         parts = line.split(' ')
         frame_id, money_frame = int(parts[0]), int(parts[1])
+        # log.write(f'{frame_id} \n')
         if frame_id == 1:
             # 1th frame use init
             workbench_frame_num = int(input())
@@ -268,7 +332,7 @@ if __name__ == '__main__':
             
             for workbench_a in range(0, workbench_ids):
                 for workbench_b in range(workbench_a + 1, workbench_ids):
-                    dis_mp[workbench_a][workbench_b] = dis_mp[workbench_b][workbench_a] = cal_point_x_y(workbenchs[workbench_a].x, workbenchs[workbench_a].y, workbenchs[workbench_b].x, workbenchs[workbench_b].y)
+                    DIS_MP[workbench_a][workbench_b] = DIS_MP[workbench_b][workbench_a] = cal_point_x_y(workbenchs[workbench_a].x, workbenchs[workbench_a].y, workbenchs[workbench_b].x, workbenchs[workbench_b].y)
             
             # gogogo
            # for robot in range(ROBOT_NUM):
@@ -295,10 +359,17 @@ if __name__ == '__main__':
             # 分配任务
             free_robots = find_free_robot(robots)
             free_jobs = find_free_job(workbenchs)
+            # for i in range(ROBOT_NUM):
+            #     log.write(f'{i} {robots[i].target_workbench_ids[0]} {robots[i].target_workbench_ids[1]}\n')
+            # log.write(f'{free_robots} \n')
+            # log.write(f'{free_jobs}\n')
+
             for i in range(len(free_robots)):
-                employ_robot, target0, target1 = get_job(free_robots, robots, free_jobs, workbenchs, workbench_type_num)
+                employ_robot, target0, target1 = get_price_by_time(free_robots, robots, free_jobs, workbenchs, workbench_type_num)
+                # employ_robot, target0, target1 = get_job(free_robots, robots, free_jobs, workbenchs, workbench_type_num)
                 if target1 == -1:
-                    employ_robot, target0, target1 = get_simple_job(free_robots, robots, simple_job_workbenchs, workbenchs, workbench_type_num)
+                    employ_robot, target0, target1 = get_price_simple_by_time(free_robots, robots, simple_job_workbenchs, workbenchs, workbench_type_num)
+                    # employ_robot, target0, target1 = get_simple_job(free_robots, robots, simple_job_workbenchs, workbenchs, workbench_type_num)
                     robots[employ_robot].target_workbench_ids[0] = target0
                     robots[employ_robot].target_workbench_ids[1] = target1
                     if robots[employ_robot].target_workbench_ids[1] == -1:
@@ -347,7 +418,7 @@ if __name__ == '__main__':
                 elif robots[robot_id].state == 2:
                     # buy
                     if workbenchs[robots[robot_id].target_workbench_ids[0]].output == 1 and robots[robot_id].work_space == robots[robot_id].target_workbench_ids[0]:
-                        if dis_mp[robots[robot_id].target_workbench_ids[0]][robots[robot_id].target_workbench_ids[1]] / 6 > (9000 - frame_id) / 50 - 1:
+                        if DIS_MP[robots[robot_id].target_workbench_ids[0]][robots[robot_id].target_workbench_ids[1]] / 6 > (9000 - frame_id) / 50 - 1:
                             # go to 8,9
                             continue
                         sys.stdout.write('buy %d\n' % robot_id)
@@ -357,32 +428,6 @@ if __name__ == '__main__':
                         robots[robot_id].state = 1
                     
                 elif robots[robot_id].state == 3:
-                    # 1 -> 4 5 9 ; 2 -> 4 6 9; 3 -> 5 6 9
-                    # find sell place
-                    # if robots[robot_id].take_thing == 1:
-                    #     # find nearest 4 5 9
-                    #     target_workbench_list = [4, 5, 9]
-                    # elif robots[robot_id].take_thing == 2:
-                    #     # find nearest 4 6 9
-                    #     target_workbench_list = [4, 6, 9]
-                    #     robots[robot_id].find_nearest_target(workbench_frame_num, workbenchs, [4, 6, 9], robots[robot_id].take_thing)
-                    # elif robots[robot_id].take_thing == 3:
-                    #     # find nearest 5 6 9
-                    #     target_workbench_list = [5, 6, 9]
-                    # elif robots[robot_id].take_thing == 4:
-                    #     # find nearest 5 6 9
-                    #     target_workbench_list = [7, 9]
-                    # elif robots[robot_id].take_thing == 5:
-                    #     # find nearest 5 6 9
-                    #     target_workbench_list = [7, 9]
-                    # elif robots[robot_id].take_thing == 6:
-                    #     # find nearest 5 6 9
-                    #     target_workbench_list = [7, 9]
-                    # elif robots[robot_id].take_thing == 7:
-                    #     # find nearest 5 6 9
-                    #     target_workbench_list = [8, 9]
-                    # robots[robot_id].find_nearest_target(workbench_frame_num, workbenchs, target_workbench_list, robots[robot_id].take_thing)
-                    # workbenchs[robots[robot_id].target_workbench_ids].is_targeted_flag = 1
                     robots[robot_id].state = 4
 
                 elif robots[robot_id].state == 4:
@@ -406,8 +451,10 @@ if __name__ == '__main__':
                     if robots[robot_id].work_space == robots[robot_id].target_workbench_ids[1] and not ((1 << robots[robot_id].take_thing) & workbenchs[robots[robot_id].target_workbench_ids[1]].origin_thing):
                         sys.stdout.write('sell %d\n' % robot_id)
                         # 将相应原料的卖操作解锁
-                        workbenchs[robots[robot_id].target_workbench_ids[1]].is_targeted_flag[take_thing] = 0
-                        
+
+                        target_workbench = robots[robot_id].target_workbench_ids[1]
+                        workbenchs[target_workbench].is_targeted_flag[take_thing] = 0
+
 
                         robots[robot_id].state = 0
                         robots[robot_id].target_workbench_ids[0] = -1
@@ -415,3 +462,7 @@ if __name__ == '__main__':
                     else:
                         robots[robot_id].state = 4
         finish()
+        # log.write(f'~~~~~~~~~~~~~~\n')
+        # for i in workbenchs:
+        #     log.write(f"{i.table_id} {i.is_targeted_flag}\n")
+        # log.write(f"------------------------\n")
