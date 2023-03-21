@@ -120,30 +120,22 @@ def cal_point_x_y(origin_x: float, origin_y: float, target_x: float, target_y):
 def drt_point_x_y(origin_x: float, origin_y: float, target_x: float, target_y):
     return math.atan2(target_y - origin_y, target_x - origin_x)
 def find_nearest_target_sell(x, y, workbenchs, target_workbench_list, workbench_type_num, take_thing):
+    ava_list = []
+    for i in target_workbench_list:
+        type_num_list = workbench_type_num[i]
+        for j in type_num_list:
+            ava_list.append(j)
     target_workbench_ids = -1
     target_workbench_distance=300
-    for workbench in workbenchs:
-        if workbench.work_type in target_workbench_list and workbench.is_targeted_flag[take_thing] == 0:
-            R_W_distance = cal_point_x_y(x, y, workbench.x, workbench.y)
-            if target_workbench_distance > R_W_distance:
-                target_workbench_ids, target_workbench_distance = workbench.table_id, R_W_distance
+    for workbench_ids in ava_list:
+        if workbenchs[workbench_ids].work_type in [4, 5, 6, 7]:
+            if  workbenchs[workbench_ids].is_targeted_flag[take_thing] == 1 or (1 << take_thing) & workbenchs[workbench_ids].origin_thing != 0:
+                continue
+        # if ((1 << take_thing) & workbenchs[workbench_ids].origin_thing) == 0:
+        R_W_distance = cal_point_x_y(x, y, workbenchs[workbench_ids].x, workbenchs[workbench_ids].y)
+        if target_workbench_distance > R_W_distance:
+            target_workbench_ids, target_workbench_distance = workbench_ids, R_W_distance
     return target_workbench_ids
-    # ava_list = []
-    # for i in target_workbench_list:
-    #     type_num_list = workbench_type_num[i]
-    #     for j in type_num_list:
-    #         ava_list.append(j)
-    # target_workbench_ids = -1
-    # target_workbench_distance=300
-    # for workbench_ids in ava_list:
-    #     if workbenchs[workbench_ids].work_type in [4, 5, 6, 7]:
-    #         if  workbenchs[workbench_ids].is_targeted_flag[take_thing] == 1:
-    #             continue
-    #     # if ((1 << take_thing) & workbenchs[workbench_ids].origin_thing) == 0:
-    #     R_W_distance = cal_point_x_y(x, y, workbenchs[workbench_ids].x, workbenchs[workbench_ids].y)
-    #     if target_workbench_distance > R_W_distance:
-    #         target_workbench_ids, target_workbench_distance = workbench_ids, R_W_distance
-    # return target_workbench_ids
 def get_simple_job(free_robots, robots, simpe_job_workbenchs, workbenchs, workbench_type_num):
     robot_id, target0, target1 = -1, -1, -1
 
@@ -297,29 +289,18 @@ if __name__ == '__main__':
                 robots[robot].get_from_frame(robot_work, robot_take, robot_time, robot_crush, robot_angle, robot_line_x, robot_line_y, robot_toward, robot_x, robot_y)
             
             ###
-            # 判断加工工作台的原料格，若不为空则将相应原料的卖操作加锁
-            for workbench_ids in range(workbench_frame_num):
-                if workbenchs[workbench_ids].work_type in [4, 5, 6, 7]:
-                    for i in range(1,7):
-                        if (1 << i) & workbenchs[workbench_ids].origin_thing:
-                            workbenchs[workbench_ids].is_targeted_flag[i] = 1
-            ###
-
-            ###
             # 等待时间加1
             for workbench in simple_job_workbenchs.keys():
                 simple_job_workbenchs[workbench] += 1
             # 分配任务
             free_robots = find_free_robot(robots)
             free_jobs = find_free_job(workbenchs)
-            log.write(f'{free_jobs}\n')
             for i in range(len(free_robots)):
                 employ_robot, target0, target1 = get_job(free_robots, robots, free_jobs, workbenchs, workbench_type_num)
                 if target1 == -1:
                     employ_robot, target0, target1 = get_simple_job(free_robots, robots, simple_job_workbenchs, workbenchs, workbench_type_num)
                     robots[employ_robot].target_workbench_ids[0] = target0
                     robots[employ_robot].target_workbench_ids[1] = target1
-                    log.write(f'{target0} {target1}\n')
                     if robots[employ_robot].target_workbench_ids[1] == -1:
                         robots[employ_robot].target_workbench_ids[0] = -1
                     else:
@@ -426,7 +407,7 @@ if __name__ == '__main__':
                         sys.stdout.write('sell %d\n' % robot_id)
                         # 将相应原料的卖操作解锁
                         workbenchs[robots[robot_id].target_workbench_ids[1]].is_targeted_flag[take_thing] = 0
-
+                        
 
                         robots[robot_id].state = 0
                         robots[robot_id].target_workbench_ids[0] = -1
