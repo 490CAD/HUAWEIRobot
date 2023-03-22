@@ -13,7 +13,8 @@ PI = math.pi
 THING_VALUE = [0, 3000, 3200, 3400, 7100, 7800, 8300, 29000]
 HIGH_LEVEL_WORKBENCH = [4, 5, 6, 7]
 USEFUL_WORKBENCH = [1, 2, 3, 4, 5, 6, 7]
-MAX_WAIT_TIME = 70 * 50 / 6
+MAX_WAIT_TIME = 100
+MAX_PENTALIY_VALUE = 100000
 high_level_workbench_list = []
 useful_workbench_list = []
 DIS_MP = None
@@ -279,11 +280,11 @@ def get_price_by_time(free_robots, robots, useful_workbenchs, workbenchs, workbe
             if 1 <= workbenchs[target0].work_type <= 3:
                 all_time += 0
             elif wait_time == -1:
-                all_time += 100000
+                all_time += MAX_PENTALIY_VALUE
             elif workbenchs[target0].output == 1 or wait_time <= go_time:
                 all_time += 0
-            elif wait_time - go_time > 200:
-                all_time += 100000
+            elif wait_time - go_time > MAX_WAIT_TIME:
+                all_time += MAX_PENTALIY_VALUE
             else:
                 all_time += workbenchs[target0].remain_time - go_time
             temp_val = THING_VALUE[workbenchs[workbench].work_type]
