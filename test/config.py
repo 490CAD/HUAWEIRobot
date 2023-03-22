@@ -1,0 +1,14 @@
+import math
+
+class CFG():
+    ROBOT_RADIUS = 0.45
+    ROBOT_RHO = 20
+    ROBOT_NUM = 4
+    MAP_SIZE = 100
+    PI = math.pi
+    THING_VALUE = [0, 3000, 3200, 3400, 7100, 7800, 8300, 29000]
+    HIGH_LEVEL_WORKBENCH = [4, 5, 6, 7]
+    USEFUL_WORKBENCH = [1, 2, 3, 4, 5, 6, 7]
+    MAX_WAIT_TIME = 100
+    MAX_PENTALIY_VALUE = 100000
+    OVER_FRAME = 9000

@@ -1,1 +1,9 @@
 replay/*
+Robot
+Robot_gui
+test/.DS_Store
+test/__pycache__/calcation.cpython-39.pyc
+test/__pycache__/config.cpython-39.pyc
+test/__pycache__/PID.cpython-39.pyc
+test/__pycache__/robot.cpython-39.pyc
+test/__pycache__/workbench.cpython-39.pyc
