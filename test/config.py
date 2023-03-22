@@ -18,6 +18,8 @@ class CFG():
     MAP_SIZE = 100
     PI = math.pi
     THING_VALUE = [0, 3000, 3200, 3400, 7100, 7800, 8300, 29000]
+    THING_VALUE_2 = [0, 3000, 3100, 3200, 8100, 8200, 8300, 29000]
+    THING_COEFF = [0, 1/6, 1/6, 1/6, 1/3, 1/3, 1/3, 1]
     HIGH_LEVEL_WORKBENCH = [4, 5, 6, 7]
     USEFUL_WORKBENCH = [1, 2, 3, 4, 5, 6, 7]
     MAX_WAIT_TIME = 100
