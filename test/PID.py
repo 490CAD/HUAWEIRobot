@@ -25,7 +25,7 @@ class PID:
             if self.accumulated_error < self.accumulator_min:
                 self.accumulated_error = self.accumulator_min
             elif self.accumulated_error > self.accumulator_max:
-                self.accumulated_error = self.accumulated_max
+                self.accumulated_error = self.accumulator_max
         # Calculate control output
         P_term = self.Kp * error
         D_term = self.Kd * error_diff

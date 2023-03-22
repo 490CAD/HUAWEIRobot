@@ -12,7 +12,7 @@ MAP_SIZE = 100
 PI = math.pi
 THING_VALUE = [0, 3000, 3200, 3400, 7100, 7800, 8300, 29000]
 DIS_MP = None
-# log = open("log.txt","a")
+log = open("log.txt","w")
 # Robots and Craft Tables
 class Robot():
     def __init__(self, id):
@@ -38,9 +38,9 @@ class Robot():
         self.state = 0
         # next target workbench
         self.target_workbench_ids = [-1, -1]
-        self.s_pid=PID.PID(50, 0.01, 500, 0)
+        self.s_pid=PID.PID(50, 0.001, 500, 0)
         # 0.8 0.005
-        self.w_pid=PID.PID(10, 0.01, 3, 0)
+        self.w_pid=PID.PID(50, 0.01, 3, 0)
 
     def get_from_frame(self, work_space, take_thing, time_f, crush_f, angle_speed, line_speed_x, line_speed_y, toward, x, y):
         self.work_space = int(work_space)
@@ -95,6 +95,7 @@ class Robot():
         
         steering = self.w_pid.control(-direction1)
         move_distance = self.s_pid.control(-distance)
+        log.write(f'{self.s_pid.accumulated_error} {self.s_pid.previous_error}\n')
         self.move(steering, move_distance)
 
 class WorkBench():
@@ -315,7 +316,7 @@ if __name__ == '__main__':
         # input every frame
         parts = line.split(' ')
         frame_id, money_frame = int(parts[0]), int(parts[1])
-        # log.write(f'{frame_id} \n')
+        log.write(f'------------------------------{frame_id} \n')
         if frame_id == 1:
             # 1th frame use init
             workbench_frame_num = int(input())
