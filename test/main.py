@@ -38,7 +38,7 @@ class Robot():
         self.state = 0
         # next target workbench
         self.target_workbench_ids = [-1, -1]
-        self.s_pid=PID.PID(50, 0.001, 500, 0)
+        self.s_pid=PID.PID(50, 0.001, 1300, 0)
         # 0.8 0.005
         self.w_pid=PID.PID(50, 0.01, 3, 0)
 
@@ -90,8 +90,15 @@ class Robot():
         elif direction1 <= -PI:
             direction1 += 2*PI
 
-        if direction1 > PI / 2 or direction1 < -PI / 2:
-            distance = - distance
+        DISTANCE_TOLERATION = 2
+
+        # 左墙面 -->右墙面 -->上墙面 -->下墙面
+        if ((self.x <= DISTANCE_TOLERATION) and (self.toward >= PI * 3 / 4 or self.toward <= -PI * 3 / 4)) \
+            or ((self.x >= (50 - DISTANCE_TOLERATION)) and (self.toward >= -PI / 4 and self.toward <= PI / 4)) \
+            or ((self.y >= (50 - DISTANCE_TOLERATION)) and (self.toward > PI / 4 or self.toward < PI * 3 / 4)) \
+            or ((self.y <= DISTANCE_TOLERATION) and (self.toward > -PI * 3 / 4 and self.toward < -PI / 4)):
+            if direction1 > PI / 2 or direction1 < -PI / 2:
+                distance = - distance
         
         steering = self.w_pid.control(-direction1)
         move_distance = self.s_pid.control(-distance)
@@ -400,7 +407,7 @@ if __name__ == '__main__':
         # do some operation
         sys.stdout.write('%d\n' % frame_id)
         for robot_id in range(ROBOT_NUM):
-            # if robot_id not in [0]:
+            # if robot_id not in [2]:
             #     continue
             if robots[robot_id].target_workbench_ids[0] == -1:
                 continue

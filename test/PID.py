@@ -36,7 +36,7 @@ class PID:
         # Return control value
         return control
 
-    def anti_windup(self, acc_min, acc_max=None):
+    def anti_windup_fun(self, acc_min, acc_max=None):
         """
         @acc_min false for disabling
         @acc_max defaults to -@acc_min
