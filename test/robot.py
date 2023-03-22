@@ -21,8 +21,8 @@ class Robot():
         self.state = 0
         # next target workbench
         self.target_workbench_ids = [-1, -1]
-        self.s_pid=PID.PID(50, 0.001, 1300, 0)
-        # 0.8 0.005
+        self.s_pid=PID.PID(50, 0.001, 1500, 0)
+        # 50, 0.01, 3, 0
         self.w_pid=PID.PID(50, 0.01, 3, 0)
 
     def get_from_frame(self, work_space, take_thing, time_f, crush_f, angle_speed, line_speed_x, line_speed_y, toward, x, y):
@@ -47,13 +47,19 @@ class Robot():
             distance = 0
         
         # apply pid
-        sys.stdout.write('rotate %d %f\n' % (self.robot_id, steering))
+        rotate = steering
 
         if distance < 0:
-            sys.stdout.write('forward %d %f\n' % (self.robot_id, -2))
+            forward = -2
         else:
             speed = min(6, distance)
-            sys.stdout.write('forward %d %f\n' % (self.robot_id, speed))
+            forward =  speed
+
+        if rotate > 0:
+            rotate = min(PI, rotate)
+        else:
+            rotate = max(-PI, rotate)
+        return rotate, forward
 
     def move_to_target(self, direction, distance):
         direction1=direction-self.toward
@@ -75,4 +81,4 @@ class Robot():
         steering = self.w_pid.control(-direction1)
         move_distance = self.s_pid.control(-distance)
         # log.write(f'{self.s_pid.accumulated_error} {self.s_pid.previous_error}\n')
-        self.move(steering, move_distance)
+        return self.move(steering, move_distance)

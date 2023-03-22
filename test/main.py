@@ -4,9 +4,13 @@ from robot import Robot
 from workbench import WorkBench
 from config import CFG
 from calcation import *
+
+from pyorca import Agent, get_avoidance_velocity, orca, normalized, perp
+from numpy import array, rint, linspace, pi, cos, sin, sqrt
+
 # hyperparameters
 cfg = CFG()
-
+log = open("log.txt", "a")
 # global needs
 high_level_workbench_list = []
 useful_workbench_list = []
@@ -202,7 +206,7 @@ if __name__ == '__main__':
         # input every frame
         parts = line.split(' ')
         frame_id, money_frame = int(parts[0]), int(parts[1])
-        # log.write(f'------------------------------{frame_id} \n')
+        log.write(f'------------------------------{frame_id} \n')
         if frame_id == 1:
             # 1th frame use init
             workbench_frame_num = int(input())
@@ -291,10 +295,11 @@ if __name__ == '__main__':
                     free_robots.remove(employ_robot)
         line = sys.stdin.readline()
 
+        rotate, forward = None, None
         # do some operation
         sys.stdout.write('%d\n' % frame_id)
         for robot_id in range(cfg.ROBOT_NUM):
-            # if robot_id not in [2]:
+            # if robot_id not in [0]:
             #     continue
             if robots[robot_id].target_workbench_ids[0] == -1:
                 continue
@@ -316,7 +321,8 @@ if __name__ == '__main__':
                         sys.stdout.write('forward %d %f\n' % (robot_id, 0))
                         robots[robot_id].state = 2
                     else:
-                        robots[robot_id].move_to_target(direction, distance)
+                        rotate, forward = robots[robot_id].move_to_target(direction, distance)
+                        cfg.pid_list[robot_id] = [rotate, forward]
 
                 elif robots[robot_id].state == 2:
                     # buy
@@ -346,7 +352,8 @@ if __name__ == '__main__':
                         sys.stdout.write('forward %d %f\n' % (robot_id, 0))
                         robots[robot_id].state = 5
                     else:
-                        robots[robot_id].move_to_target(direction, distance)
+                        rotate, forward = robots[robot_id].move_to_target(direction, distance)
+                        cfg.pid_list[robot_id] = [rotate, forward]
 
                 elif robots[robot_id].state == 5:
                     # sell and turn 0
@@ -364,8 +371,32 @@ if __name__ == '__main__':
                         robots[robot_id].target_workbench_ids[1] = -1                      
                     else:
                         robots[robot_id].state = 4
+
+        for i, robot in enumerate(robots):
+            # if i != 0:
+            #     continue
+            if cfg.pid_list[i][0] is None:
+                continue
+            # candidates = robots[:i] + robots[i + 1:]
+            # print(candidates)
+            rotate = cfg.pid_list[i][0]
+            forward = cfg.pid_list[i][1]
+            # log.write(f"robot:{i}--------------------------\n\n")
+            # log.write(f'{cfg.pid_list[i]}\n')
+            drt = drt_point_x_y(robot.x, -robot.y, workbenchs[robot.target_workbench_ids[0]].x, -workbenchs[robot.target_workbench_ids[0]].y)
+            v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list)
+            # log.write(f'{v} {_}\n')
+            if cfg.pid_list[i][1] >= 0:
+                rotate =  math.atan2(-v[1], v[0])  - robot.toward
+                if rotate > cfg.PI:
+                    rotate += -2*cfg.PI
+                elif rotate <= -cfg.PI:
+                    rotate += 2*cfg.PI
+                rotate = rotate / cfg.dt
+                forward = sqrt(v[0]**2 + v[1]**2)
+            # log.write(f'{rotate} {forward}\n\n')
+            sys.stdout.write('rotate %d %f\n' % (i, rotate))
+            sys.stdout.write('forward %d %f\n' % (i, forward))
+
+        # log.write(f'----------------------------------------------------------------\n')
         finish()
-        # log.write(f'~~~~~~~~~~~~~~\n')
-        # for i in workbenchs:
-        #     log.write(f"{i.table_id} {i.is_targeted_flag}\n")
-        # log.write(f"------------------------\n")
