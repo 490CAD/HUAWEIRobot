@@ -7,3 +7,15 @@ test/__pycache__/config.cpython-39.pyc
 test/__pycache__/PID.cpython-39.pyc
 test/__pycache__/robot.cpython-39.pyc
 test/__pycache__/workbench.cpython-39.pyc
+
+Robot_gui.exe
+Robot.exe
+run_demo_without_gui.bat
+run_keyboard_demo.bat
+run_simple_demo.bat
+replayer/CodeCraft_2023_Replay.exe
+replayer/CodeCraft_2023_Replay.pck
+*.zip
+pyorca/*
+log.txt
+test/__pycache__/PID.cpython-38.pyc
