@@ -4,7 +4,7 @@ import sys
 
 PI = math.pi
 
-log = open("log.txt", "a")
+# log = open("log.txt", "a")
 class Robot():
     def __init__(self, id):
         self.work_space = -1
@@ -22,7 +22,7 @@ class Robot():
         # next target workbench
         self.target_workbench_ids = [-1, -1]
         # 50, 0.001, 1500, 0
-        self.s_pid=PID.PID(7, 0, 0, 1000)
+        self.s_pid=PID.PID(7, 0, 0, 0)
         # 50, 0.01, 3, 0
         self.w_pid=PID.PID(27, 0, 0, 0)
         self.value = id
@@ -54,7 +54,7 @@ class Robot():
         if distance < 0:
             forward = max(-2, distance)
         else:
-            speed = min(6, distance)
+            speed = min(6, distance/3)
             forward =  speed
 
         if rotate > 0:
