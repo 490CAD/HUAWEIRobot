@@ -83,9 +83,9 @@ def orca(robot_id, robots, t, dt, pid_list):
         lines.append(line)
 
     pref_velocity = array([v_x, v_y])
-    v = halfplane_optimize(lines, pref_velocity, 1)
-    if v is None:
-        return halfplane_optimize(lines, np.array([0, 0]), 2), lines
+    v = halfplane_optimize(lines, pref_velocity, 2)
+    # if v is None:
+    #     return halfplane_optimize(lines, np.array([0, 0]), 2), lines
     return v, lines
 
 def get_avoidance_velocity(robot, collider, t, dt, robot_next_state):
