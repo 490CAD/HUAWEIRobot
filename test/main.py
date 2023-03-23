@@ -10,7 +10,7 @@ from numpy import array, rint, linspace, pi, cos, sin, sqrt
 
 # hyperparameters
 cfg = CFG()
-log = open("log.txt", "a")
+# log = open("log.txt", "a")
 # global needs
 high_level_workbench_list = []
 useful_workbench_list = []
@@ -129,7 +129,7 @@ def find_nearest_target_sell(x, y, target_workbench_list, take_thing):
         for j in type_num_list:
             ava_list.append(j)
     # log.write(f'ava_list: {ava_list}\n')
-    target_workbench_ids = -1
+    target_workbench_id = -1
     target_workbench_distance = 300
     for i in ava_list:
         if workbenchs[i].work_type in [4, 5, 6, 7]:
@@ -138,15 +138,17 @@ def find_nearest_target_sell(x, y, target_workbench_list, take_thing):
         # if ((1 << take_thing) & workbenchs[workbench_ids].origin_thing) == 0:
         R_W_distance = cal_point_x_y(x, y, workbenchs[i].x, workbenchs[i].y)
         if target_workbench_distance > R_W_distance:
-            target_workbench_ids, target_workbench_distance = i, R_W_distance
-    return target_workbench_ids
+            target_workbench_id, target_workbench_distance = i, R_W_distance
+    return target_workbench_id
 
 def get_price_by_time(free_robots):
-    robot_id, target0_id, target1_id, best_val_time = -1, -1, -1, 0.0
+    robot_id, target0_id, target1_id = -1, -1, -1
+    best_val_time = 0.0
     workbench_list = useful_workbench_list
     for robot in free_robots:
         for workbench in workbench_list:
             target0 = workbench
+            target_workbench_list = []
             if workbenchs[target0].is_targeted_flag[0] == 1:
                 continue
             robot_dis = cal_point_x_y(robots[robot].x, robots[robot].y, workbenchs[target0].x, workbenchs[target0].y)
