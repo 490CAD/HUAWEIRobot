@@ -100,3 +100,11 @@ def choose_target_workbench_list(generate_product, origin_workbench_work_type, c
             elif generate_product[5] - generate_product[6] <= -cfg.SUB_MISSION:
                 target_workbench_list.pop(1)
     return target_workbench_list
+
+def get_ava_list(target_workbench_list, workbench_type_num):
+    ava_list = []
+    for i in target_workbench_list:
+        type_num_list = workbench_type_num[i]
+        for j in type_num_list:
+            ava_list.append(j)
+    return ava_list
