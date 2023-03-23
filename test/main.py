@@ -182,7 +182,7 @@ def get_price_by_time(free_robots):
             if temp_val_time > best_val_time:
                 robot_id, target0_id, target1_id = robot, target0, target1
                 best_val_time = temp_val_time
-    robots[robot_id] = best_val_time
+    robots[robot_id].value = best_val_time
     return robot_id, target0_id, target1_id   
 
 # Main
@@ -405,27 +405,37 @@ if __name__ == '__main__':
                     else:
                         robots[robot_id].state = 4
         # log.write(f'{robots[3].x}, {robots[3].y}\n')
-        # distance = cal_point_x_y(robots[3].x, robots[3].y, 25.25, 32.75 + 5)
+        # 32.75 + 5
+        # distance = cal_point_x_y(robots[1].x, robots[1].y, 12.75 - 5, 35.75)
         #             # direction to target
-        # direction = drt_point_x_y(robots[3].x, robots[3].y, 25.25, 32.75 + 5)
-
-        # rotate, forward = robots[3].move_to_target(direction, distance)
-
+        # direction = drt_point_x_y(robots[1].x, robots[1].y, 12.75 - 5, 35.75)
+        # log.write(f'{robots[0].x} {robots[0].y}\n')
+        # rotate, forward = robots[1].move_to_target(direction, distance)
+        # rotate, forward =0, -2
+        # cfg.pid_list= [[0, 0],[0, 0],[0, 0],[0, 0]]
+        # cfg.pid_list[1]= [rotate, forward]
+        # robots[0].value = 100
+        # robots[1].value = 0
         ### 防碰撞检测与预防
         for i, robot in enumerate(robots):
+            # if i not in [1]:
+            #     continue
             if cfg.pid_list[i][0] is None:
                 continue
-            rotate = cfg.pid_list[i][0]
-            forward = cfg.pid_list[i][1]
+            # rotate = cfg.pid_list[i][0]
+            # forward = cfg.pid_list[i][1]
             v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list)
-            if cfg.pid_list[i][1] >= 0:
-                rotate =  math.atan2(-v[1], v[0])  - robot.toward
-                if rotate > cfg.PI:
-                    rotate += -2*cfg.PI
-                elif rotate <= -cfg.PI:
-                    rotate += 2*cfg.PI
-                rotate = rotate / cfg.dt
-                forward = sqrt(v[0]**2 + v[1]**2)
+            # if cfg.pid_list[i][1] >= 0:
+            rotate =  math.atan2(-v[1], v[0])  - robot.toward
+            if rotate > cfg.PI:
+                rotate += -2*cfg.PI
+            elif rotate <= -cfg.PI:
+                rotate += 2*cfg.PI
+            rotate = rotate / cfg.dt
+            forward = sqrt(v[0]**2 + v[1]**2)
+            if cfg.pid_list[i][1] < 0:
+                forward = -forward
+                # rotate = -rotate
             # log.write(f'rotate{rotate} forward{forward}\n\n')
             sys.stdout.write('rotate %d %f\n' % (i, rotate))
             sys.stdout.write('forward %d %f\n' % (i, forward))
