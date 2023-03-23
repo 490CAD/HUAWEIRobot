@@ -7,6 +7,14 @@ test/__pycache__/config.cpython-39.pyc
 test/__pycache__/PID.cpython-39.pyc
 test/__pycache__/robot.cpython-39.pyc
 test/__pycache__/workbench.cpython-39.pyc
+test/__pycache__/calcation.cpython-37.pyc
+test/__pycache__/config.cpython-37.pyc
+test/__pycache__/PID.cpython-37.pyc
+test/__pycache__/robot.cpython-37.pyc
+test/__pycache__/workbench.cpython-37.pyc
+test/__pycache__/halfplaneintersect.cpython-37.pyc
+test/__pycache__/pyorca.cpython-37.pyc
+*.txt
 
 Robot_gui.exe
 Robot.exe

@@ -22,8 +22,6 @@
 
 """This module solves 2D linear programming using half-plane intersection."""
 
-from __future__ import division
-
 import itertools
 
 from numpy import dot, clip, array, sqrt

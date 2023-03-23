@@ -10,7 +10,7 @@ from numpy import array, rint, linspace, pi, cos, sin, sqrt
 
 # hyperparameters
 cfg = CFG()
-log = open("log.txt", "a")
+# log = open("log.txt", "a")
 # global needs
 high_level_workbench_list = []
 useful_workbench_list = []
@@ -186,7 +186,7 @@ if __name__ == '__main__':
         # input every frame
         parts = line.split(' ')
         frame_id, money_frame = int(parts[0]), int(parts[1])
-        log.write(f'------------------------------{frame_id} \n')
+        # log.write(f'------------------------------{frame_id} \n')
         if frame_id == 1:
             # 1th frame use init
             workbench_frame_num = int(input())
