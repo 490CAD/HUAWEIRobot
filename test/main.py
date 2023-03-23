@@ -57,21 +57,26 @@ generate_product = {4:0, 5:0, 6:0}
 
 
 def get_price_by_look_further(free_robots):
-    robot_id, target0_id, target1_id, target2_id, best_val_time = -1, -1, -1, -1, 0.0
+    robot_id, target0_id, target1_id, best_val_time = -1, -1, -1, 0.0
     workbench_list = useful_workbench_list
+    target2_id = -1
     for id in free_robots:
         robot = robots[id]
         for target0 in workbench_list:
             target0_workbench = workbenchs[target0]
             if target0_workbench.is_targeted_flag[0] == 1 or (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time == -1):
                 continue
+
             target_workbench_list = choose_target_workbench_list(generate_product, target0_workbench.work_type, 2)
             ava_list = get_ava_list(target_workbench_list, workbench_type_num)
+
             for target1 in ava_list:
+
                 target1_workbench = workbenchs[target1]
                 if target1_workbench.work_type in  cfg.HIGH_LEVEL_WORKBENCH:
                     if  target1_workbench.is_targeted_flag[target0_workbench.work_type] == 1 or ((1 << target0_workbench.work_type) & target1_workbench.origin_thing) != 0:
                         continue
+
                 target0_target1_dis = DIS_MP[target0][target1]
                 robot_target0_dis = cal_point_x_y(robot.x, robot.y, target0_workbench.x, target0_workbench.y)
                 all_dis = robot_target0_dis + target0_target1_dis
@@ -81,11 +86,36 @@ def get_price_by_look_further(free_robots):
                 temp_val = cfg.THING_VALUE[target0_workbench.work_type]
                 temp_val_time = temp_val / all_time
 
+                next_time = 0
+                if target1_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH:
+                    if workbench_minest_sell[target1][0] == -1:
+                        next_time = DIS_MP[target1][workbench_minest_sell[target1][1]] * 50 / 6
+                    elif workbench_minest_sell[target1][1] == -1:
+                        next_time = DIS_MP[target1][workbench_minest_sell[target1][0]] * 50 / 6
+                    else:
+                        next_time = min(DIS_MP[target1][workbench_minest_sell[target1][1]], DIS_MP[target1][workbench_minest_sell[target1][0]]) * 50 / 6
+
+                if target1_workbench.work_type == 7:
+                    if target1_workbench.origin_thing == 0:
+                        next_time = (next_time + 1000) * 3
+                    elif ((1 << target0_workbench.work_type) | target1_workbench.origin_thing) == 112:
+                        next_time = (next_time + 1000)
+                    else:
+                        next_time = (next_time + 1000) * 2
+                elif target1_workbench.work_type in [4, 5, 6]:
+                    if target1_workbench.origin_thing == 0:
+                        next_time = (next_time + 500) * 2
+                    else:
+                        next_time = (next_time + 500)
+                if target1_workbench.work_type not in [8, 9] and all_time <= cfg.MAX_PENTALIY_VALUE and (target1_workbench.work_type == 7 and ((1 << target0_workbench.work_type) | target1_workbench.origin_thing) == 112):
+                    temp_val_time += cfg.THING_VALUE[target1_workbench.work_type] # / next_time
+
                 if temp_val_time > best_val_time:
                     robot_id, target0_id, target1_id = id, target0, target1
                     best_val_time = temp_val_time
-         
-    return robot_id, target0_id, target1_id
+
+    robots[robot_id].value = best_val_time
+    return robot_id, target0_id, target1_id, target2_id
 
 def get_price_by_targets(free_robots):
     """
@@ -279,6 +309,7 @@ if __name__ == '__main__':
 
         for i in range(len(free_robots)):
             employ_robot, target0, target1 = get_price_by_targets(free_robots)
+            # employ_robot, target0, target1, target2 = get_price_by_look_further(free_robots)
             # employ_robot, target0, target1 = get_price_by_time(free_robots)
             robots[employ_robot].target_workbench_ids[0] = target0
             robots[employ_robot].target_workbench_ids[1] = target1
