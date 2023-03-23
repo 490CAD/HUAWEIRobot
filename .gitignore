@@ -2,11 +2,6 @@ replay/*
 Robot
 Robot_gui
 test/.DS_Store
-test/__pycache__/calcation.cpython-39.pyc
-test/__pycache__/config.cpython-39.pyc
-test/__pycache__/PID.cpython-39.pyc
-test/__pycache__/robot.cpython-39.pyc
-test/__pycache__/workbench.cpython-39.pyc
 
 Robot_gui.exe
 Robot.exe
@@ -17,5 +12,5 @@ replayer/CodeCraft_2023_Replay.exe
 replayer/CodeCraft_2023_Replay.pck
 *.zip
 pyorca/*
-log.txt
-test/__pycache__/PID.cpython-38.pyc
+*.txt
+*.pyc
