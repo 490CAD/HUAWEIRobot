@@ -8,6 +8,8 @@ cfg = CFG()
 log = open("log.txt", "a")
 class Robot():
     def __init__(self, id):
+        """
+        """
         self.work_space = -1
         self.take_thing = 0
         self.time_f = 0.0

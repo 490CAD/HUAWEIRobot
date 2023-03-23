@@ -70,3 +70,33 @@ def add_more_times_all(workbench, wait_time, go_time):
     else:
         extra_time += workbench.remain_time - go_time
     return extra_time
+
+def choose_target_workbench_list(generate_product, origin_workbench_work_type, choose_mode=1):
+    target_workbench_list = []
+    if origin_workbench_work_type == 4 or origin_workbench_work_type == 5 or origin_workbench_work_type == 6:
+        target_workbench_list = [7, 9]
+    elif origin_workbench_work_type == 7:
+        target_workbench_list = [8, 9]
+    elif origin_workbench_work_type == 1:
+        target_workbench_list = [4, 5, 9]
+    elif origin_workbench_work_type == 2:
+        target_workbench_list = [4, 6, 9]
+    elif origin_workbench_work_type == 3:
+        target_workbench_list = [5, 6, 9]
+    if choose_mode == 2:
+        if origin_workbench_work_type == 1: 
+            if generate_product[4] - generate_product[5] >= cfg.SUB_MISSION:
+                target_workbench_list.pop(0)
+            elif generate_product[4] - generate_product[5] <= -cfg.SUB_MISSION:
+                target_workbench_list.pop(1)
+        if origin_workbench_work_type == 2:
+            if generate_product[4] - generate_product[6] >= cfg.SUB_MISSION:
+                target_workbench_list.pop(0)
+            elif generate_product[4] - generate_product[6] <= -cfg.SUB_MISSION:
+                target_workbench_list.pop(1)
+        if origin_workbench_work_type == 3:
+            if generate_product[5] - generate_product[6] >= cfg.SUB_MISSION:
+                target_workbench_list.pop(0)
+            elif generate_product[5] - generate_product[6] <= -cfg.SUB_MISSION:
+                target_workbench_list.pop(1)
+    return target_workbench_list

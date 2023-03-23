@@ -1,3 +1,17 @@
+'''
+    TODO:
+        main.py 353行 防碰撞 开不开 [倒车防碰撞开不开]
+        robot.py 88行 倒车 / 墙面倒车
+        pyroca.py 71行 承担责任 [86行 检测碰撞]
+
+        robot.py PID超参数
+        config.py 检测碰撞超参数
+
+        策略迭代和优化
+            3 固定路径 1 打野
+            对于7 考虑3段任务
+            针对地图分类讨论
+'''
 #!/bin/bash
 import sys
 from robot import Robot
@@ -12,6 +26,17 @@ from numpy import array, rint, linspace, pi, cos, sin, sqrt
 cfg = CFG()
 # log = open("log.txt", "a")
 # global needs
+"""
+    high_level_workbench_list: 类型为4567的工作台
+    useful_workbench_list: 类型为1234567的工作台
+    env_mp: 地图
+    DIS_MP: DIS_MP[a][b]表示a号工作台与b号工作台之间的距离
+    workbench_ids: 工作台总数量
+    workbenchs: 工作台列表
+    workbench_type_num: workbench_type_num[i]表示工作台类型为i的所有工作台
+    workbench_minest_sell: workbench_minest_sell[i]表示对于i号工作台他能卖的最近的工作台编号
+    generate_product: 全场生产4 5 6的数量
+"""
 high_level_workbench_list = []
 useful_workbench_list = []
 env_mp, DIS_MP = None, None
@@ -21,48 +46,31 @@ workbench_type_num = [[] for i in range(10)]
 workbench_minest_sell = []
 generate_product = {4:0, 5:0, 6:0}
 
-def choose_target_workbench_list(origin_workbench_work_type, choose_mode=1):
-    target_workbench_list = []
-    if origin_workbench_work_type == 4 or origin_workbench_work_type == 5 or origin_workbench_work_type == 6:
-        target_workbench_list = [7, 9]
-    elif origin_workbench_work_type == 7:
-        target_workbench_list = [8, 9]
-    elif origin_workbench_work_type == 1:
-        target_workbench_list = [4, 5, 9]
-    elif origin_workbench_work_type == 2:
-        target_workbench_list = [4, 6, 9]
-    elif origin_workbench_work_type == 3:
-        target_workbench_list = [5, 6, 9]
-    if choose_mode == 2:
-        if origin_workbench_work_type == 1: 
-            if generate_product[4] - generate_product[5] >= cfg.SUB_MISSION:
-                target_workbench_list.pop(0)
-            elif generate_product[4] - generate_product[5] <= -cfg.SUB_MISSION:
-                target_workbench_list.pop(1)
-        if origin_workbench_work_type == 2:
-            if generate_product[4] - generate_product[6] >= cfg.SUB_MISSION:
-                target_workbench_list.pop(0)
-            elif generate_product[4] - generate_product[6] <= -cfg.SUB_MISSION:
-                target_workbench_list.pop(1)
-        if origin_workbench_work_type == 3:
-            if generate_product[5] - generate_product[6] >= cfg.SUB_MISSION:
-                target_workbench_list.pop(0)
-            elif generate_product[5] - generate_product[6] <= -cfg.SUB_MISSION:
-                target_workbench_list.pop(1)
-    return target_workbench_list
 # newest policy
 def get_price_by_targets(free_robots):
-    # log.write(f'{generate_product}\n')
+    """
+        robot_id -> 执行任务的机器人, target0_id -> 去买的工作台, target1_id ->去卖的工作台
+        best_val_time -> max(盈利 / 时间(robot->target0->target1))
+        workbench_list -> 工作台类型为1-7的工作台
+        robot_dis -> robot到target0的距离
+        target_workbench_list -> 可选的target1的工作台类型列表
+        ava_list -> 可选的target1工作台列表
+        all_dis -> robot_dis + target0到target1的距离
+        go_time -> robot_dis花费时间
+        wait_time -> 工作台target0生产物品所需要的剩余时间
+        all_time -> 整个过程的时间
+    """
     robot_id, target0_id, target1_id, best_val_time = -1, -1, -1, 0.0
     workbench_list = useful_workbench_list
     for robot in free_robots:
         for workbench in workbench_list:
             target0 = workbench
             ava_list, target_workbench_list = [], []
+            # 排除上锁且没有生产出物品的工作台
             if workbenchs[target0].is_targeted_flag[0] == 1 or  (workbenchs[target0].output != 1 and workbenchs[target0].work_type in [7,6,5,4] and workbenchs[target0].remain_time == -1):
                 continue
             robot_dis = cal_point_x_y(robots[robot].x, robots[robot].y, workbenchs[target0].x, workbenchs[target0].y)
-            target_workbench_list = choose_target_workbench_list(origin_workbench_work_type=workbenchs[target0].work_type, choose_mode=2)
+            target_workbench_list = choose_target_workbench_list(generate_product, origin_workbench_work_type=workbenchs[target0].work_type, choose_mode=2)
 
             for i in target_workbench_list:
                 type_num_list = workbench_type_num[i]
@@ -83,7 +91,7 @@ def get_price_by_targets(free_robots):
                     
                 temp_val = cfg.THING_VALUE[workbenchs[target0].work_type] # * cfg.THING_COEFF[workbenchs[target0].work_type]
                 temp_val_time = temp_val / all_time
-                
+
                 next_time = 0
                 if workbenchs[target1].work_type in [4, 5, 6, 7]:
                     if workbench_minest_sell[target1][0] == -1:
@@ -136,6 +144,17 @@ def find_nearest_target_sell(x, y, target_workbench_list, take_thing):
     return target_workbench_id
 
 def get_price_by_time(free_robots):
+    """
+        robot_id -> 执行任务的机器人, target0_id -> 去买的工作台, target1_id ->去卖的工作台
+        best_val_time -> max(盈利 / 时间(robot->target0->target1))
+        workbench_list -> 工作台类型为1-7的工作台
+        robot_dis -> robot到target0的距离
+        target_workbench_list -> 可选的target1的工作台类型列表(target1通过最近距离来找)[接口:find_nearest_target_sell]
+        all_dis -> robot_dis + target0到target1的距离
+        go_time -> robot_dis花费时间
+        wait_time -> 工作台target0生产物品所需要的剩余时间
+        all_time -> 整个过程的时间
+    """
     robot_id, target0_id, target1_id = -1, -1, -1
     best_val_time = 0.0
     workbench_list = useful_workbench_list
@@ -145,13 +164,13 @@ def get_price_by_time(free_robots):
             if workbenchs[target0].is_targeted_flag[0] == 1:
                 continue
             robot_dis = cal_point_x_y(robots[robot].x, robots[robot].y, workbenchs[target0].x, workbenchs[target0].y)
-            target_workbench_list = choose_target_workbench_list(workbenchs[target0].work_type)
+            target_workbench_list = choose_target_workbench_list(generate_product, workbenchs[target0].work_type)
             target1 = find_nearest_target_sell(workbenchs[workbench].x ,workbenchs[workbench].y, target_workbench_list, workbenchs[workbench].work_type)
             if target1 == -1:
                 continue
             all_dis = robot_dis + DIS_MP[target0][target1]
             go_time = robot_dis * 50 / 6.0
-            wait_time = workbenchs[target0].remain_time
+            wait_time = max(workbenchs[target0].remain_time, 0)
             all_time = all_dis * 50 / 6.0 + add_more_times_all(workbenchs[target0], wait_time, go_time)
             
             temp_val = cfg.THING_VALUE[workbenchs[workbench].work_type]
@@ -192,7 +211,7 @@ def map_init():
             useful_workbench_list.append(workbench)
 
     for workbench_a in range(0, workbench_ids):
-        target_workbench_type = choose_target_workbench_list(workbenchs[workbench_a].work_type)
+        target_workbench_type = choose_target_workbench_list(generate_product, workbenchs[workbench_a].work_type)
         cnt = -1
         for type in target_workbench_type:
             workbench_minest_sell[workbench_a].append(-1)
