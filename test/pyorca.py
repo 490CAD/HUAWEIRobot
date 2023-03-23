@@ -67,7 +67,12 @@ def orca(robot_id, robots, t, dt, pid_list):
     v_y = - robot_next_state[robot_id][1] * np.sin(robot_next_state[robot_id][0])
     for collider in robots[0: robot_id] + robots[robot_id + 1:]:
         dv, n = get_avoidance_velocity(robots[robot_id], collider, t, dt, robot_next_state)
-        line = Line(array([v_x, v_y]) + dv / 2, n)
+        if robots[robot_id].value > collider.value:
+            # 不避障
+            line = Line(array([v_x, v_y]), n)
+        else:
+            # 承担所有责任
+            line = Line(array([v_x, v_y]) + dv, n)
         lines.append(line)
 
     pref_velocity = array([v_x, v_y])

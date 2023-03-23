@@ -4,7 +4,7 @@ import sys
 
 PI = math.pi
 
-
+log = open("log.txt", "a")
 class Robot():
     def __init__(self, id):
         self.work_space = -1
@@ -21,9 +21,11 @@ class Robot():
         self.state = 0
         # next target workbench
         self.target_workbench_ids = [-1, -1]
-        self.s_pid=PID.PID(50, 0.001, 1500, 0)
+        # 50, 0.001, 1500, 0
+        self.s_pid=PID.PID(7, 0, 0, 1000)
         # 50, 0.01, 3, 0
-        self.w_pid=PID.PID(50, 0.01, 3, 0)
+        self.w_pid=PID.PID(27, 0, 0, 0)
+        self.value = id
 
     def get_from_frame(self, work_space, take_thing, time_f, crush_f, angle_speed, line_speed_x, line_speed_y, toward, x, y):
         self.work_space = int(work_space)
@@ -50,7 +52,7 @@ class Robot():
         rotate = steering
 
         if distance < 0:
-            forward = -2
+            forward = max(-2, distance)
         else:
             speed = min(6, distance)
             forward =  speed
@@ -68,16 +70,18 @@ class Robot():
         elif direction1 <= -PI:
             direction1 += 2*PI
 
-        DISTANCE_TOLERATION = 2
+        # DISTANCE_TOLERATION = 2
 
-        # 左墙面 -->右墙面 -->上墙面 -->下墙面
-        if ((self.x <= DISTANCE_TOLERATION) and (self.toward >= PI * 3 / 4 or self.toward <= -PI * 3 / 4)) \
-            or ((self.x >= (50 - DISTANCE_TOLERATION)) and (self.toward >= -PI / 4 and self.toward <= PI / 4)) \
-            or ((self.y >= (50 - DISTANCE_TOLERATION)) and (self.toward > PI / 4 or self.toward < PI * 3 / 4)) \
-            or ((self.y <= DISTANCE_TOLERATION) and (self.toward > -PI * 3 / 4 and self.toward < -PI / 4)):
-            if direction1 > PI / 2 or direction1 < -PI / 2:
-                distance = - distance
+        # # 左墙面 -->右墙面 -->上墙面 -->下墙面
+        # if ((self.x <= DISTANCE_TOLERATION) and (self.toward >= PI * 3 / 4 or self.toward <= -PI * 3 / 4)) \
+        #     or ((self.x >= (50 - DISTANCE_TOLERATION)) and (self.toward >= -PI / 4 and self.toward <= PI / 4)) \
+        #     or ((self.y >= (50 - DISTANCE_TOLERATION)) and (self.toward > PI / 4 or self.toward < PI * 3 / 4)) \
+        #     or ((self.y <= DISTANCE_TOLERATION) and (self.toward > -PI * 3 / 4 and self.toward < -PI / 4)):
+        #     if direction1 > PI / 2 or direction1 < -PI / 2:
+        #         distance = - distance
         
+        if direction1 > PI / 2 or direction1 < - PI/2:
+            distance = -distance
         steering = self.w_pid.control(-direction1)
         move_distance = self.s_pid.control(-distance)
         # log.write(f'{self.s_pid.accumulated_error} {self.s_pid.previous_error}\n')
