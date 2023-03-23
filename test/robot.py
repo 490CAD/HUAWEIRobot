@@ -4,7 +4,7 @@ import sys
 
 PI = math.pi
 
-
+log = open("log.txt", "a")
 class Robot():
     def __init__(self, id):
         self.work_space = -1
@@ -21,6 +21,7 @@ class Robot():
         self.state = 0
         # next target workbench
         self.target_workbench_ids = [-1, -1]
+        # 50, 0.001, 1500, 0
         self.s_pid=PID.PID(50, 0.001, 1500, 0)
         # 50, 0.01, 3, 0
         self.w_pid=PID.PID(50, 0.01, 3, 0)
