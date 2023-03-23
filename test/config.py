@@ -2,7 +2,7 @@
 Author: BigCiLeng w15516937650@outlook.com
 Date: 2023-03-22 16:27:44
 LastEditors: BigCiLeng w15516937650@outlook.com
-LastEditTime: 2023-03-23 14:45:06
+LastEditTime: 2023-03-23 21:09:22
 FilePath: \WindowsRelease\test\config.py
 Description: 
 
@@ -34,3 +34,6 @@ class CFG():
     pid_list = [[None, None], [None, None], [None, None], [None, None]]
     ###
     temp_flag = 0
+
+    MAX_STOP_DISTANCE_0 = 0.9160884177867836 + 0.4
+    MAX_STOP_DISTANCE_1 = 1.270761662006457 + 0.4

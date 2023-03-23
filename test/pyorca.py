@@ -24,7 +24,6 @@ S. J. Guy, M. Lin and D. Manocha in 'Reciprocal n-body Collision Avoidance'."""
 import numpy as np
 from numpy import array, sqrt, copysign, dot
 from numpy.linalg import det
-
 from halfplaneintersect import halfplane_optimize, Line, perp
 from config import CFG
 # Method:
@@ -52,31 +51,42 @@ def orca(robot_id, robots, t, dt, pid_list):
     changed on tick *edge*, like first-order integration, otherwise the method
     undercompensates and you will still risk colliding."""
     robot_next_state = []
+
     for k, i in enumerate(pid_list):
-        new_toward = i[0] * 0.02 + robots[k].toward
-        if new_toward > cfg.PI:
+        new_speed = i[1]
+        new_toward = robots[k].toward
+        new_toward = i[0] * 0.02 + new_toward
+        if new_toward >= cfg.PI:
             new_toward -= 2 * cfg.PI
         elif new_toward < -cfg.PI:
             new_toward += 2 * cfg.PI
-        new_speed = i[1]
         robot_next_state.append([new_toward, new_speed])
-
-    
     lines = []
-    v_x = robot_next_state[robot_id][1] * np.cos(robot_next_state[robot_id][0])
-    v_y = - robot_next_state[robot_id][1] * np.sin(robot_next_state[robot_id][0])
+    flag = 1
+    if robot_next_state[robot_id][1] < 0:
+        flag = -1
+    v_x = robot_next_state[robot_id][1] * np.cos(robot_next_state[robot_id][0]) * flag
+    v_y = -robot_next_state[robot_id][1] * np.sin(robot_next_state[robot_id][0]) * flag
+
     for collider in robots[0: robot_id] + robots[robot_id + 1:]:
         dv, n = get_avoidance_velocity(robots[robot_id], collider, t, dt, robot_next_state)
         if robots[robot_id].value > collider.value:
             # 不避障
+            # line = Line(array([v_x, v_y]) + dv / 2, n)
             line = Line(array([v_x, v_y]), n)
-        else:
+        elif robots[robot_id].value == collider.value:
             # 承担所有责任
+            line = Line(array([v_x, v_y]) + dv / 2, n)
+        else:
+            # line = Line(array([v_x, v_y]) + dv / 2, n)
             line = Line(array([v_x, v_y]) + dv, n)
         lines.append(line)
 
     pref_velocity = array([v_x, v_y])
-    return halfplane_optimize(lines, pref_velocity), lines
+    v = halfplane_optimize(lines, pref_velocity, 1)
+    if v is None:
+        return halfplane_optimize(lines, np.array([0, 0]), 2), lines
+    return v, lines
 
 def get_avoidance_velocity(robot, collider, t, dt, robot_next_state):
     """Get the smallest relative change in velocity between agent and collider

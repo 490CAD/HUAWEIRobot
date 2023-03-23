@@ -46,7 +46,7 @@ class Line(object):
         return "Line(%s, %s)" % (self.point, self.direction)
 
 
-def halfplane_optimize(lines, optimal_point):
+def halfplane_optimize(lines, optimal_point, cnt):
     """Find the point closest to optimal_point in the intersection of the
     closed half-planes defined by lines which are in Hessian normal form
     (point-normal form)."""
@@ -72,6 +72,8 @@ def halfplane_optimize(lines, optimal_point):
         if flag == 1:
             point = point_line_project(line, optimal_point, left_dist, right_dist)
             # log.write(f"可行解为{point}\n")
+        elif cnt == 1: 
+            return None
     return point
 
 def point_line_project(line, point, left_bound, right_bound):
