@@ -10,7 +10,7 @@ from numpy import array, rint, linspace, pi, cos, sin, sqrt
 
 # hyperparameters
 cfg = CFG()
-log = open("log.txt", "a")
+# log = open("log.txt", "a")
 # global needs
 high_level_workbench_list = []
 useful_workbench_list = []
@@ -19,6 +19,7 @@ workbench_xynum_dist = {}
 workbench_ids = 0
 workbenchs, robots = [], []
 workbench_type_num = [[] for i in range(10)]
+workbench_minest_sell = []
 simple_job_workbenchs = {}
 generate_product = {4:0, 5:0, 6:0}
 
@@ -32,7 +33,7 @@ def get_price_by_targets(free_robots):
         for workbench in workbench_list:
             target0 = workbench
             ava_list, target_workbench_list = [], []
-            if workbenchs[target0].is_targeted_flag[0] == 1:
+            if workbenchs[target0].is_targeted_flag[0] == 1 or  (workbenchs[target0].output != 1 and workbenchs[target0].work_type in [7,6,5,4] and workbenchs[target0].remain_time == -1):
                 continue
             robot_dis = cal_point_x_y(robots[robot].x, robots[robot].y, workbenchs[target0].x, workbenchs[target0].y)
             if workbenchs[target0].work_type in [4, 5, 6]:
@@ -41,21 +42,21 @@ def get_price_by_targets(free_robots):
                 target_workbench_list = [8, 9]
             elif workbenchs[target0].work_type == 1:
                 target_workbench_list = [4, 5, 9]
-                if generate_product[4] - generate_product[5] >= 2:
+                if generate_product[4] - generate_product[5] >= cfg.SUB_MISSION:
                     target_workbench_list.pop(0)
-                elif generate_product[4] - generate_product[5] <= -2:
+                elif generate_product[4] - generate_product[5] <= -cfg.SUB_MISSION:
                     target_workbench_list.pop(1)
             elif workbenchs[target0].work_type == 2:
                 target_workbench_list = [4, 6, 9]
-                if generate_product[4] - generate_product[6] >= 2:
+                if generate_product[4] - generate_product[6] >= cfg.SUB_MISSION:
                     target_workbench_list.pop(0)
-                elif generate_product[4] - generate_product[6] <= -2:
+                elif generate_product[4] - generate_product[6] <= -cfg.SUB_MISSION:
                     target_workbench_list.pop(1)
             elif workbenchs[target0].work_type == 3:
                 target_workbench_list = [5, 6, 9]
-                if generate_product[5] - generate_product[6] >= 2:
+                if generate_product[5] - generate_product[6] >= cfg.SUB_MISSION:
                     target_workbench_list.pop(0)
-                elif generate_product[5] - generate_product[6] <= -2:
+                elif generate_product[5] - generate_product[6] <= -cfg.SUB_MISSION:
                     target_workbench_list.pop(1)
 
             for i in target_workbench_list:
@@ -86,28 +87,38 @@ def get_price_by_targets(free_robots):
                     all_time += wait_time - go_time
                     
                 temp_val = cfg.THING_VALUE[workbenchs[target0].work_type] # * cfg.THING_COEFF[workbenchs[target0].work_type]
+                temp_val_time = temp_val / all_time
+                next_time = 0
+                if workbenchs[target1].work_type in [4, 5, 6, 7]:
+                    if workbench_minest_sell[target1][0] == -1:
+                        next_time = DIS_MP[target1][workbench_minest_sell[target1][1]] * 50 / 6
+                    elif workbench_minest_sell[target1][1] == -1:
+                        next_time = DIS_MP[target1][workbench_minest_sell[target1][0]] * 50 / 6
+                    else:
+                        next_time = min(DIS_MP[target1][workbench_minest_sell[target1][1]], DIS_MP[target1][workbench_minest_sell[target1][0]]) * 50 / 6
+
                 if workbenchs[target1].work_type == 7:
                     if workbenchs[target1].origin_thing == 0:
-                        temp_val += cfg.THING_VALUE[workbenchs[target1].work_type] / 15
+                        next_time = (next_time + 1000) * 3
                     elif ((1 << workbenchs[target0].work_type) | workbenchs[target1].origin_thing) == 112:
-                        temp_val += cfg.THING_VALUE[workbenchs[target1].work_type] * 2
+                        next_time = (next_time + 1000)
                     else:
-                        temp_val += cfg.THING_VALUE[workbenchs[target1].work_type] / 10
+                        next_time = (next_time + 1000) * 2
                 elif workbenchs[target1].work_type in [4, 5, 6]:
                     if workbenchs[target1].origin_thing == 0:
-                        temp_val += cfg.THING_VALUE[workbenchs[target1].work_type] / 10
+                        next_time = (next_time + 500) * 2
                     else:
-                        temp_val += cfg.THING_VALUE[workbenchs[target1].work_type] / 5
-                    
-                elif workbenchs[target1].work_type in [8, 9]:
-                    temp_val += cfg.THING_VALUE[workbenchs[target0].work_type] / 5
-
-                temp_val_time = temp_val / all_time
+                        next_time = (next_time + 500)
+                if workbenchs[target1].work_type not in [8, 9] and all_time <= cfg.MAX_PENTALIY_VALUE and (workbenchs[target1].work_type == 7 and ((1 << workbenchs[target0].work_type) | workbenchs[target1].origin_thing) == 112):
+                    temp_val_time += cfg.THING_VALUE[workbenchs[target1].work_type] / next_time
+                # elif workbenchs[target1].work_type in [8, 9]:
+                #     temp_val_time += cfg.THING_VALUE[workbenchs[target0].work_type] / 5
 
                 if temp_val_time > best_val_time:
                     robot_id, target0_id, target1_id = robot, target0, target1
                     best_val_time = temp_val_time
             # target1 = find_nearest_target_sell(workbenchs[workbench].x ,workbenchs[workbench].y, target_workbench_list, workbenchs[workbench].work_type)        
+    robots[robot_id].value = best_val_time
     return robot_id, target0_id, target1_id  
 
 # store something 
@@ -171,6 +182,7 @@ def get_price_by_time(free_robots):
             if temp_val_time > best_val_time:
                 robot_id, target0_id, target1_id = robot, target0, target1
                 best_val_time = temp_val_time
+    robots[robot_id] = best_val_time
     return robot_id, target0_id, target1_id   
 
 # Main
@@ -186,7 +198,7 @@ if __name__ == '__main__':
         # input every frame
         parts = line.split(' ')
         frame_id, money_frame = int(parts[0]), int(parts[1])
-        log.write(f'------------------------------{frame_id} \n')
+        # log.write(f'------------------------------{frame_id} \n')
         if frame_id == 1:
             # 1th frame use init
             workbench_frame_num = int(input())
@@ -196,6 +208,7 @@ if __name__ == '__main__':
                 workbench_xynum_dist[(float(workbench_x), float(workbench_y))] = workbench_ids
                 workbenchs.append(WorkBench(workbench_ids))
                 workbench_type_num[int(workbench_type)].append(workbench_ids)
+                workbench_minest_sell.append([])
                 if int(workbench_type) in [1, 2, 3]:
                     simple_job_workbenchs[int(workbench_ids)] = 0
                 # init it 
@@ -220,6 +233,28 @@ if __name__ == '__main__':
             for workbench_type in cfg.USEFUL_WORKBENCH:
                 for workbench in workbench_type_num[workbench_type]:
                     useful_workbench_list.append(workbench)
+
+            for workbench_a in range(0, workbench_ids):
+                target_workbench_type = []
+                cnt = -1
+                if workbenchs[workbench_a].work_type == 1:
+                    target_workbench_type = [4, 5, 9]
+                if workbenchs[workbench_a].work_type == 2:
+                    target_workbench_type = [4, 6, 9]
+                if workbenchs[workbench_a].work_type == 3:
+                    target_workbench_type = [5, 6, 9]
+                if workbenchs[workbench_a].work_type in [4, 5, 6]:
+                    target_workbench_type = [7, 9]
+                if workbenchs[workbench_a].work_type == 7:
+                    target_workbench_type = [8, 9]
+                for type in target_workbench_type:
+                    workbench_minest_sell[workbench_a].append(-1)
+                    cnt += 1
+                    for workbench_b in workbench_type_num[type]:
+                        if workbench_minest_sell[workbench_a][cnt] == -1 or DIS_MP[workbench_a][workbench_b] < DIS_MP[workbench_a][workbench_minest_sell[workbench_a][cnt]]:
+                            workbench_minest_sell[workbench_a][cnt] = workbench_b
+                
+                    
             # log.write(f'{useful_workbench_list}')
             # gogogo
            # for robot in range(ROBOT_NUM):
@@ -351,6 +386,8 @@ if __name__ == '__main__':
                         sys.stdout.write('sell %d\n' % robot_id)
                         # 将相应原料的卖操作解锁
                         # 1111110
+
+                        robots[robot_id].value = 0
                         if workbenchs[target].work_type == 4 and ((1 << take_thing) | workbenchs[target].origin_thing) == 6:
                             generate_product[4] += 1
                         if workbenchs[target].work_type == 5 and ((1 << take_thing) | workbenchs[target].origin_thing) == 10:
