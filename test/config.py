@@ -2,7 +2,7 @@
 Author: BigCiLeng w15516937650@outlook.com
 Date: 2023-03-22 16:27:44
 LastEditors: BigCiLeng w15516937650@outlook.com
-LastEditTime: 2023-03-23 00:07:08
+LastEditTime: 2023-03-23 14:45:06
 FilePath: \WindowsRelease\test\config.py
 Description: 
 
@@ -29,8 +29,8 @@ class CFG():
 
     ###
     # use for orca
-    tau = 50
     dt = 1 / 50
+    tau = 25 * dt
     pid_list = [[None, None], [None, None], [None, None], [None, None]]
     ###
     temp_flag = 0

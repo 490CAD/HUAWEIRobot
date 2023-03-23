@@ -10,7 +10,7 @@ from numpy import array, rint, linspace, pi, cos, sin, sqrt
 
 # hyperparameters
 cfg = CFG()
-# log = open("log.txt", "a")
+log = open("log.txt", "a")
 # global needs
 high_level_workbench_list = []
 useful_workbench_list = []
@@ -322,7 +322,7 @@ if __name__ == '__main__':
         sys.stdout.write('%d\n' % frame_id)
         for robot_id in range(cfg.ROBOT_NUM):
             rotate, forward = None, None
-            # if robot_id not in [0]:
+            # if robot_id != 3:
             #     continue
             if robots[robot_id].target_workbench_ids[0] == -1:
                 continue
@@ -404,36 +404,31 @@ if __name__ == '__main__':
                         robots[robot_id].target_workbench_ids[1] = -1                      
                     else:
                         robots[robot_id].state = 4
+        # log.write(f'{robots[3].x}, {robots[3].y}\n')
+        # distance = cal_point_x_y(robots[3].x, robots[3].y, 25.25, 32.75 + 5)
+        #             # direction to target
+        # direction = drt_point_x_y(robots[3].x, robots[3].y, 25.25, 32.75 + 5)
 
-        distance = cal_point_x_y(robots[robot_id].x, robots[robot_id].y, robots[robot_id].x + 20, robots[robot_id].y)
-                    # direction to target
-        direction = drt_point_x_y(robots[robot_id].x, robots[robot_id].y, robots[robot_id].x + 20, robots[robot_id].y)
-
-        rotate, forward = robots[3].move_to_target(direction, distance)
+        # rotate, forward = robots[3].move_to_target(direction, distance)
 
         ### 防碰撞检测与预防
         for i, robot in enumerate(robots):
-            if i != 3:
-                continue
             if cfg.pid_list[i][0] is None:
                 continue
-
-
-            # v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list)
-            # if cfg.pid_list[i][1] >= 0:
-            #     rotate =  math.atan2(-v[1], v[0])  - robot.toward
-            #     if rotate > cfg.PI:
-            #         rotate += -2*cfg.PI
-            #     elif rotate <= -cfg.PI:
-            #         rotate += 2*cfg.PI
-            #     rotate = rotate / cfg.dt
-            #     forward = sqrt(v[0]**2 + v[1]**2)
-
-            # sys.stdout.write('rotate %d %f\n' % (i, rotate))
+            rotate = cfg.pid_list[i][0]
+            forward = cfg.pid_list[i][1]
+            v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list)
+            if cfg.pid_list[i][1] >= 0:
+                rotate =  math.atan2(-v[1], v[0])  - robot.toward
+                if rotate > cfg.PI:
+                    rotate += -2*cfg.PI
+                elif rotate <= -cfg.PI:
+                    rotate += 2*cfg.PI
+                rotate = rotate / cfg.dt
+                forward = sqrt(v[0]**2 + v[1]**2)
+            # log.write(f'rotate{rotate} forward{forward}\n\n')
+            sys.stdout.write('rotate %d %f\n' % (i, rotate))
             sys.stdout.write('forward %d %f\n' % (i, forward))
         ###
-
-
-
         # log.write(f'----------------------------------------------------------------\n')
         finish()
