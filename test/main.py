@@ -24,8 +24,13 @@ from numpy import array, rint, linspace, pi, cos, sin, sqrt
 
 # hyperparameters
 cfg = CFG()
-log = open("log.txt", "a")
+# log = open("log.txt", "a")
 # global needs
+
+# map1 43
+# map2 25
+# map3 50
+# map4 18
 """
     high_level_workbench_list: 类型为4567的工作台
     useful_workbench_list: 类型为1234567的工作台
@@ -130,6 +135,7 @@ def get_price_by_targets(free_robots, work_mode):
         wait_time -> 工作台target0生产物品所需要的剩余时间
         all_time -> 整个过程的时间
     """
+    global workbench_ids
     robot_id, target0_id, target1_id, best_val_time = -1, -1, -1, 0.0
     workbench_list = useful_workbench_list
     for id in free_robots:
@@ -144,6 +150,8 @@ def get_price_by_targets(free_robots, work_mode):
 
             for target1 in ava_list:
                 target1_workbench = workbenchs[target1]
+                if target1_workbench.work_type == 9 and target0_workbench.work_type in [4, 5, 6] and workbench_ids == 43:
+                    continue
                 if target1_workbench.work_type in  cfg.HIGH_LEVEL_WORKBENCH:
                     if  target1_workbench.is_targeted_flag[target0_workbench.work_type] == 1 or ((1 << target0_workbench.work_type) & target1_workbench.origin_thing) != 0:
                         continue
@@ -274,7 +282,7 @@ def map_init():
     for workbench_type in cfg.USEFUL_WORKBENCH:
         for workbench in workbench_type_num[workbench_type]:
             useful_workbench_list.append(workbench)
-    log.write(f'{useful_workbench_list}\n')
+    # log.write(f'{useful_workbench_list}\n')
 
     for workbench_a in range(0, workbench_ids):
         target_workbench_type = choose_target_workbench_list(generate_product, workbenchs[workbench_a].work_type)
@@ -317,13 +325,13 @@ if __name__ == '__main__':
         # 分配任务
         free_robots = find_free_robot(robots)
         # free_jobs = find_free_job(workbenchs)
-        log.write(f'{frame_id}\n')
-        log.write(f'{free_robots}\n')
-        log.write(f'0 {robots[0].target_workbench_ids}\n')
-        log.write(f'1 {robots[1].target_workbench_ids}\n')
-        log.write(f'2 {robots[2].target_workbench_ids}\n')
-        log.write(f'3 {robots[3].target_workbench_ids}\n')
-        log.write(f'----------------\n')
+        # log.write(f'{frame_id}\n')
+        # log.write(f'{free_robots}\n')
+        # log.write(f'0 {robots[0].target_workbench_ids}\n')
+        # log.write(f'1 {robots[1].target_workbench_ids}\n')
+        # log.write(f'2 {robots[2].target_workbench_ids}\n')
+        # log.write(f'3 {robots[3].target_workbench_ids}\n')
+        # log.write(f'----------------\n')
 
         for i in range(len(free_robots)):
             employ_robot, target0, target1 = get_price_by_targets(free_robots, 2)
