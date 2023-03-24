@@ -357,7 +357,11 @@ if __name__ == '__main__':
             if robots[robot_id].target_workbench_ids[0] == -1:
                 continue
             if robots[robot_id].work_frame <= frame_id:
+                temp_flag = 0
                 if robots[robot_id].state == 0:
+                    robots[robot_id].state = 1
+                    temp_flag = 1
+                if robots[robot_id].state == 1 and temp_flag == 0:
                     # calc the speed and go
                     # distance to target
                     distance = cal_point_x_y(robots[robot_id].x, robots[robot_id].y, workbenchs[robots[robot_id].target_workbench_ids[0]].x, workbenchs[robots[robot_id].target_workbench_ids[0]].y)
@@ -368,12 +372,13 @@ if __name__ == '__main__':
                         robots[robot_id].s_pid.clear()
                         robots[robot_id].w_pid.clear()
                         sys.stdout.write('forward %d %f\n' % (robot_id, 0))
-                        robots[robot_id].state = 1
+                        robots[robot_id].state = 2
                     else:
                         rotate, forward = robots[robot_id].move_to_target(direction, distance)
                         cfg.pid_list[robot_id] = [rotate, forward]
-                    
-                elif robots[robot_id].state == 1:
+                    temp_flag = 1
+
+                if robots[robot_id].state == 2 and temp_flag == 0:
                     # buy
                     if workbenchs[robots[robot_id].target_workbench_ids[0]].output == 1 and robots[robot_id].work_space == robots[robot_id].target_workbench_ids[0]:
                         if DIS_MP[robots[robot_id].target_workbench_ids[0]][robots[robot_id].target_workbench_ids[1]] / 6 > (9000 - frame_id) / 50 - 1:
@@ -381,11 +386,15 @@ if __name__ == '__main__':
                             continue
                         sys.stdout.write('buy %d\n' % robot_id)
                         workbenchs[robots[robot_id].target_workbench_ids[0]].is_targeted_flag[0] = 0
-                        robots[robot_id].state = 2
+                        robots[robot_id].state = 3
                     else:
-                        robots[robot_id].state = 0
-                        
-                elif robots[robot_id].state == 2:
+                        robots[robot_id].state = 1
+                    temp_flag = 1
+                    
+                if robots[robot_id].state == 3:
+                    robots[robot_id].state = 4
+
+                if robots[robot_id].state == 4 and temp_flag == 0:
                     # calc the speed and go
                     # distance to target
                     distance = cal_point_x_y(robots[robot_id].x, robots[robot_id].y, workbenchs[robots[robot_id].target_workbench_ids[1]].x, workbenchs[robots[robot_id].target_workbench_ids[1]].y)
@@ -396,12 +405,13 @@ if __name__ == '__main__':
                         robots[robot_id].s_pid.clear()
                         robots[robot_id].w_pid.clear()
                         sys.stdout.write('forward %d %f\n' % (robot_id, 0))
-                        robots[robot_id].state = 3
+                        robots[robot_id].state = 5
                     else:
                         rotate, forward = robots[robot_id].move_to_target(direction, distance)
                         cfg.pid_list[robot_id] = [rotate, forward]
-        
-                elif robots[robot_id].state == 3:
+                    temp_flag = 1
+
+                if robots[robot_id].state == 5:
                     # sell and turn 0
                     take_thing = robots[robot_id].take_thing
                     target = robots[robot_id].target_workbench_ids[1]
@@ -426,7 +436,8 @@ if __name__ == '__main__':
                         robots[robot_id].target_workbench_ids[0] = -1
                         robots[robot_id].target_workbench_ids[1] = -1                      
                     else:
-                        robots[robot_id].state = 2
+                        robots[robot_id].state = 4
+                    temp_flag = 1
         # log.write(f'{robots[3].x}, {robots[3].y}\n')
         # 32.75 + 5
         # distance = cal_point_x_y(robots[1].x, robots[1].y, 12.75 - 5, 35.75)
