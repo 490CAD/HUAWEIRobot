@@ -24,7 +24,7 @@ from numpy import array, rint, linspace, pi, cos, sin, sqrt
 
 # hyperparameters
 cfg = CFG()
-# log = open("log.txt", "a")
+log = open("log.txt", "a")
 # global needs
 
 # map1 43
@@ -144,9 +144,11 @@ def get_price_by_targets(free_robots, work_mode):
             target0_workbench = workbenchs[target0]
             if target0_workbench.is_targeted_flag[0] == 1 or (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time == -1):
                 continue
-
-            target_workbench_list = choose_target_workbench_list(generate_product, target0_workbench.work_type, work_mode)
-            ava_list = get_ava_list(target_workbench_list, workbench_type_num)
+            if target0_workbench.work_type in [4, 5, 6]:
+                ava_list = [22, 11, 15, 17, 10, 12, 21, 23]
+            else:
+                target_workbench_list = choose_target_workbench_list(generate_product, target0_workbench.work_type, work_mode)
+                ava_list = get_ava_list(target_workbench_list, workbench_type_num)
 
             for target1 in ava_list:
                 target1_workbench = workbenchs[target1]
@@ -293,7 +295,12 @@ def map_init():
             for workbench_b in workbench_type_num[type]:
                 if workbench_minest_sell[workbench_a][cnt] == -1 or DIS_MP[workbench_a][workbench_b] < DIS_MP[workbench_a][workbench_minest_sell[workbench_a][cnt]]:
                     workbench_minest_sell[workbench_a][cnt] = workbench_b
-                
+    if workbench_ids in [43]:
+        for i in range(workbench_ids):
+            if workbenchs[i].work_type in [4, 5 ,6]:
+                for j in range(workbench_ids):
+                    if workbenchs[j].work_type == 7:
+                        DIS_MP[i][j] = DIS_MP[j][i] = 0 
 # Main
 if __name__ == '__main__':
     # input env_map
@@ -325,7 +332,7 @@ if __name__ == '__main__':
         # 分配任务
         free_robots = find_free_robot(robots)
         # free_jobs = find_free_job(workbenchs)
-        # log.write(f'{frame_id}\n')
+        log.write(f'--------------------------------{frame_id}\n')
         # log.write(f'{free_robots}\n')
         # log.write(f'0 {robots[0].target_workbench_ids}\n')
         # log.write(f'1 {robots[1].target_workbench_ids}\n')
@@ -352,16 +359,19 @@ if __name__ == '__main__':
 
         # do some operation
         sys.stdout.write('%d\n' % frame_id)
+
+        # if frame_id <=100:
+        #     direction = -cfg.PI / 4
+        #     distance = 10
+        #     rotate, forward = robots[1].move_to_target(direction, distance)
+        #     cfg.pid_list[1] = [rotate, forward]
+
         for robot_id in range(cfg.ROBOT_NUM):
             rotate, forward = None, None
             if robots[robot_id].target_workbench_ids[0] == -1:
                 continue
             if robots[robot_id].work_frame <= frame_id:
-                temp_flag = 0
                 if robots[robot_id].state == 0:
-                    robots[robot_id].state = 1
-                    temp_flag = 1
-                if robots[robot_id].state == 1 and temp_flag == 0:
                     # calc the speed and go
                     # distance to target
                     distance = cal_point_x_y(robots[robot_id].x, robots[robot_id].y, workbenchs[robots[robot_id].target_workbench_ids[0]].x, workbenchs[robots[robot_id].target_workbench_ids[0]].y)
@@ -372,13 +382,11 @@ if __name__ == '__main__':
                         robots[robot_id].s_pid.clear()
                         robots[robot_id].w_pid.clear()
                         sys.stdout.write('forward %d %f\n' % (robot_id, 0))
-                        robots[robot_id].state = 2
+                        robots[robot_id].state = 1
                     else:
                         rotate, forward = robots[robot_id].move_to_target(direction, distance)
                         cfg.pid_list[robot_id] = [rotate, forward]
-                    temp_flag = 1
-
-                if robots[robot_id].state == 2 and temp_flag == 0:
+                elif robots[robot_id].state == 1:
                     # buy
                     if workbenchs[robots[robot_id].target_workbench_ids[0]].output == 1 and robots[robot_id].work_space == robots[robot_id].target_workbench_ids[0]:
                         if DIS_MP[robots[robot_id].target_workbench_ids[0]][robots[robot_id].target_workbench_ids[1]] / 6 > (9000 - frame_id) / 50 - 1:
@@ -386,15 +394,10 @@ if __name__ == '__main__':
                             continue
                         sys.stdout.write('buy %d\n' % robot_id)
                         workbenchs[robots[robot_id].target_workbench_ids[0]].is_targeted_flag[0] = 0
-                        robots[robot_id].state = 3
+                        robots[robot_id].state = 2
                     else:
-                        robots[robot_id].state = 1
-                    temp_flag = 1
-                    
-                if robots[robot_id].state == 3:
-                    robots[robot_id].state = 4
-
-                if robots[robot_id].state == 4 and temp_flag == 0:
+                        robots[robot_id].state = 0
+                if robots[robot_id].state == 2:
                     # calc the speed and go
                     # distance to target
                     distance = cal_point_x_y(robots[robot_id].x, robots[robot_id].y, workbenchs[robots[robot_id].target_workbench_ids[1]].x, workbenchs[robots[robot_id].target_workbench_ids[1]].y)
@@ -405,13 +408,12 @@ if __name__ == '__main__':
                         robots[robot_id].s_pid.clear()
                         robots[robot_id].w_pid.clear()
                         sys.stdout.write('forward %d %f\n' % (robot_id, 0))
-                        robots[robot_id].state = 5
+                        robots[robot_id].state = 3
                     else:
                         rotate, forward = robots[robot_id].move_to_target(direction, distance)
                         cfg.pid_list[robot_id] = [rotate, forward]
-                    temp_flag = 1
 
-                if robots[robot_id].state == 5:
+                if robots[robot_id].state == 3:
                     # sell and turn 0
                     take_thing = robots[robot_id].take_thing
                     target = robots[robot_id].target_workbench_ids[1]
@@ -436,8 +438,7 @@ if __name__ == '__main__':
                         robots[robot_id].target_workbench_ids[0] = -1
                         robots[robot_id].target_workbench_ids[1] = -1                      
                     else:
-                        robots[robot_id].state = 4
-                    temp_flag = 1
+                        robots[robot_id].state = 2
         # log.write(f'{robots[3].x}, {robots[3].y}\n')
         # 32.75 + 5
         # distance = cal_point_x_y(robots[1].x, robots[1].y, 12.75 - 5, 35.75)
@@ -474,5 +475,5 @@ if __name__ == '__main__':
             sys.stdout.write('rotate %d %f\n' % (i, rotate))
             sys.stdout.write('forward %d %f\n' % (i, forward))
         ###
-        # log.write(f'----------------------------------------------------------------\n')
+        log.write(f'----------------------------------------------------------------\n')
         finish()
