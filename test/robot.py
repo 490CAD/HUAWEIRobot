@@ -78,15 +78,17 @@ class Robot():
         elif direction1 <= -PI:
             direction1 += 2*PI
 
-        DISTANCE_TOLERATION = 2
-
-        # 左墙面 -->右墙面 -->上墙面 -->下墙面
+        ### 靠墙倒车
+        # DISTANCE_TOLERATION = 2
+        # # 左墙面 -->右墙面 -->上墙面 -->下墙面
         # if ((self.x <= DISTANCE_TOLERATION) and (self.toward >= PI * 3 / 4 or self.toward <= -PI * 3 / 4)) \
         #     or ((self.x >= (50 - DISTANCE_TOLERATION)) and (self.toward >= -PI / 4 and self.toward <= PI / 4)) \
         #     or ((self.y >= (50 - DISTANCE_TOLERATION)) and (self.toward > PI / 4 or self.toward < PI * 3 / 4)) \
         #     or ((self.y <= DISTANCE_TOLERATION) and (self.toward > -PI * 3 / 4 and self.toward < -PI / 4)):
         #     if direction1 > PI / 2 or direction1 < -PI / 2:
         #         distance = - distance
+        ###
+        
         ### 倒车
         if direction1 > PI / 2 or direction1 < - PI/2:
             distance = -distance
