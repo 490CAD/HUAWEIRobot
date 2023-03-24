@@ -144,9 +144,8 @@ def get_price_by_targets(free_robots, work_mode):
             target0_workbench = workbenchs[target0]
             if target0_workbench.is_targeted_flag[0] == 1 or (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time == -1):
                 continue
-            if workbench_ids in [43]:
-                if target0_workbench.work_type in [4, 5, 6]:
-                    ava_list = [22, 11, 15, 17, 10, 12, 21, 23]
+            if workbench_ids in [43] and target0_workbench.work_type in [4, 5, 6]:
+                ava_list = [22, 11, 15, 17, 10, 12, 21, 23]
             else:
                 target_workbench_list = choose_target_workbench_list(generate_product, target0_workbench.work_type, work_mode)
                 ava_list = get_ava_list(target_workbench_list, workbench_type_num)
