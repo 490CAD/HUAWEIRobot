@@ -295,12 +295,12 @@ def map_init():
             for workbench_b in workbench_type_num[type]:
                 if workbench_minest_sell[workbench_a][cnt] == -1 or DIS_MP[workbench_a][workbench_b] < DIS_MP[workbench_a][workbench_minest_sell[workbench_a][cnt]]:
                     workbench_minest_sell[workbench_a][cnt] = workbench_b
-    # if workbench_ids in [43]:
-    #     for i in range(workbench_ids):
-    #         if workbenchs[i].work_type in [4, 5 ,6]:
-    #             for j in range(workbench_ids):
-    #                 if workbenchs[j].work_type == 7:
-    #                     DIS_MP[i][j] = DIS_MP[j][i] = 0 
+    if workbench_ids in [43]:
+        for i in range(workbench_ids):
+            if workbenchs[i].work_type in [4, 5 ,6]:
+                for j in range(workbench_ids):
+                    if workbenchs[j].work_type == 7:
+                        DIS_MP[i][j] = DIS_MP[j][i] = 0 
 # Main
 if __name__ == '__main__':
     # input env_map
