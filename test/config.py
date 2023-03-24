@@ -2,7 +2,7 @@
 Author: BigCiLeng w15516937650@outlook.com
 Date: 2023-03-22 16:27:44
 LastEditors: BigCiLeng w15516937650@outlook.com
-LastEditTime: 2023-03-24 22:55:54
+LastEditTime: 2023-03-24 23:24:06
 FilePath: \WindowsRelease\test\config.py
 Description: 
 
@@ -22,7 +22,7 @@ class CFG():
     THING_COEFF = [0, 1/6, 1/6, 1/6, 1/3, 1/3, 1/3, 1]
     HIGH_LEVEL_WORKBENCH = [4, 5, 6, 7]
     USEFUL_WORKBENCH = [1, 2, 3, 4, 5, 6, 7]
-    MAX_WAIT_TIME = 87
+    MAX_WAIT_TIME = 50
     MAX_PENTALIY_VALUE = 100000
     OVER_FRAME = 9000
     SUB_MISSION = 3
