@@ -31,7 +31,7 @@ class CFG():
     # use for orca
     dt = 1 / 50
     tau = 25 * dt
-    pid_list = [[None, None], [None, None], [None, None], [None, None]]
+    pid_list = [[0, 0], [0, 0], [0, 0], [0, 0]]
     ###
     temp_flag = 0
 

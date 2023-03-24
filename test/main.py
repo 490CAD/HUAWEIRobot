@@ -117,7 +117,7 @@ def get_price_by_look_further(free_robots):
     robots[robot_id].value = best_val_time
     return robot_id, target0_id, target1_id, target2_id
 
-def get_price_by_targets(free_robots):
+def get_price_by_targets(free_robots, work_mode):
     """
         robot_id -> 执行任务的机器人, target0_id -> 去买的工作台, target1_id ->去卖的工作台
         best_val_time -> max(盈利 / 时间(robot->target0->target1))
@@ -138,13 +138,16 @@ def get_price_by_targets(free_robots):
             target0_workbench = workbenchs[target0]
             if target0_workbench.is_targeted_flag[0] == 1 or (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time == -1):
                 continue
-            target_workbench_list = choose_target_workbench_list(generate_product, target0_workbench.work_type, 2)
+
+            target_workbench_list = choose_target_workbench_list(generate_product, target0_workbench.work_type, work_mode)
             ava_list = get_ava_list(target_workbench_list, workbench_type_num)
+
             for target1 in ava_list:
                 target1_workbench = workbenchs[target1]
                 if target1_workbench.work_type in  cfg.HIGH_LEVEL_WORKBENCH:
                     if  target1_workbench.is_targeted_flag[target0_workbench.work_type] == 1 or ((1 << target0_workbench.work_type) & target1_workbench.origin_thing) != 0:
                         continue
+
                 target0_target1_dis = DIS_MP[target0][target1]
                 robot_target0_dis = cal_point_x_y(robot.x, robot.y, target0_workbench.x, target0_workbench.y)
                 all_dis = robot_target0_dis + target0_target1_dis
@@ -175,8 +178,9 @@ def get_price_by_targets(free_robots):
                         next_time = (next_time + 500) * 2
                     else:
                         next_time = (next_time + 500)
-                if target1_workbench.work_type not in [8, 9] and all_time <= cfg.MAX_PENTALIY_VALUE and (target1_workbench.work_type == 7 and ((1 << target0_workbench.work_type) | target1_workbench.origin_thing) == 112):
-                    temp_val_time += cfg.THING_VALUE[target1_workbench.work_type] # / next_time
+                if target1_workbench.work_type not in [8, 9] and all_time <= cfg.MAX_PENTALIY_VALUE:
+                    if (target1_workbench.work_type == 7 and ((1 << target0_workbench.work_type) | target1_workbench.origin_thing) == 112):
+                        temp_val_time += cfg.THING_VALUE[target1_workbench.work_type] # / next_time
 
                 if temp_val_time > best_val_time:
                     robot_id, target0_id, target1_id = id, target0, target1
@@ -264,6 +268,7 @@ def map_init():
     for workbench_type in cfg.USEFUL_WORKBENCH:
         for workbench in workbench_type_num[workbench_type]:
             useful_workbench_list.append(workbench)
+    log.write(f'{useful_workbench_list}\n')
 
     for workbench_a in range(0, workbench_ids):
         target_workbench_type = choose_target_workbench_list(generate_product, workbenchs[workbench_a].work_type)
@@ -302,20 +307,31 @@ if __name__ == '__main__':
             robot_work, robot_take, robot_time, robot_crush, robot_angle, robot_line_x, robot_line_y, robot_toward, robot_x, robot_y = input().split()
             # update the robot state
             robots[robot].get_from_frame(robot_work, robot_take, robot_time, robot_crush, robot_angle, robot_line_x, robot_line_y, robot_toward, robot_x, robot_y)
-            
+
         # 分配任务
         free_robots = find_free_robot(robots)
         # free_jobs = find_free_job(workbenchs)
+        log.write(f'{frame_id}\n')
+        log.write(f'{free_robots}\n')
+        log.write(f'0 {robots[0].target_workbench_ids}\n')
+        log.write(f'1 {robots[1].target_workbench_ids}\n')
+        log.write(f'2 {robots[2].target_workbench_ids}\n')
+        log.write(f'3 {robots[3].target_workbench_ids}\n')
+        log.write(f'----------------\n')
 
         for i in range(len(free_robots)):
-            employ_robot, target0, target1 = get_price_by_targets(free_robots)
+            employ_robot, target0, target1 = get_price_by_targets(free_robots, 2)
+            if employ_robot == -1:
+                employ_robot, target0, target1 = get_price_by_targets(free_robots, 1)
+
             # employ_robot, target0, target1 = get_price_by_look_further(free_robots)
             # employ_robot, target0, target1 = get_price_by_time(free_robots)
-            robots[employ_robot].target_workbench_ids[0] = target0
-            robots[employ_robot].target_workbench_ids[1] = target1
-            workbenchs[robots[employ_robot].target_workbench_ids[0]].is_targeted_flag[0] = 1
-            workbenchs[robots[employ_robot].target_workbench_ids[1]].is_targeted_flag[workbenchs[robots[employ_robot].target_workbench_ids[0]].work_type] = 1
             if employ_robot != -1:
+                robots[employ_robot].target_workbench_ids[0] = target0
+                robots[employ_robot].target_workbench_ids[1] = target1
+                workbenchs[robots[employ_robot].target_workbench_ids[0]].is_targeted_flag[0] = 1
+                workbenchs[robots[employ_robot].target_workbench_ids[1]].is_targeted_flag[workbenchs[robots[employ_robot].target_workbench_ids[0]].work_type] = 1
+                
                 free_robots.remove(employ_robot)
 
         line = sys.stdin.readline()
@@ -424,7 +440,7 @@ if __name__ == '__main__':
         for i, robot in enumerate(robots):
             # if i not in [1]:
             #     continue
-            if cfg.pid_list[i][0] is None:
+            if cfg.pid_list[i][0] == 0:
                 continue
             rotate = cfg.pid_list[i][0]
             forward = cfg.pid_list[i][1]
