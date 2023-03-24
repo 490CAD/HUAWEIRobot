@@ -68,7 +68,7 @@ def add_more_times_all(workbench, wait_time, go_time):
     elif wait_time - go_time > cfg.MAX_WAIT_TIME:
         extra_time += cfg.MAX_PENTALIY_VALUE
     else:
-        extra_time += workbench.remain_time - go_time
+        extra_time += wait_time - go_time
     return extra_time
 
 def choose_target_workbench_list(generate_product, origin_workbench_work_type, choose_mode=1):
