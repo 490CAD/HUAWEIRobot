@@ -24,7 +24,7 @@ from numpy import array, rint, linspace, pi, cos, sin, sqrt
 
 # hyperparameters
 cfg = CFG()
-# log = open("log.txt", "a")
+log = open("log.txt", "a")
 # global needs
 """
     high_level_workbench_list: 类型为4567的工作台
@@ -309,7 +309,7 @@ if __name__ == '__main__':
 
         for i in range(len(free_robots)):
             employ_robot, target0, target1 = get_price_by_targets(free_robots)
-            # employ_robot, target0, target1, target2 = get_price_by_look_further(free_robots)
+            # employ_robot, target0, target1 = get_price_by_look_further(free_robots)
             # employ_robot, target0, target1 = get_price_by_time(free_robots)
             robots[employ_robot].target_workbench_ids[0] = target0
             robots[employ_robot].target_workbench_ids[1] = target1

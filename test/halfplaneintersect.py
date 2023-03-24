@@ -1,36 +1,9 @@
-# The MIT License (MIT)
-#
-# Copyright (c) 2013 Mak Nazecic-Andrlon
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to
-# deal in the Software without restriction, including without limitation the
-# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-# sell copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-# IN THE SOFTWARE.
-
-"""This module solves 2D linear programming using half-plane intersection."""
-
 from __future__ import division
 
 import itertools
 
 from numpy import dot, clip, array, sqrt
 from numpy.linalg import det
-
-# log = open("log_halfplaneintersect.txt","w")
-# log = open("log1.txt","a")
 
 class InfeasibleError(RuntimeError):
     """Raised if an LP problem has no solution."""
@@ -49,12 +22,6 @@ class Line(object):
 
 
 def halfplane_optimize(lines, optimal_point, cnt):
-    """Find the point closest to optimal_point in the intersection of the
-    closed half-planes defined by lines which are in Hessian normal form
-    (point-normal form)."""
-    # We implement the quadratic time (though linear expected given randomly
-    # permuted input) incremental half-plane intersection algorithm as laid
-    # out in http://www.mpi-inf.mpg.de/~kavitha/lecture3.ps
     point = optimal_point
     for i, line in enumerate(lines):
         # If this half-plane already contains the current point, all is well.
@@ -79,9 +46,6 @@ def halfplane_optimize(lines, optimal_point, cnt):
     return point
 
 def point_line_project(line, point, left_bound, right_bound):
-    """Project point onto the line segment defined by line, which is in
-    point-normal form, and the left and right bounds with respect to line's
-    anchor point."""
     # print("left_bound=%s, right_bound=%s" % (left_bound, right_bound))
     new_dir = perp(line.direction)
     # print("new_dir=%s" % new_dir)

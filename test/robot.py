@@ -5,7 +5,7 @@ import numpy as np
 from config import CFG
 PI = math.pi
 cfg = CFG()
-log = open("log.txt", "a")
+# log = open("log.txt", "a")
 class Robot():
     def __init__(self, id):
         """

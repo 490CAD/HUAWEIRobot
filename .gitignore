@@ -15,3 +15,4 @@ pyorca/*
 *.txt
 *.pyc
 python.py
+.DS_Store
