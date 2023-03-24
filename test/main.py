@@ -144,8 +144,9 @@ def get_price_by_targets(free_robots, work_mode):
             target0_workbench = workbenchs[target0]
             if target0_workbench.is_targeted_flag[0] == 1 or (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time == -1):
                 continue
-            if target0_workbench.work_type in [4, 5, 6]:
-                ava_list = [22, 11, 15, 17, 10, 12, 21, 23]
+            if workbench_ids in [43]:
+                if target0_workbench.work_type in [4, 5, 6]:
+                    ava_list = [22, 11, 15, 17, 10, 12, 21, 23]
             else:
                 target_workbench_list = choose_target_workbench_list(generate_product, target0_workbench.work_type, work_mode)
                 ava_list = get_ava_list(target_workbench_list, workbench_type_num)
@@ -295,12 +296,12 @@ def map_init():
             for workbench_b in workbench_type_num[type]:
                 if workbench_minest_sell[workbench_a][cnt] == -1 or DIS_MP[workbench_a][workbench_b] < DIS_MP[workbench_a][workbench_minest_sell[workbench_a][cnt]]:
                     workbench_minest_sell[workbench_a][cnt] = workbench_b
-    if workbench_ids in [43]:
-        for i in range(workbench_ids):
-            if workbenchs[i].work_type in [4, 5 ,6]:
-                for j in range(workbench_ids):
-                    if workbenchs[j].work_type == 7:
-                        DIS_MP[i][j] = DIS_MP[j][i] = 0 
+    # if workbench_ids in [43]:
+    #     for i in range(workbench_ids):
+    #         if workbenchs[i].work_type in [4, 5 ,6]:
+    #             for j in range(workbench_ids):
+    #                 if workbenchs[j].work_type == 7:
+    #                     DIS_MP[i][j] = DIS_MP[j][i] = 0 
 # Main
 if __name__ == '__main__':
     # input env_map
@@ -397,7 +398,7 @@ if __name__ == '__main__':
                         robots[robot_id].state = 2
                     else:
                         robots[robot_id].state = 0
-                if robots[robot_id].state == 2:
+                elif robots[robot_id].state == 2:
                     # calc the speed and go
                     # distance to target
                     distance = cal_point_x_y(robots[robot_id].x, robots[robot_id].y, workbenchs[robots[robot_id].target_workbench_ids[1]].x, workbenchs[robots[robot_id].target_workbench_ids[1]].y)
@@ -413,7 +414,7 @@ if __name__ == '__main__':
                         rotate, forward = robots[robot_id].move_to_target(direction, distance)
                         cfg.pid_list[robot_id] = [rotate, forward]
 
-                if robots[robot_id].state == 3:
+                elif robots[robot_id].state == 3:
                     # sell and turn 0
                     take_thing = robots[robot_id].take_thing
                     target = robots[robot_id].target_workbench_ids[1]
