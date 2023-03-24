@@ -145,7 +145,7 @@ def get_price_by_targets(free_robots, work_mode):
             if target0_workbench.is_targeted_flag[0] == 1 or (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time == -1):
                 continue
             if workbench_ids in [43] and target0_workbench.work_type in [4, 5, 6]:
-                ava_list = [22, 11, 15, 17, 10, 12, 21, 23]
+                ava_list = [11, 22, 15, 17, 10, 12, 21, 23]
             else:
                 target_workbench_list = choose_target_workbench_list(generate_product, target0_workbench.work_type, work_mode)
                 ava_list = get_ava_list(target_workbench_list, workbench_type_num)
@@ -166,7 +166,6 @@ def get_price_by_targets(free_robots, work_mode):
                 all_time = all_dis * 50 / 6 + add_more_times_all(target0_workbench, wait_time, robot_target0_time)
                 temp_val = cfg.THING_VALUE[target0_workbench.work_type]
                 temp_val_time = temp_val / all_time
-
                 next_time = 0
                 if target1_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH:
                     if workbench_minest_sell[target1][0] == -1:
@@ -197,7 +196,6 @@ def get_price_by_targets(free_robots, work_mode):
                         temp_val_time += cfg.THING_VALUE[target1_workbench.work_type] / next_time
                     if (target1_workbench.work_type == 6 and ((1 << target0_workbench.work_type) | target1_workbench.origin_thing) == 12):
                         temp_val_time += cfg.THING_VALUE[target1_workbench.work_type] / next_time
-                    
                 if temp_val_time > best_val_time:
                     robot_id, target0_id, target1_id = id, target0, target1
                     best_val_time = temp_val_time
