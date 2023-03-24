@@ -24,7 +24,7 @@ from numpy import array, rint, linspace, pi, cos, sin, sqrt
 
 # hyperparameters
 cfg = CFG()
-# log = open("log.txt", "a")
+log = open("log.txt", "a")
 # global needs
 
 # map1 43
@@ -332,7 +332,7 @@ if __name__ == '__main__':
         # 分配任务
         free_robots = find_free_robot(robots)
         # free_jobs = find_free_job(workbenchs)
-        # log.write(f'--------------------------------{frame_id}\n')
+        log.write(f'--------------------------------{frame_id}\n')
         # log.write(f'{free_robots}\n')
         # log.write(f'0 {robots[0].target_workbench_ids}\n')
         # log.write(f'1 {robots[1].target_workbench_ids}\n')
@@ -475,5 +475,5 @@ if __name__ == '__main__':
             sys.stdout.write('rotate %d %f\n' % (i, rotate))
             sys.stdout.write('forward %d %f\n' % (i, forward))
         ###
-        # log.write(f'----------------------------------------------------------------\n')
+        log.write(f'----------------------------------------------------------------\n')
         finish()

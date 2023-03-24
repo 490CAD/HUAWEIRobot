@@ -24,7 +24,7 @@ from numpy import array, rint, linspace, pi, cos, sin, sqrt
 
 # hyperparameters
 cfg = CFG()
-# log = open("log.txt", "a")
+log = open("log.txt", "a")
 # global needs
 
 # map1 43
