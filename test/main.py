@@ -181,7 +181,13 @@ def get_price_by_targets(free_robots, work_mode):
                 if target1_workbench.work_type not in [8, 9] and all_time <= cfg.MAX_PENTALIY_VALUE:
                     if (target1_workbench.work_type == 7 and ((1 << target0_workbench.work_type) | target1_workbench.origin_thing) == 112):
                         temp_val_time += cfg.THING_VALUE[target1_workbench.work_type] # / next_time
-
+                    if (target1_workbench.work_type == 4 and ((1 << target0_workbench.work_type) | target1_workbench.origin_thing) == 6):
+                        temp_val_time += cfg.THING_VALUE[target1_workbench.work_type] / next_time
+                    if (target1_workbench.work_type == 5 and ((1 << target0_workbench.work_type) | target1_workbench.origin_thing) == 10):
+                        temp_val_time += cfg.THING_VALUE[target1_workbench.work_type] / next_time
+                    if (target1_workbench.work_type == 6 and ((1 << target0_workbench.work_type) | target1_workbench.origin_thing) == 12):
+                        temp_val_time += cfg.THING_VALUE[target1_workbench.work_type] / next_time
+                    
                 if temp_val_time > best_val_time:
                     robot_id, target0_id, target1_id = id, target0, target1
                     best_val_time = temp_val_time
