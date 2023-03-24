@@ -56,3 +56,55 @@ def find_free_job(workbenchs):
             free_job[workbench.table_id] = workbench.work_type
         
     return dict(sorted(free_job.items(),key=lambda x:x[1],reverse=True))
+
+def add_more_times_all(workbench, wait_time, go_time):
+    extra_time = 0
+    if 1 <= workbench.work_type <= 3:
+        extra_time += 0
+    elif wait_time == -1:
+        extra_time += cfg.MAX_PENTALIY_VALUE
+    elif workbench.output == 1 or wait_time <= go_time:
+        extra_time += 0
+    elif wait_time - go_time > cfg.MAX_WAIT_TIME:
+        extra_time += cfg.MAX_PENTALIY_VALUE
+    else:
+        extra_time += workbench.remain_time - go_time
+    return extra_time
+
+def choose_target_workbench_list(generate_product, origin_workbench_work_type, choose_mode=1):
+    target_workbench_list = []
+    if origin_workbench_work_type == 4 or origin_workbench_work_type == 5 or origin_workbench_work_type == 6:
+        target_workbench_list = [7, 9]
+    elif origin_workbench_work_type == 7:
+        target_workbench_list = [8, 9]
+    elif origin_workbench_work_type == 1:
+        target_workbench_list = [4, 5, 9]
+    elif origin_workbench_work_type == 2:
+        target_workbench_list = [4, 6, 9]
+    elif origin_workbench_work_type == 3:
+        target_workbench_list = [5, 6, 9]
+    if choose_mode == 2:
+        if origin_workbench_work_type == 1: 
+            if generate_product[4] - generate_product[5] >= cfg.SUB_MISSION:
+                target_workbench_list.pop(0)
+            elif generate_product[4] - generate_product[5] <= -cfg.SUB_MISSION:
+                target_workbench_list.pop(1)
+        if origin_workbench_work_type == 2:
+            if generate_product[4] - generate_product[6] >= cfg.SUB_MISSION:
+                target_workbench_list.pop(0)
+            elif generate_product[4] - generate_product[6] <= -cfg.SUB_MISSION:
+                target_workbench_list.pop(1)
+        if origin_workbench_work_type == 3:
+            if generate_product[5] - generate_product[6] >= cfg.SUB_MISSION:
+                target_workbench_list.pop(0)
+            elif generate_product[5] - generate_product[6] <= -cfg.SUB_MISSION:
+                target_workbench_list.pop(1)
+    return target_workbench_list
+
+def get_ava_list(target_workbench_list, workbench_type_num):
+    ava_list = []
+    for i in target_workbench_list:
+        type_num_list = workbench_type_num[i]
+        for j in type_num_list:
+            ava_list.append(j)
+    return ava_list

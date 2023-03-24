@@ -1,37 +1,9 @@
-# Copyright (c) 2013 Mak Nazecic-Andrlon
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
-"""Implementation of the 2D ORCA algorithm as described by J. van der Berg,
-S. J. Guy, M. Lin and D. Manocha in 'Reciprocal n-body Collision Avoidance'."""
-
 import numpy as np
 from numpy import array, sqrt, copysign, dot
 from numpy.linalg import det
 from halfplaneintersect import halfplane_optimize, Line, perp
 from config import CFG
-# Method:
-# For each robot A and potentially colliding robot B, compute smallest change
-# in relative velocity 'u' that avoids collision. Find normal 'n' to VO at that
-# point.
-# For each such velocity 'u' and normal 'n', find half-plane as defined in (6).
-# Intersect half-planes and pick velocity closest to A's preferred velocity.
+
 
 cfg = CFG()
 
@@ -47,9 +19,6 @@ class Agent(object):
 
 
 def orca(robot_id, robots, t, dt, pid_list):
-    """Compute ORCA solution for agent. NOTE: velocity must be _instantly_
-    changed on tick *edge*, like first-order integration, otherwise the method
-    undercompensates and you will still risk colliding."""
     robot_next_state = []
 
     for k, i in enumerate(pid_list):
@@ -83,9 +52,9 @@ def orca(robot_id, robots, t, dt, pid_list):
         lines.append(line)
 
     pref_velocity = array([v_x, v_y])
-    v = halfplane_optimize(lines, pref_velocity, 1)
-    if v is None:
-        return halfplane_optimize(lines, np.array([0, 0]), 2), lines
+    v = halfplane_optimize(lines, pref_velocity, 2)
+    # if v is None:
+    #     return halfplane_optimize(lines, np.array([0, 0]), 2), lines
     return v, lines
 
 def get_avoidance_velocity(robot, collider, t, dt, robot_next_state):

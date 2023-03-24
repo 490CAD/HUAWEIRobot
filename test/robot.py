@@ -5,9 +5,11 @@ import numpy as np
 from config import CFG
 PI = math.pi
 cfg = CFG()
-log = open("log.txt", "a")
+# log = open("log.txt", "a")
 class Robot():
     def __init__(self, id):
+        """
+        """
         self.work_space = -1
         self.take_thing = 0
         self.time_f = 0.0
@@ -79,15 +81,15 @@ class Robot():
         DISTANCE_TOLERATION = 2
 
         # 左墙面 -->右墙面 -->上墙面 -->下墙面
-        if ((self.x <= DISTANCE_TOLERATION) and (self.toward >= PI * 3 / 4 or self.toward <= -PI * 3 / 4)) \
-            or ((self.x >= (50 - DISTANCE_TOLERATION)) and (self.toward >= -PI / 4 and self.toward <= PI / 4)) \
-            or ((self.y >= (50 - DISTANCE_TOLERATION)) and (self.toward > PI / 4 or self.toward < PI * 3 / 4)) \
-            or ((self.y <= DISTANCE_TOLERATION) and (self.toward > -PI * 3 / 4 and self.toward < -PI / 4)):
-            if direction1 > PI / 2 or direction1 < -PI / 2:
-                distance = - distance
+        # if ((self.x <= DISTANCE_TOLERATION) and (self.toward >= PI * 3 / 4 or self.toward <= -PI * 3 / 4)) \
+        #     or ((self.x >= (50 - DISTANCE_TOLERATION)) and (self.toward >= -PI / 4 and self.toward <= PI / 4)) \
+        #     or ((self.y >= (50 - DISTANCE_TOLERATION)) and (self.toward > PI / 4 or self.toward < PI * 3 / 4)) \
+        #     or ((self.y <= DISTANCE_TOLERATION) and (self.toward > -PI * 3 / 4 and self.toward < -PI / 4)):
+        #     if direction1 > PI / 2 or direction1 < -PI / 2:
+        #         distance = - distance
         ### 倒车
-        # if direction1 > PI / 2 or direction1 < - PI/2:
-        #     distance = -distance
+        if direction1 > PI / 2 or direction1 < - PI/2:
+            distance = -distance
         ###
 
         steering = self.w_pid.control(-direction1)
