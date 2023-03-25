@@ -15,6 +15,7 @@
 #!/bin/bash
 import functools
 import sys
+import functools
 from robot import Robot
 from workbench import WorkBench
 from config import CFG
@@ -25,7 +26,7 @@ from numpy import array, rint, linspace, pi, cos, sin, sqrt
 
 # hyperparameters
 cfg = CFG()
-log = open("log.txt", "a")
+log = open("log.txt", "w")
 # global needs
 
 # map1 43
@@ -67,66 +68,9 @@ workbench_mode = 0
 #     parse.add_argument('--wait_time', type=int, help='wait time')  # 3、往参数对象添加参数
 #     args = parse.parse_args()  # 4、解析参数对象获得解析对象
 #     return args
-def get_price_by_look_further(free_robots):
-    robot_id, target0_id, target1_id, best_val_time = -1, -1, -1, 0.0
-    workbench_list = useful_workbench_list
-    target2_id = -1
-    for id in free_robots:
-        robot = robots[id]
-        for target0 in workbench_list:
-            target0_workbench = workbenchs[target0]
-            if target0_workbench.is_targeted_flag[0] == 1 or (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time == -1):
-                continue
-
-            target_workbench_list = choose_target_workbench_list(generate_product, target0_workbench.work_type, 2)
-            ava_list = get_ava_list(target_workbench_list, workbench_type_num)
-
-            for target1 in ava_list:
-
-                target1_workbench = workbenchs[target1]
-                if target1_workbench.work_type in  cfg.HIGH_LEVEL_WORKBENCH:
-                    if  target1_workbench.is_targeted_flag[target0_workbench.work_type] == 1 or ((1 << target0_workbench.work_type) & target1_workbench.origin_thing) != 0:
-                        continue
-
-                target0_target1_dis = DIS_MP[target0][target1]
-                robot_target0_dis = cal_point_x_y(robot.x, robot.y, target0_workbench.x, target0_workbench.y)
-                all_dis = robot_target0_dis + target0_target1_dis
-                wait_time = target0_workbench.remain_time
-                robot_target0_time = robot_target0_dis * 50 / 6
-                all_time = all_dis * 50 / 6 + add_more_times_all(target0_workbench, wait_time, robot_target0_time)
-                temp_val = cfg.THING_VALUE[target0_workbench.work_type]
-                temp_val_time = temp_val / all_time
-
-                next_time = 0
-                if target1_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH:
-                    if workbench_minest_sell[target1][0] == -1:
-                        next_time = DIS_MP[target1][workbench_minest_sell[target1][1]] * 50 / 6
-                    elif workbench_minest_sell[target1][1] == -1:
-                        next_time = DIS_MP[target1][workbench_minest_sell[target1][0]] * 50 / 6
-                    else:
-                        next_time = min(DIS_MP[target1][workbench_minest_sell[target1][1]], DIS_MP[target1][workbench_minest_sell[target1][0]]) * 50 / 6
-
-                if target1_workbench.work_type == 7:
-                    if target1_workbench.origin_thing == 0:
-                        next_time = (next_time + 1000) * 3
-                    elif ((1 << target0_workbench.work_type) | target1_workbench.origin_thing) == 112:
-                        next_time = (next_time + 1000)
-                    else:
-                        next_time = (next_time + 1000) * 2
-                elif target1_workbench.work_type in [4, 5, 6]:
-                    if target1_workbench.origin_thing == 0:
-                        next_time = (next_time + 500) * 2
-                    else:
-                        next_time = (next_time + 500)
-                if target1_workbench.work_type not in [8, 9] and all_time <= cfg.MAX_PENTALIY_VALUE and (target1_workbench.work_type == 7 and ((1 << target0_workbench.work_type) | target1_workbench.origin_thing) == 112):
-                    temp_val_time += cfg.THING_VALUE[target1_workbench.work_type] # / next_time
-
-                if temp_val_time > best_val_time:
-                    robot_id, target0_id, target1_id = id, target0, target1
-                    best_val_time = temp_val_time
-
-    # robots[robot_id].value = best_val_time
-    return robot_id, target0_id, target1_id, target2_id
+workbench_allocate_list = []
+finished_list, task_list, waiting_list, generate_list = [], [], [], []
+task_pos_list = [0 for i in range(8)]
 
 def get_price_by_targets(free_robots, work_mode, frame_id):
     """
@@ -339,11 +283,13 @@ def map_init():
                     if workbenchs[j].work_type == 7:
                         DIS_MP[i][j] = DIS_MP[j][i] = 0 
                         
-    if workbench_ids in [50]:
+    if workbench_mode == 3:
         workbench_type_num[4] = sorted(workbench_type_num[4], key=functools.cmp_to_key(map3cmp))
         workbench_type_num[5] = sorted(workbench_type_num[5], key=functools.cmp_to_key(map3cmp))
         workbench_type_num[6] = sorted(workbench_type_num[6], key=functools.cmp_to_key(map3cmp))
         # workbench_type_num[6] = workbench_type_num[6][0:2]
+    if workbench_mode == 1:
+        workbench_type_num[7] = sorted(workbench_type_num[7], key=functools.cmp_to_key(map1cmp))
 
     if workbench_ids == 50:
         workbench_mode = 3
@@ -351,6 +297,11 @@ def map_init():
     elif workbench_ids == 43:
         workbench_mode = 1
         cfg.MAX_WAIT_TIME = 50
+    elif workbench_ids == 25:
+        workbench_mode = 2
+    elif workbench_ids == 18:
+        workbench_mode = 4
+
     
 def map3cmp(x, y):
     x_dis = cal_point_x_y(workbenchs[x].x, workbenchs[x].y, workbenchs[workbench_type_num[9][0]].x, workbenchs[workbench_type_num[9][0]].y)
@@ -360,6 +311,225 @@ def map3cmp(x, y):
     if x_dis > y_dis:
         return 1
     return 0
+
+def find_free_workbench(st_workbench_type, ed_workbench):
+    minest_dis = 10000
+    minest_no = -1
+    for id in workbench_type_num[st_workbench_type]:
+        if workbenchs[id].is_waiting != 0 :
+            continue
+        temp_dis = cal_point_x_y(workbenchs[id].x, workbenchs[id].y, workbenchs[ed_workbench].x, workbenchs[ed_workbench].y)
+        if temp_dis < minest_dis:
+            minest_dis = temp_dis
+            minest_no = id
+    return minest_no
+
+def map1cmp(x, y):
+    x_dis = cal_point_x_y(workbenchs[x].x, workbenchs[x].y, workbenchs[workbench_type_num[8][0]].x, workbenchs[workbench_type_num[8][0]].y)
+    y_dis = cal_point_x_y(workbenchs[y].x, workbenchs[y].y, workbenchs[workbench_type_num[8][0]].x, workbenchs[workbench_type_num[8][0]].y)
+    if x_dis < y_dis:
+        return -1
+    if x_dis > y_dis:
+        return 1
+    return 0
+
+def workbench_cmp(x, y):
+    if cfg.THING_VALUE[workbenchs[x[0]].work_type] > cfg.THING_VALUE[workbenchs[y[0]].work_type]:
+        return -1
+    if cfg.THING_VALUE[workbenchs[x[0]].work_type] < cfg.THING_VALUE[workbenchs[y[0]].work_type]:
+        return 1
+    return 0
+
+def update_task_list():
+    global task_list, generate_list, finished_list, waiting_list
+    task_len = len(task_list)
+    new_task_list = []
+    flags = [0 for i in range(task_len)]
+    for id in range(task_len):
+        new_task_list.append(task_list[id])
+
+    for id in range(len(new_task_list)):
+        work_type = workbenchs[new_task_list[id][0]].work_type
+        if work_type == 7 and ((1 << 4) * workbenchs[new_task_list[id][0]].up_down_flag[4] + (1 << 5) * workbenchs[new_task_list[id][0]].up_down_flag[5] + (1 << 6) * workbenchs[new_task_list[id][0]].up_down_flag[6]) | workbenchs[new_task_list[id][0]].origin_thing == 112:
+            flags[id] = 1
+            waiting_list.append(new_task_list[id])
+            workbenchs[new_task_list[id][0]].is_waiting = 2
+        if work_type == 6 and ((1 << 2) * workbenchs[new_task_list[id][0]].up_down_flag[2] + (1 << 3) * workbenchs[new_task_list[id][0]].up_down_flag[3]) | workbenchs[new_task_list[id][0]].origin_thing == 12:
+            flags[id] = 1
+            waiting_list.append(new_task_list[id])
+            workbenchs[new_task_list[id][0]].is_waiting = 2
+        if work_type == 5 and ((1 << 1) * workbenchs[new_task_list[id][0]].up_down_flag[1] + (1 << 3) * workbenchs[new_task_list[id][0]].up_down_flag[3]) | workbenchs[new_task_list[id][0]].origin_thing == 10:
+            flags[id] = 1
+            waiting_list.append(new_task_list[id])
+            workbenchs[new_task_list[id][0]].is_waiting = 2
+        if work_type == 4 and ((1 << 1) * workbenchs[new_task_list[id][0]].up_down_flag[1] + (1 << 2) * workbenchs[new_task_list[id][0]].up_down_flag[2]) | workbenchs[new_task_list[id][0]].origin_thing == 6:
+            flags[id] = 1
+            waiting_list.append(new_task_list[id])
+            workbenchs[new_task_list[id][0]].is_waiting = 2
+    new_task_list = []
+    for i in range(task_len):
+        if flags[i] == 0:
+            new_task_list.append(task_list[i])
+    task_list = new_task_list
+
+    waiting_len = len(waiting_list)
+    new_waiting_list = []
+    flags = [0 for i in range(waiting_len)]
+    for id in range(waiting_len):
+        new_waiting_list.append(waiting_list[id])
+
+    for id in range(len(new_waiting_list)):
+        work_type = workbenchs[new_waiting_list[id][0]].work_type
+        if workbenchs[new_waiting_list[id][0]].origin_thing == 0 and workbenchs[new_waiting_list[id][0]].remain_time > 0:
+            flags[id] = 1
+            generate_list.append(new_waiting_list[id])
+            # workbenchs[new_waiting_list[id][0]].is_waiting = 0
+
+    new_waiting_list = []
+    for i in range(waiting_len):
+        if flags[i] == 0:
+            new_waiting_list.append(waiting_list[i])
+    waiting_list = new_waiting_list
+
+    generate_len = len(generate_list)
+    new_generate_list = []
+    flags = [0 for i in range(generate_len)]
+    for id in range(generate_len):
+        new_generate_list.append(generate_list[id])
+
+    for id in range(len(new_generate_list)):
+        if workbenchs[new_generate_list[id][0]].output == 1 or 0 < workbenchs[new_generate_list[id][0]].remain_time < 100:
+            flags[id] = 1
+            workbenchs[new_generate_list[id][0]].up_down_flag = [0 for i in range(10)]
+        
+            workbenchs[new_generate_list[id][0]].is_waiting = 0
+            finished_list.append(new_generate_list[id])
+    new_generate_list = []
+    for i in range(generate_len):
+        if flags[i] == 0:
+            new_generate_list.append(generate_list[i])
+    generate_list = new_generate_list
+
+    finished_list = sorted(finished_list, key=functools.cmp_to_key(workbench_cmp))
+    # log.write(f"-\n")
+    # log.write(f"{workbenchs[workbench_type_num[7][0]].up_down_flag}")
+    # log.write(f"{task_list} \n")
+    # log.write(f"{waiting_list}\n")
+    # log.write(f"{generate_list} \n")
+    # log.write(f"{finished_list} \n")
+    # log.write(f"-\n")
+
+def up_down_policy(free_robots):
+    global task_list, generate_list, finished_list
+    robot_id, target0_id, target1_id = -1, -1, -1
+    while robot_id == -1:
+        task_pos = len(task_list) - 1
+        finished_pos = len(finished_list) - 1
+        if finished_pos == -1:
+            if task_pos == -1:
+                # 找最高级任务
+                flag = 0
+                for task_type in cfg.TASK_TYPE:
+                    for workbench in workbench_type_num[task_type]:
+                        if workbenchs[workbench].is_waiting == 0:
+                            if workbenchs[workbench].work_type == 7:
+                                targeted_work_type = [8, 9]
+                            elif workbenchs[workbench].work_type in [4, 5, 6]:
+                                targeted_work_type = [7, 9]
+                            elif workbenchs[workbench].work_type == 1:
+                                targeted_work_type = [4, 5, 9]
+                            elif workbenchs[workbench].work_type == 2:
+                                targeted_work_type = [4, 6, 9]
+                            elif workbenchs[workbench].work_type == 3:
+                                targeted_work_type = [5, 6, 9]
+                            
+                            best_dis, best_id = 30000, -1
+                            for i in targeted_work_type:
+                                for j in workbench_type_num[i]:
+                                    temp_dis = cal_point_x_y(workbenchs[j].x, workbenchs[j].y, workbenchs[workbench].x, workbenchs[workbench].y)
+                                    if temp_dis < best_dis:
+                                        best_dis = temp_dis
+                                        best_id = j
+                            task_list.append((workbench, best_id))
+                            workbenchs[workbench].is_waiting = 1
+                            flag = 1
+                            break
+                    if flag == 1:
+                        break
+            elif workbenchs[task_list[task_pos][0]].work_type == 7:
+                # 当任务列表的首部未生产完毕任务为7时
+                if workbenchs[task_list[task_pos][0]].origin_thing != 112:
+                    # 还没开始生产 找对应 6 5 4
+                    workbench_append_id = -1
+                    if(1 << 6) & workbenchs[task_list[task_pos][0]].origin_thing == 0 and workbench_append_id == -1 and workbenchs[task_list[task_pos][0]].up_down_flag[6] == 0:
+                        workbench_append_id = find_free_workbench(6, task_list[task_pos][0])
+                    if (1 << 5) & workbenchs[task_list[task_pos][0]].origin_thing == 0 and workbench_append_id == -1 and workbenchs[task_list[task_pos][0]].up_down_flag[5] == 0:
+                        workbench_append_id = find_free_workbench(5, task_list[task_pos][0])
+                    if (1 << 4) & workbenchs[task_list[task_pos][0]].origin_thing == 0 and workbench_append_id == -1 and workbenchs[task_list[task_pos][0]].up_down_flag[4] == 0:
+                        workbench_append_id = find_free_workbench(4, task_list[task_pos][0])
+                    task_list.append((workbench_append_id, task_list[task_pos][0]))
+                    workbenchs[task_list[task_pos][0]].up_down_flag[workbenchs[workbench_append_id].work_type] = 1
+                    # log.write(f"~{task_list[task_pos][0]} {workbenchs[workbench_append_id].work_type}\n")
+
+            elif workbenchs[task_list[task_pos][0]].work_type == 6:
+                # 为6
+                if workbenchs[task_list[task_pos][0]].origin_thing != 12:
+                    # 还没开始生产 找对应 3 2
+                    workbench_append_id = -1
+                    if (1 << 3) & workbenchs[task_list[task_pos][0]].origin_thing == 0 and workbench_append_id == -1 and workbenchs[task_list[task_pos][0]].up_down_flag[3] == 0:
+                        workbench_append_id = find_free_workbench(3, task_list[task_pos][0])
+                    if (1 << 2) & workbenchs[task_list[task_pos][0]].origin_thing == 0 and workbench_append_id == -1 and workbenchs[task_list[task_pos][0]].up_down_flag[2] == 0:
+                        workbench_append_id = find_free_workbench(2, task_list[task_pos][0])
+                    task_list.append((workbench_append_id, task_list[task_pos][0]))
+                    workbenchs[task_list[task_pos][0]].up_down_flag[workbenchs[workbench_append_id].work_type] = 1
+                    
+                    # log.write(f"{task_list} {task_pos}\n")
+            elif workbenchs[task_list[task_pos][0]].work_type == 5:
+                    # 还没开始生产 找对应 3 1
+                if workbenchs[task_list[task_pos][0]].origin_thing != 10:
+                    workbench_append_id = -1
+                    if (1 << 3) & workbenchs[task_list[task_pos][0]].origin_thing == 0 and workbench_append_id == -1 and workbenchs[task_list[task_pos][0]].up_down_flag[3] == 0:
+                        workbench_append_id = find_free_workbench(3, task_list[task_pos][0])
+                    if (1 << 1) & workbenchs[task_list[task_pos][0]].origin_thing == 0 and workbench_append_id == -1 and workbenchs[task_list[task_pos][0]].up_down_flag[1] == 0:
+                        workbench_append_id = find_free_workbench(1, task_list[task_pos][0])
+                    task_list.append((workbench_append_id, task_list[task_pos][0]))
+                    workbenchs[task_list[task_pos][0]].up_down_flag[workbenchs[workbench_append_id].work_type] = 1
+                    
+                    task_pos += 1
+            elif workbenchs[task_list[task_pos][0]].work_type == 4:
+                # 还没开始生产 找对应 2 1
+                if workbenchs[task_list[task_pos][0]].origin_thing != 6:
+                    workbench_append_id = -1
+                    if (1 << 2) & workbenchs[task_list[task_pos][0]].origin_thing == 0 and workbench_append_id == -1 and workbenchs[task_list[task_pos][0]].up_down_flag[2] == 0:
+                        workbench_append_id = find_free_workbench(2, task_list[task_pos][0])
+                    if (1 << 1) & workbenchs[task_list[task_pos][0]].origin_thing == 0 and workbench_append_id == -1 and workbenchs[task_list[task_pos][0]].up_down_flag[1] == 0:
+                        workbench_append_id = find_free_workbench(1, task_list[task_pos][0])
+                    task_list.append((workbench_append_id, task_list[task_pos][0]))
+                    workbenchs[task_list[task_pos][0]].up_down_flag[workbenchs[workbench_append_id].work_type] = 1
+
+            else:
+                # task_list为3 2 1
+                finished_tuple = task_list.pop(task_pos)
+                finished_list.append(finished_tuple)
+                finished_list = sorted(finished_list, key=functools.cmp_to_key(workbench_cmp))
+            update_task_list()
+        else:
+            best_dis = 30000
+            best_id = -1
+            finished_id = finished_list[0]
+            finished_list.pop(0)
+            for id in free_robots:
+                temp_dis = cal_point_x_y(robots[id].x, robots[id].y, workbenchs[finished_id[0]].x, workbenchs[finished_id[0]].y)
+                if best_dis > temp_dis:
+                    best_dis = temp_dis
+                    best_id = id
+            workbenchs[finished_id[0]].is_waiting = 0
+            robot_id, target0_id, target1_id = best_id, finished_id[0], finished_id[1]
+            # log.write(f"{robot_id}, {target0_id}, {target1_id}\n")
+
+    return robot_id, target0_id, target1_id
+
+
 
 # Main
 if __name__ == '__main__':
@@ -401,13 +571,23 @@ if __name__ == '__main__':
         # log.write(f'2 {robots[2].target_workbench_ids}\n')
         # log.write(f'3 {robots[3].target_workbench_ids}\n')
         # log.write(f'----------------\n')
+        if workbench_mode == 1:
+            update_task_list()
 
         for i in range(len(free_robots)):
-            employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
-            if employ_robot == -1:
-                employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
+            if workbench_mode == 1:
+                employ_robot, target0, target1 = up_down_policy(free_robots)
+            else:
+                employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
+                if employ_robot == -1:
+                    employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
             # employ_robot, target0, target1 = get_price_by_look_further(free_robots)
-                # employ_robot, target0, target1 = get_price_by_time(free_robots)
+            # if frame_id < 0:
+            # employ_robot, target0, target1 = up_down_policy(free_robots)
+            # else:
+            #     employ_robot, target0, target1 = get_price_by_targets(free_robots, 2)
+            #     if employ_robot == -1:
+            #         employ_robot, target0, target1 = get_price_by_targets(free_robots, 1)
             if employ_robot != -1:
                 robots[employ_robot].target_workbench_ids[0] = target0
                 robots[employ_robot].target_workbench_ids[1] = target1
@@ -417,6 +597,7 @@ if __name__ == '__main__':
                 # if workbenchs[robots[employ_robot].target_workbench_ids[0]].work_type in [1, 2, 3]:
                 #     workbenchs[robots[employ_robot].target_workbench_ids[0]].is_targeted_flag[0] = 0
                 free_robots.remove(employ_robot)
+            # update_task_list()
 
         line = sys.stdin.readline()
 
@@ -439,7 +620,7 @@ if __name__ == '__main__':
                     # distance to target
                     distance = cal_point_x_y(robots[robot_id].x, robots[robot_id].y, workbenchs[robots[robot_id].target_workbench_ids[0]].x, workbenchs[robots[robot_id].target_workbench_ids[0]].y)
                     # direction to target
-                    direction = drt_point_x_y(robots[robot_id].x, robots[robot_id].y, workbenchs[robots[robot_id].target_workbench_ids[0]].x, workbenchs[robots[robot_id].target_workbench_ids[0]].y)
+                    direction = drt_point_x_y(robots[robot_id].x, robots[robot_id].y, workbenchs[robots[robot_id].target_workbench_ids[0]].x, workbenchs[robots[robot_id].target_workbench_ids[0]].y, workbench_mode)
                     # reach the target workbench
                     if robots[robot_id].work_space == robots[robot_id].target_workbench_ids[0]:
                         robots[robot_id].s_pid.clear()
@@ -471,22 +652,37 @@ if __name__ == '__main__':
                     # distance to target
                     distance = cal_point_x_y(robots[robot_id].x, robots[robot_id].y, workbenchs[robots[robot_id].target_workbench_ids[1]].x, workbenchs[robots[robot_id].target_workbench_ids[1]].y)
                     # direction to target
-                    direction = drt_point_x_y(robots[robot_id].x, robots[robot_id].y, workbenchs[robots[robot_id].target_workbench_ids[1]].x, workbenchs[robots[robot_id].target_workbench_ids[1]].y)
+                    direction = drt_point_x_y(robots[robot_id].x, robots[robot_id].y, workbenchs[robots[robot_id].target_workbench_ids[1]].x, workbenchs[robots[robot_id].target_workbench_ids[1]].y, workbench_mode)
                     # reach the target workbench
+                    # if frame_id > 2500:
+                    #     log.write(f"-2-\n")
+                    #     log.write(f"{cfg.pid_list[3]}\n")
+                    #     log.write(f"-\n")
                     if robots[robot_id].work_space == robots[robot_id].target_workbench_ids[1]:
                         robots[robot_id].s_pid.clear()
                         robots[robot_id].w_pid.clear()
                         sys.stdout.write('forward %d %f\n' % (robot_id, 0))
                         robots[robot_id].state = 3
+                        # log.write(f"1\n")
                     else:
                         # rotate, forward = robots[robot_id].move_to_target(direction, distance)
                         # cfg.pid_list[robot_id] = [rotate, forward]
                         rotate, forward = robots[robot_id].move_to_target(direction, distance)
+                        # if frame_id > 2500:
+                        #     log.write(f"3 {direction} {robots[robot_id].toward}\n")
+                        direction_toward = abs(direction - robots[robot_id].toward)
                         if abs(direction - robots[robot_id].toward) <= cfg.PI / 2:
                             cfg.pid_list[robot_id] = [rotate, forward]
                         else:
+                            # log.write(f"3\n")
                             cfg.pid_list[robot_id] = [rotate, 0]
+                        # log.write(f"2\n")
                         # cfg.pid_list[robot_id] = [rotate, forward]
+                    
+                    # if frame_id > 2500:
+                    #     log.write(f"-2-\n")
+                    #     log.write(f"{cfg.pid_list[3]}\n")
+                    #     log.write(f"-\n")
 
                 elif robots[robot_id].state == 3:
                     # sell and turn 0
@@ -547,6 +743,8 @@ if __name__ == '__main__':
         #         # rotate = -rotate
         #     # log.write(f'rotate{rotate} forward{forward}\n\n')
         ### 防碰撞检测与预防
+        # for i in range(4):
+        #     log.write(f"{robots[3].state} {cfg.pid_list[3]}\n")
         for i, robot in enumerate(robots):
             # if i not in [1]:
             #     continue
@@ -573,5 +771,8 @@ if __name__ == '__main__':
             sys.stdout.write('rotate %d %f\n' % (i, rotate))
             sys.stdout.write('forward %d %f\n' % (i, forward))
         ###
+
+        # for i in range(4):
+        #     log.write(f"{cfg.pid_list[i]}\n")
         # log.write(f'----------------------------------------------------------------\n')
         finish()

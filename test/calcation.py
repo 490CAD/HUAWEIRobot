@@ -18,8 +18,12 @@ def cal_y(col: int):
 def cal_point_x_y(origin_x: float, origin_y: float, target_x: float, target_y: float):
     return math.sqrt((origin_x - target_x) ** 2 + (origin_y - target_y) ** 2)
 
-def drt_point_x_y(origin_x: float, origin_y: float, target_x: float, target_y: float):
-    return math.atan2(target_y - origin_y, target_x - origin_x)
+def drt_point_x_y(origin_x: float, origin_y: float, target_x: float, target_y: float, mode):    
+    eps = 1e-6 if mode != 2 else 1e-4
+    ans = math.atan2(target_y - origin_y, target_x - origin_x)
+    if abs(ans + cfg.PI) < eps:
+        return -ans
+    return ans
 
 # Input and Output Functions 
 def read_map():
