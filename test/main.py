@@ -19,7 +19,7 @@ from robot import Robot
 from workbench import WorkBench
 from config import CFG
 from calcation import *
-
+# import argparse
 from pyorca import Agent, get_avoidance_velocity, orca, normalized, perp
 from numpy import array, rint, linspace, pi, cos, sin, sqrt
 
@@ -61,7 +61,11 @@ workbench_type_num = [[] for i in range(10)]
 workbench_minest_sell = []
 generate_product = {4:0, 5:0, 6:0}
 
-
+# def parse_args():
+#     parse = argparse.ArgumentParser(description='Calculate cylinder volume')  # 2、创建参数对象
+#     parse.add_argument('--wait_time', type=int, help='wait time')  # 3、往参数对象添加参数
+#     args = parse.parse_args()  # 4、解析参数对象获得解析对象
+#     return args
 def get_price_by_look_further(free_robots):
     robot_id, target0_id, target1_id, best_val_time = -1, -1, -1, 0.0
     workbench_list = useful_workbench_list
@@ -120,7 +124,7 @@ def get_price_by_look_further(free_robots):
                     robot_id, target0_id, target1_id = id, target0, target1
                     best_val_time = temp_val_time
 
-    robots[robot_id].value = best_val_time
+    # robots[robot_id].value = best_val_time
     return robot_id, target0_id, target1_id, target2_id
 
 def get_price_by_targets(free_robots, work_mode, frame_id):
@@ -152,6 +156,8 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                 if target0_workbench.work_type == 5 and id in [0, 1]:
                     continue
             if target0_workbench.is_targeted_flag[0] == 1 or (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time == -1):
+                continue
+            if (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time >= 50):
                 continue
             if workbench_ids in [43] and target0_workbench.work_type in [4, 5, 6]:
                 ava_list = [22, 11, 15, 17, 10, 12, 21, 23]
@@ -192,7 +198,6 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                 all_time = all_dis * 50 / 6 + add_more_times_all(target0_workbench, wait_time, robot_target0_time)
                 temp_val = cfg.THING_VALUE[target0_workbench.work_type]
                 temp_val_time = temp_val / all_time
-
                 next_time = 0
                 if target1_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH:
                     if workbench_minest_sell[target1][0] == -1:
@@ -223,11 +228,10 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                         temp_val_time += cfg.THING_VALUE[target1_workbench.work_type] / next_time
                     if (target1_workbench.work_type == 6 and (((1 << target0_workbench.work_type) | target1_workbench.origin_thing) == 12)):
                         temp_val_time += cfg.THING_VALUE[target1_workbench.work_type] / next_time
-                    
                 if temp_val_time > best_val_time:
                     robot_id, target0_id, target1_id = id, target0, target1
                     best_val_time = temp_val_time
-    robots[robot_id].value = best_val_time
+    # robots[robot_id].value = best_val_time
     return robot_id, target0_id, target1_id  
 
 # store something 
@@ -279,7 +283,7 @@ def get_price_by_time(free_robots):
             if temp_val_time > best_val_time:
                 robot_id, target0_id, target1_id = robot, target0, target1
                 best_val_time = temp_val_time
-    robots[robot_id].value = best_val_time
+    # robots[robot_id].value = best_val_time
     return robot_id, target0_id, target1_id   
 
 def map_init():
@@ -350,6 +354,8 @@ if __name__ == '__main__':
     map_init()
     finish()
     # start working
+    # args = parse_args()
+    # log.write(f"{args}\n")
     while True:
         line = sys.stdin.readline()
         if not line:
@@ -393,6 +399,7 @@ if __name__ == '__main__':
             if employ_robot != -1:
                 robots[employ_robot].target_workbench_ids[0] = target0
                 robots[employ_robot].target_workbench_ids[1] = target1
+                # if workbenchs[target0].work_type not in [1, 2, 3]:
                 workbenchs[robots[employ_robot].target_workbench_ids[0]].is_targeted_flag[0] = 1
                 workbenchs[robots[employ_robot].target_workbench_ids[1]].is_targeted_flag[workbenchs[robots[employ_robot].target_workbench_ids[0]].work_type] = 1
                 # if workbenchs[robots[employ_robot].target_workbench_ids[0]].work_type in [1, 2, 3]:
@@ -478,7 +485,7 @@ if __name__ == '__main__':
                         # 将相应原料的卖操作解锁
                         # 1111110
 
-                        robots[robot_id].value = 0
+                        # robots[robot_id].value = 0
                         if workbenchs[target].work_type == 4 and ((1 << take_thing) | workbenchs[target].origin_thing) == 6:
                             generate_product[4] += 1
                         if workbenchs[target].work_type == 5 and ((1 << take_thing) | workbenchs[target].origin_thing) == 10:

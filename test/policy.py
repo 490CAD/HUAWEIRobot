@@ -154,3 +154,84 @@ def get_price_by_time(free_robots):
                 robot_id, target0_id, target1_id = robot, target0, target1
                 best_val_time = temp_val_time
     return robot_id, target0_id, target1_id   
+
+
+
+
+def get_price_by_look_further(free_robots):
+    robot_id, target0_id, target1_id, best_val_time = -1, -1, -1, 0.0
+    workbench_list = useful_workbench_list
+    target2_id = -1
+    for id in free_robots:
+        log.write(f"**robot {id}** \n")
+        log.write(f"workbench_list: {workbench_list}\n")
+        robot = robots[id]
+        for target0 in workbench_list:
+            target0_workbench = workbenchs[target0]
+            if target0_workbench.is_targeted_flag[0] == 1 or (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time == -1):
+                continue
+
+            target_workbench_list = choose_target_workbench_list(generate_product, target0_workbench.work_type, 2)
+            ava_list = get_ava_list(target_workbench_list, workbench_type_num)
+
+            for target1 in ava_list:
+                target1_workbench = workbenchs[target1]
+                if target1_workbench.work_type in  cfg.HIGH_LEVEL_WORKBENCH:
+                    if  target1_workbench.is_targeted_flag[target0_workbench.work_type] == 1 or ((1 << target0_workbench.work_type) & target1_workbench.origin_thing) != 0:
+                        continue
+                log.write(f"target0: {target0}; target1: {target1}\n")
+                target0_target1_dis = DIS_MP[target0][target1]
+                robot_target0_dis = cal_point_x_y(robot.x, robot.y, target0_workbench.x, target0_workbench.y)
+     
+                robot_target0_time = robot_target0_dis * 50 / 6
+                wait_target0_time = max(target0_workbench.remain_time - robot_target0_time, 0)
+
+                target0_val = cfg.THING_VALUE[target0_workbench.work_type]
+                go_from_target0_time = target0_target1_dis * 50 / 6
+                
+                temp_time = robot_target0_time + wait_target0_time + go_from_target0_time
+                temp_val_time = target0_val / temp_time
+
+                flag = 0
+                if temp_val_time > best_val_time:
+                    if target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH:
+                        if target0_workbench.work_type == 7:
+                            target2_workbench_list = [4, 5, 6]
+                        elif target0_workbench.work_type == 4:
+                            target2_workbench_list = [1, 2]
+                        elif target0_workbench.work_type == 5:
+                            target2_workbench_list = [1, 3]
+                        elif target0_workbench.work_type == 6:
+                            target2_workbench_list = [2, 3]
+                        target2_ava_list = get_ava_list(target2_workbench_list, workbench_type_num)
+                        for target2 in target2_ava_list:
+                            target2_workbench = workbenchs[target2]
+                            if target2_workbench.is_targeted_flag[0] == 1 or target0_workbench.is_targeted_flag[target2_workbench.work_type] == 1:
+                                continue
+                            if target2_workbench.output != 1 and target2_workbench.remain_time == -1:
+                                continue
+                            if ((1 << target2_workbench.work_type) & target0_workbench.origin_thing) != 0:
+                                continue
+                            target2_target0_dis = DIS_MP[target2][target0]
+                            robot_target2_dis = cal_point_x_y(robot.x, robot.y, target2_workbench.x, target2_workbench.y)
+                            go_from_robot_time = robot_target2_dis * 50 / 6
+                            go_from_target2_time = target2_target0_dis * 50 / 6
+                            wait_target2_time = max(target2_workbench.remain_time - go_from_robot_time, 0)
+                            wait_t2_target0_time = max(target0_workbench.remain_time - wait_target2_time - go_from_robot_time - go_from_target2_time, 0)
+                            target2_val = cfg.THING_VALUE[target2_workbench.work_type]
+
+                            ttemp_time = go_from_robot_time + wait_target2_time + go_from_target0_time + wait_t2_target0_time + go_from_target0_time
+                            ttemp_val_time = (target2_val + target0_val) / ttemp_time
+
+                            if ttemp_val_time > temp_val_time:
+                                robot_id, target0_id, target1_id, target2_id = id, target0, target1, target2
+                                best_val_time = ttemp_val_time
+                                flag = 1
+                    if flag == 0:
+                        robot_id, target0_id, target1_id = id, target0, target1
+                        best_val_time = temp_val_time
+                        target2_id = -1
+    log.write(f"{robot_id, target0_id, target1_id, target2_id}\n")            
+
+    robots[robot_id].value = best_val_time
+    return robot_id, target0_id, target1_id, target2_id
