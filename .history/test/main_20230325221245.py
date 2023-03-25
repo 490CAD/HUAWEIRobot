@@ -190,7 +190,7 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                     if target1_workbench.work_type == 5 and id in [0, 1]:
                         continue
                     
-                if target1_workbench.work_type == 9 and target0_workbench.work_type in [4, 5, 6] and workbench_mode == 1:
+                if target1_workbench.work_type == 9 and target0_workbench.work_type in [4, 5, 6] and workbench_ids == 43:
                     continue
                 if target1_workbench.work_type in  cfg.HIGH_LEVEL_WORKBENCH:
                     if  target1_workbench.is_targeted_flag[target0_workbench.work_type] == 1 or ((1 << target0_workbench.work_type) & target1_workbench.origin_thing) != 0:

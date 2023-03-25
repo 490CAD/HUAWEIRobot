@@ -153,15 +153,13 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
         for target0 in workbench_list:
             target0_workbench = workbenchs[target0]
             
-            if workbench_mode == 3:
+            if workbench_ids == 50:
                 if target0_workbench.work_type == 6 and id in [2, 3]:
                     continue
                 if target0_workbench.work_type == 5 and id in [0, 1]:
                     continue
-                
             if target0_workbench.is_targeted_flag[0] == 1 or (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time == -1):
                 continue
-            
             if workbench_mode == 1 and (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time >= 50):
                 continue
             if workbench_mode == 1 and target0_workbench.work_type in [4, 5, 6]:
@@ -189,8 +187,7 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                         continue
                     if target1_workbench.work_type == 5 and id in [0, 1]:
                         continue
-                    
-                if target1_workbench.work_type == 9 and target0_workbench.work_type in [4, 5, 6] and workbench_mode == 1:
+                if target1_workbench.work_type == 9 and target0_workbench.work_type in [4, 5, 6] and workbench_ids == 43:
                     continue
                 if target1_workbench.work_type in  cfg.HIGH_LEVEL_WORKBENCH:
                     if  target1_workbench.is_targeted_flag[target0_workbench.work_type] == 1 or ((1 << target0_workbench.work_type) & target1_workbench.origin_thing) != 0:
@@ -347,10 +344,8 @@ def map_init():
 
     if workbench_ids == 50:
         workbench_mode = 3
-        cfg.MAX_WAIT_TIME = 30
     elif workbench_ids == 43:
         workbench_mode = 1
-        cfg.MAX_WAIT_TIME = 50
     
 def map3cmp(x, y):
     x_dis = cal_point_x_y(workbenchs[x].x, workbenchs[x].y, workbenchs[workbench_type_num[9][0]].x, workbenchs[workbench_type_num[9][0]].y)

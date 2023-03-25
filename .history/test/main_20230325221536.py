@@ -237,7 +237,7 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                 if temp_val_time > best_val_time:
                     robot_id, target0_id, target1_id = id, target0, target1
                     best_val_time = temp_val_time
-    robots[robot_id].value = best_val_time
+    # robots[robot_id].value = best_val_time
     return robot_id, target0_id, target1_id  
 
 # store something 

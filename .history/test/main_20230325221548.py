@@ -237,7 +237,7 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                 if temp_val_time > best_val_time:
                     robot_id, target0_id, target1_id = id, target0, target1
                     best_val_time = temp_val_time
-    robots[robot_id].value = best_val_time
+    # robots[robot_id].value = best_val_time
     return robot_id, target0_id, target1_id  
 
 # store something 
@@ -496,7 +496,7 @@ if __name__ == '__main__':
                         sys.stdout.write('sell %d\n' % robot_id)
                         # 将相应原料的卖操作解锁
                         # 1111110
-                        robots[robot_id].value = 0
+                        # robots[robot_id].value = 0
                         if workbenchs[target].work_type == 4 and ((1 << take_thing) | workbenchs[target].origin_thing) == 6:
                             generate_product[4] += 1
                         if workbenchs[target].work_type == 5 and ((1 << take_thing) | workbenchs[target].origin_thing) == 10:

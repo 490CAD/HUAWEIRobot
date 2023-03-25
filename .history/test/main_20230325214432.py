@@ -60,7 +60,6 @@ workbenchs, robots = [], []
 workbench_type_num = [[] for i in range(10)]
 workbench_minest_sell = []
 generate_product = {4:0, 5:0, 6:0}
-workbench_mode = 0
 
 # def parse_args():
 #     parse = argparse.ArgumentParser(description='Calculate cylinder volume')  # 2、创建参数对象
@@ -142,8 +141,9 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
         all_time -> 整个过程的时间
     """
     global workbench_ids
-    global workbench_mode
-
+    workbench_mode = 0
+    if workbench_ids == 50:
+        workbench_mode = 3
     robot_id, target0_id, target1_id, best_val_time = -1, -1, -1, 0.0
     workbench_list = useful_workbench_list
     # if(workbench_ids in [50] and (9000 - frame_id < 300)):
@@ -153,20 +153,18 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
         for target0 in workbench_list:
             target0_workbench = workbenchs[target0]
             
-            if workbench_mode == 3:
+            if workbench_ids == 50:
                 if target0_workbench.work_type == 6 and id in [2, 3]:
                     continue
                 if target0_workbench.work_type == 5 and id in [0, 1]:
                     continue
-                
             if target0_workbench.is_targeted_flag[0] == 1 or (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time == -1):
                 continue
-            
-            if workbench_mode == 1 and (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time >= 50):
+            if (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time >= 50):
                 continue
-            if workbench_mode == 1 and target0_workbench.work_type in [4, 5, 6]:
-                ava_list = [11, 22, 15, 17, 10, 12, 21, 23]
-            if workbench_mode == 3:
+            if workbench_ids in [43] and target0_workbench.work_type in [4, 5, 6]:
+                ava_list = [22, 11, 15, 17, 10, 12, 21, 23]
+            elif workbench_ids in [50]:
                 if target0_workbench.work_type in [4]:
                     continue
                 if target0_workbench.work_type in [2]:
@@ -184,13 +182,12 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
 
             for target1 in ava_list:
                 target1_workbench = workbenchs[target1]
-                if workbench_mode == 3:
+                if workbench_ids == 50:
                     if target1_workbench.work_type == 6 and id in [2, 3]:
                         continue
                     if target1_workbench.work_type == 5 and id in [0, 1]:
                         continue
-                    
-                if target1_workbench.work_type == 9 and target0_workbench.work_type in [4, 5, 6] and workbench_mode == 1:
+                if target1_workbench.work_type == 9 and target0_workbench.work_type in [4, 5, 6] and workbench_ids == 43:
                     continue
                 if target1_workbench.work_type in  cfg.HIGH_LEVEL_WORKBENCH:
                     if  target1_workbench.is_targeted_flag[target0_workbench.work_type] == 1 or ((1 << target0_workbench.work_type) & target1_workbench.origin_thing) != 0:
@@ -294,7 +291,6 @@ def get_price_by_time(free_robots):
 
 def map_init():
     global workbench_ids
-    global workbench_mode
     robot_ids = 0
     for row in range(cfg.MAP_SIZE):
         for col in range(cfg.MAP_SIZE):
@@ -344,13 +340,6 @@ def map_init():
         workbench_type_num[5] = sorted(workbench_type_num[5], key=functools.cmp_to_key(map3cmp))
         workbench_type_num[6] = sorted(workbench_type_num[6], key=functools.cmp_to_key(map3cmp))
         # workbench_type_num[6] = workbench_type_num[6][0:2]
-
-    if workbench_ids == 50:
-        workbench_mode = 3
-        cfg.MAX_WAIT_TIME = 30
-    elif workbench_ids == 43:
-        workbench_mode = 1
-        cfg.MAX_WAIT_TIME = 50
     
 def map3cmp(x, y):
     x_dis = cal_point_x_y(workbenchs[x].x, workbenchs[x].y, workbenchs[workbench_type_num[9][0]].x, workbenchs[workbench_type_num[9][0]].y)
@@ -403,11 +392,13 @@ if __name__ == '__main__':
         # log.write(f'----------------\n')
 
         for i in range(len(free_robots)):
-            employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
-            if employ_robot == -1:
-                employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
+            if frame_id < 9000:
+                employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
+                if employ_robot == -1:
+                    employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
+            else:
             # employ_robot, target0, target1 = get_price_by_look_further(free_robots)
-                # employ_robot, target0, target1 = get_price_by_time(free_robots)
+                employ_robot, target0, target1 = get_price_by_time(free_robots)
             if employ_robot != -1:
                 robots[employ_robot].target_workbench_ids[0] = target0
                 robots[employ_robot].target_workbench_ids[1] = target1
@@ -496,6 +487,7 @@ if __name__ == '__main__':
                         sys.stdout.write('sell %d\n' % robot_id)
                         # 将相应原料的卖操作解锁
                         # 1111110
+
                         robots[robot_id].value = 0
                         if workbenchs[target].work_type == 4 and ((1 << take_thing) | workbenchs[target].origin_thing) == 6:
                             generate_product[4] += 1
@@ -555,10 +547,7 @@ if __name__ == '__main__':
             if cfg.pid_list[i][1] != 0:
                 # continue
                 ### 防碰撞
-                if workbench_mode == 3:
-                    v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list, 3)
-                else:      
-                    v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list)
+                v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list)
                 if cfg.pid_list[i][1] >= 0:
                     rotate =  math.atan2(-v[1], v[0])  - robot.toward
                     if rotate > cfg.PI:
