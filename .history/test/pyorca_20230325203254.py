@@ -53,8 +53,8 @@ def orca(robot_id, robots, t, dt, pid_list):
 
     pref_velocity = array([v_x, v_y])
     v = halfplane_optimize(lines, pref_velocity, 2)
-    # v_ratio = 6 / np.sqrt(v[0]**2 + v[1]**2)
-    # v = v * v_ratio
+    v_ratio = 6 / np.sqrt(v[0]**2 + v[1]**2)
+    v = v * v_ratio
     # if v is None:
     #     return halfplane_optimize(lines, np.array([0, 0]), 2), lines
     return v, lines

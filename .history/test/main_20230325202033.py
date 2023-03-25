@@ -146,11 +146,11 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
         for target0 in workbench_list:
             target0_workbench = workbenchs[target0]
             
-            if workbench_ids == 50:
-                if target0_workbench.work_type == 6 and id in [2, 3]:
-                    continue
-                if target0_workbench.work_type == 5 and id in [0, 1]:
-                    continue
+            # if workbench_ids == 50:
+            #     if target0_workbench.work_type == 6 and id in [2, 3]:
+            #         continue
+            #     if target0_workbench.work_type == 5 and id in [0, 1]:
+            #         continue
             if target0_workbench.is_targeted_flag[0] == 1 or (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time == -1):
                 continue
             if workbench_ids in [43] and target0_workbench.work_type in [4, 5, 6]:
@@ -173,11 +173,11 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
 
             for target1 in ava_list:
                 target1_workbench = workbenchs[target1]
-                if workbench_ids == 50:
-                    if target1_workbench.work_type == 6 and id in [2, 3]:
-                        continue
-                    if target1_workbench.work_type == 5 and id in [0, 1]:
-                        continue
+                # if workbench_ids == 50:
+                #     if target1_workbench.work_type == 6 and id in [2, 3]:
+                #         continue
+                #     if target1_workbench.work_type == 5 and id in [0, 1]:
+                #         continue
                 if target1_workbench.work_type == 9 and target0_workbench.work_type in [4, 5, 6] and workbench_ids == 43:
                     continue
                 if target1_workbench.work_type in  cfg.HIGH_LEVEL_WORKBENCH:
@@ -428,14 +428,8 @@ if __name__ == '__main__':
                         sys.stdout.write('forward %d %f\n' % (robot_id, 0))
                         robots[robot_id].state = 1
                     else:
-                        # rotate, forward = robots[robot_id].move_to_target(direction, distance)
-                        # cfg.pid_list[robot_id] = [rotate, forward]
                         rotate, forward = robots[robot_id].move_to_target(direction, distance)
-                        if abs(direction - robots[robot_id].toward) <= cfg.PI / 2:
-                            cfg.pid_list[robot_id] = [rotate, forward]
-                        else:
-                            cfg.pid_list[robot_id] = [rotate, 0]
-                        # cfg.pid_list[robot_id] = [rotate, forward]
+                        cfg.pid_list[robot_id] = [rotate, forward]
                 elif robots[robot_id].state == 1:
                     # buy
                     if workbenchs[robots[robot_id].target_workbench_ids[0]].output == 1 and robots[robot_id].work_space == robots[robot_id].target_workbench_ids[0]:
@@ -460,14 +454,8 @@ if __name__ == '__main__':
                         sys.stdout.write('forward %d %f\n' % (robot_id, 0))
                         robots[robot_id].state = 3
                     else:
-                        # rotate, forward = robots[robot_id].move_to_target(direction, distance)
-                        # cfg.pid_list[robot_id] = [rotate, forward]
                         rotate, forward = robots[robot_id].move_to_target(direction, distance)
-                        if abs(direction - robots[robot_id].toward) <= cfg.PI / 2:
-                            cfg.pid_list[robot_id] = [rotate, forward]
-                        else:
-                            cfg.pid_list[robot_id] = [rotate, 0]
-                        # cfg.pid_list[robot_id] = [rotate, forward]
+                        cfg.pid_list[robot_id] = [rotate, forward]
 
                 elif robots[robot_id].state == 3:
                     # sell and turn 0
@@ -508,47 +496,26 @@ if __name__ == '__main__':
         # robots[0].value = 100
         # robots[1].value = 0
         ### 防碰撞检测与预防
-        # for i, robot in enumerate(robots):
-        #     # if i not in [1]:
-        #     #     continue
-        #     if cfg.pid_list[i][0] == 0:
-        #         continue
-        #     rotate = cfg.pid_list[i][0]
-        #     forward = cfg.pid_list[i][1]
-        #     v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list)
-        #     if cfg.pid_list[i][1] >= 0:
-        #         rotate =  math.atan2(-v[1], v[0])  - robot.toward
-        #         if rotate > cfg.PI:
-        #             rotate += -2*cfg.PI
-        #         elif rotate <= -cfg.PI:
-        #             rotate += 2*cfg.PI
-        #         rotate = rotate / cfg.dt
-        #         forward = sqrt(v[0]**2 + v[1]**2)
-        #         if cfg.pid_list[i][1] < 0:
-        #             forward = -forward
-        #         # rotate = -rotate
-        #     # log.write(f'rotate{rotate} forward{forward}\n\n')
-        ### 防碰撞检测与预防
         for i, robot in enumerate(robots):
             # if i not in [1]:
             #     continue
+            if cfg.pid_list[i][0] == 0:
+                continue
             rotate = cfg.pid_list[i][0]
             forward = cfg.pid_list[i][1]
-            if cfg.pid_list[i][1] != 0:
-                # continue
-                ### 防碰撞
-                v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list)
-                if cfg.pid_list[i][1] >= 0:
-                    rotate =  math.atan2(-v[1], v[0])  - robot.toward
-                    if rotate > cfg.PI:
-                        rotate += -2*cfg.PI
-                    elif rotate <= -cfg.PI:
-                        rotate += 2*cfg.PI
-                    rotate = rotate / cfg.dt
-                    forward = sqrt(v[0]**2 + v[1]**2)
-                    if cfg.pid_list[i][1] < 0:
-                        forward = -forward
-            ##
+            v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list)
+            if cfg.pid_list[i][1] >= 0:
+                rotate =  math.atan2(-v[1], v[0])  - robot.toward
+                if rotate > cfg.PI:
+                    rotate += -2*cfg.PI
+                elif rotate <= -cfg.PI:
+                    rotate += 2*cfg.PI
+                rotate = rotate / cfg.dt
+                forward = sqrt(v[0]**2 + v[1]**2)
+                if cfg.pid_list[i][1] < 0:
+                    forward = -forward
+                # rotate = -rotate
+            # log.write(f'rotate{rotate} forward{forward}\n\n')
             sys.stdout.write('rotate %d %f\n' % (i, rotate))
             sys.stdout.write('forward %d %f\n' % (i, forward))
         ###

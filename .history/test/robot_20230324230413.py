@@ -60,11 +60,11 @@ class Robot():
             # k = math.exp(cfg.MAX_STOP_DISTANCE_0) / 6 if self.take_thing == 0 else math.exp(cfg.MAX_STOP_DISTANCE_1) / 6
             
             # forward =  min(6, math.exp(distance) / k)
-            # forward =  min(6, distance / 3)
-            if distance >= 9:
-                forward = 6
-            else:
-                forward = 4 / (1 + math.exp(-15 * (distance - 8))) + 2
+            forward =  min(6, distance / 3)
+            # if distance >= 3:
+            #     forward = 6
+            # else:
+            #     forward = 6 / (1 + math.exp(-3 * (distance - 2.4)))
         if rotate > 0:
             rotate = min(PI, rotate)
         else:
@@ -90,8 +90,8 @@ class Robot():
         ###
         
         ### 倒车
-        if direction1 > PI / 2 or direction1 < - PI/2:
-            distance = -distance
+        # if direction1 > PI / 2 or direction1 < - PI/2:
+        #     distance = -distance
         ###
 
         steering = self.w_pid.control(-direction1)

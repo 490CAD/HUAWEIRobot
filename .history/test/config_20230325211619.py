@@ -25,7 +25,7 @@ class CFG():
     MAX_WAIT_TIME = 30
     MAX_PENTALIY_VALUE = 100000
     OVER_FRAME = 9000
-    SUB_MISSION = 3
+    SUB_MISSION = 2
 
     ###
     # use for orca
