@@ -1,7 +1,4 @@
 class PID:
-    """
-    A PID controller sporting an option to do accumulator min/max anti-windup.
-    """
 
     def __init__(self, Kp=1.0, Ki=0.0, Kd=0.0, reference=None, initial=None):
         self.Kp = Kp
@@ -37,10 +34,6 @@ class PID:
         return control
 
     def anti_windup_fun(self, acc_min, acc_max=None):
-        """
-        @acc_min false for disabling
-        @acc_max defaults to -@acc_min
-        """
         self.anti_windup = True if acc_min is not False else False
         self.accumulator_min = acc_min
         self.accumulator_max = acc_max if acc_max is not None else -acc_min
@@ -51,14 +44,7 @@ if __name__ == "__main__":
     import random
 
     class robot:
-        """
-        This is the robot class from Udacity
-        """
-
         def __init__(self, length = 20.0):
-            """
-            creates robot and initializes location/orientation to 0, 0, 0
-            """
             self.x = 0.0
             self.y = 0.0
             self.orientation = 0.0
@@ -68,34 +54,19 @@ if __name__ == "__main__":
             self.steering_drift = 0.0
 
         def set(self, new_x, new_y, new_orientation):
-            """
-            sets a robot coordinate
-            """
             self.x = float(new_x)
             self.y = float(new_y)
             self.orientation = float(new_orientation) % (2.0 * pi)
 
         def set_noise(self, new_s_noise, new_d_noise):
-            """
-            sets the noise parameters
-            makes it possible to change the noise parameters
-            this is often useful in particle filters
-            """
             self.steering_noise = float(new_s_noise)
             self.distance_noise = float(new_d_noise)
 
         def set_steering_drift(self, drift):
-            """
-            sets the systematical steering drift parameter
-            """
             self.steering_drift = drift
 
         def move(self, steering, distance,
                  tolerance=0.001, max_steering_angle=pi/4.0):
-            """
-            steering = front wheel steering angle, limited by max_steering_angle
-            distance = total distance driven, most be non-negative
-            """
             if steering > max_steering_angle:
                 steering = max_steering_angle
             if steering < -max_steering_angle:

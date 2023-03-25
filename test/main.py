@@ -26,7 +26,7 @@ from numpy import array, rint, linspace, pi, cos, sin, sqrt
 
 # hyperparameters
 cfg = CFG()
-log = open("log.txt", "w")
+# log = open("log.txt", "w")
 # global needs
 
 # map1 43
@@ -63,11 +63,6 @@ workbench_minest_sell = []
 generate_product = {4:0, 5:0, 6:0}
 workbench_mode = 0
 
-# def parse_args():
-#     parse = argparse.ArgumentParser(description='Calculate cylinder volume')  # 2、创建参数对象
-#     parse.add_argument('--wait_time', type=int, help='wait time')  # 3、往参数对象添加参数
-#     args = parse.parse_args()  # 4、解析参数对象获得解析对象
-#     return args
 workbench_allocate_list = []
 finished_list, task_list, waiting_list, generate_list = [], [], [], []
 task_pos_list = [0 for i in range(8)]
@@ -505,19 +500,20 @@ if __name__ == '__main__':
         # 分配任务
         free_robots = find_free_robot(robots)
         # free_jobs = find_free_job(workbenchs)
-        # log.write(f'--------------------------------{frame_id}\n')
-        # log.write(f'{free_robots}\n')
-        # log.write(f'0 {robots[0].target_workbench_ids}\n')
-        # log.write(f'1 {robots[1].target_workbench_ids}\n')
-        # log.write(f'2 {robots[2].target_workbench_ids}\n')
-        # log.write(f'3 {robots[3].target_workbench_ids}\n')
-        # log.write(f'----------------\n')
+        
         if workbench_mode == 1:
             update_task_list()
 
         for i in range(len(free_robots)):
             if workbench_mode == 1:
                 employ_robot, target0, target1 = up_down_policy(free_robots)
+            elif workbench_mode == 4:
+                if frame_id < 200:
+                    employ_robot, target0, target1 = up_down_policy(free_robots)
+                else: 
+                    employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
+                    if employ_robot == -1:
+                        employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
             else:
                 employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
                 if employ_robot == -1:
@@ -643,42 +639,7 @@ if __name__ == '__main__':
                         robots[robot_id].target_workbench_ids[1] = -1                      
                     else:
                         robots[robot_id].state = 2
-        # log.write(f'{robots[3].x}, {robots[3].y}\n')
-        # 32.75 + 5
-        # distance = cal_point_x_y(robots[1].x, robots[1].y, 12.75 - 5, 35.75)
-        #             # direction to target
-        # direction = drt_point_x_y(robots[1].x, robots[1].y, 12.75 - 5, 35.75)
-        # log.write(f'{robots[0].x} {robots[0].y}\n')
-        # rotate, forward = robots[1].move_to_target(direction, distance)
-        # rotate, forward =0, -2
-        # cfg.pid_list= [[0, 0],[0, 0],[0, 0],[0, 0]]
-        # cfg.pid_list[1]= [rotate, forward]
-        # robots[0].value = 100
-        # robots[1].value = 0
-        ### 防碰撞检测与预防
-        # for i, robot in enumerate(robots):
-        #     # if i not in [1]:
-        #     #     continue
-        #     if cfg.pid_list[i][0] == 0:
-        #         continue
-        #     rotate = cfg.pid_list[i][0]
-        #     forward = cfg.pid_list[i][1]
-        #     v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list)
-        #     if cfg.pid_list[i][1] >= 0:
-        #         rotate =  math.atan2(-v[1], v[0])  - robot.toward
-        #         if rotate > cfg.PI:
-        #             rotate += -2*cfg.PI
-        #         elif rotate <= -cfg.PI:
-        #             rotate += 2*cfg.PI
-        #         rotate = rotate / cfg.dt
-        #         forward = sqrt(v[0]**2 + v[1]**2)
-        #         if cfg.pid_list[i][1] < 0:
-        #             forward = -forward
-        #         # rotate = -rotate
-        #     # log.write(f'rotate{rotate} forward{forward}\n\n')
-        ### 防碰撞检测与预防
-        # for i in range(4):
-        #     log.write(f"{robots[3].state} {cfg.pid_list[3]}\n")
+
         for i, robot in enumerate(robots):
             # if i not in [1]:
             #     continue
@@ -705,8 +666,4 @@ if __name__ == '__main__':
             sys.stdout.write('rotate %d %f\n' % (i, rotate))
             sys.stdout.write('forward %d %f\n' % (i, forward))
         ###
-
-        # for i in range(4):
-        #     log.write(f"{cfg.pid_list[i]}\n")
-        # log.write(f'----------------------------------------------------------------\n')
         finish()
