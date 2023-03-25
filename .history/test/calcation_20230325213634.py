@@ -57,33 +57,31 @@ def find_free_job(workbenchs):
         
     return dict(sorted(free_job.items(),key=lambda x:x[1],reverse=True))
 
-def add_more_times_all(workbench, wait_time, go_time, mode=0):
-    if mode == 3:
-        extra_time = 0
-        if 1 <= workbench.work_type <= 3:
-            extra_time += 0
-        elif wait_time == -1:
-            extra_time += cfg.MAX_PENTALIY_VALUE
-        elif workbench.output == 1 or wait_time <= go_time:
-            extra_time += 0
-        elif wait_time - go_time > cfg.MAX_WAIT_TIME:
-            extra_time += cfg.MAX_PENTALIY_VALUE
-        else:
-            extra_time += wait_time - go_time
-        return extra_time
+def add_more_times_all(workbench, wait_time, go_time):
+    # if wait_time == -1 and workbench.output == 1:
+    #     return 0
+    # if wait_time == -1:
+    #     return cfg.MAX_PENTALIY_VALUE
+    # extra_time = 0
+    # if 1 <= workbench.work_type <= 3:
+    #     extra_time += 0
+    # elif wait_time - go_time > cfg.MAX_WAIT_TIME:
+    #     extra_time += cfg.MAX_PENTALIY_VALUE
+    # else:
+    #     extra_time += wait_time - go_time
+    # return extra_time
+    extra_time = 0
+    if 1 <= workbench.work_type <= 3:
+        extra_time += 0
+    elif wait_time == -1:
+        extra_time += cfg.MAX_PENTALIY_VALUE
+    elif workbench.output == 1 or wait_time <= go_time:
+        extra_time += 0
+    elif wait_time - go_time > cfg.MAX_WAIT_TIME:
+        extra_time += cfg.MAX_PENTALIY_VALUE
     else:
-        if wait_time == -1 and workbench.output == 1:
-            return 0
-        if wait_time == -1:
-            return cfg.MAX_PENTALIY_VALUE
-        extra_time = 0
-        if 1 <= workbench.work_type <= 3:
-            extra_time += 0
-        elif wait_time - go_time > cfg.MAX_WAIT_TIME:
-            extra_time += cfg.MAX_PENTALIY_VALUE
-        else:
-            extra_time += wait_time - go_time
-        return extra_time
+        extra_time += wait_time - go_time
+    return extra_time
 
 def choose_target_workbench_list(generate_product, origin_workbench_work_type, choose_mode=1):
     target_workbench_list = []

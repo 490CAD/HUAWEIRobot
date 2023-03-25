@@ -198,7 +198,7 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                 all_dis = robot_target0_dis + target0_target1_dis
                 wait_time = target0_workbench.remain_time
                 robot_target0_time = robot_target0_dis * 50 / 6
-                all_time = all_dis * 50 / 6 + add_more_times_all(target0_workbench, wait_time, robot_target0_time, workbench_mode)
+                all_time = all_dis * 50 / 6 + add_more_times_all(target0_workbench, wait_time, robot_target0_time)
                 temp_val = cfg.THING_VALUE[target0_workbench.work_type]
                 temp_val_time = temp_val / all_time
                 next_time = 0

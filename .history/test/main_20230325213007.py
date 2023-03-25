@@ -141,9 +141,6 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
         all_time -> 整个过程的时间
     """
     global workbench_ids
-    workbench_mode = 0
-    if workbench_ids == 50:
-        workbench_mode = 3
     robot_id, target0_id, target1_id, best_val_time = -1, -1, -1, 0.0
     workbench_list = useful_workbench_list
     # if(workbench_ids in [50] and (9000 - frame_id < 300)):
@@ -198,7 +195,7 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                 all_dis = robot_target0_dis + target0_target1_dis
                 wait_time = target0_workbench.remain_time
                 robot_target0_time = robot_target0_dis * 50 / 6
-                all_time = all_dis * 50 / 6 + add_more_times_all(target0_workbench, wait_time, robot_target0_time, workbench_mode)
+                all_time = all_dis * 50 / 6 + add_more_times_all(target0_workbench, wait_time, robot_target0_time)
                 temp_val = cfg.THING_VALUE[target0_workbench.work_type]
                 temp_val_time = temp_val / all_time
                 next_time = 0
@@ -234,7 +231,7 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                 if temp_val_time > best_val_time:
                     robot_id, target0_id, target1_id = id, target0, target1
                     best_val_time = temp_val_time
-    robots[robot_id].value = best_val_time
+    # robots[robot_id].value = best_val_time
     return robot_id, target0_id, target1_id  
 
 # store something 
@@ -488,7 +485,7 @@ if __name__ == '__main__':
                         # 将相应原料的卖操作解锁
                         # 1111110
 
-                        robots[robot_id].value = 0
+                        # robots[robot_id].value = 0
                         if workbenchs[target].work_type == 4 and ((1 << take_thing) | workbenchs[target].origin_thing) == 6:
                             generate_product[4] += 1
                         if workbenchs[target].work_type == 5 and ((1 << take_thing) | workbenchs[target].origin_thing) == 10:

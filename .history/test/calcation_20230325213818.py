@@ -58,6 +58,19 @@ def find_free_job(workbenchs):
     return dict(sorted(free_job.items(),key=lambda x:x[1],reverse=True))
 
 def add_more_times_all(workbench, wait_time, go_time, mode=0):
+    if mode == 1:
+        if wait_time == -1 and workbench.output == 1:
+            return 0
+        if wait_time == -1:
+            return cfg.MAX_PENTALIY_VALUE
+        extra_time = 0
+        if 1 <= workbench.work_type <= 3:
+            extra_time += 0
+        elif wait_time - go_time > cfg.MAX_WAIT_TIME:
+            extra_time += cfg.MAX_PENTALIY_VALUE
+        else:
+            extra_time += wait_time - go_time
+        return extra_time
     if mode == 3:
         extra_time = 0
         if 1 <= workbench.work_type <= 3:
@@ -65,19 +78,6 @@ def add_more_times_all(workbench, wait_time, go_time, mode=0):
         elif wait_time == -1:
             extra_time += cfg.MAX_PENTALIY_VALUE
         elif workbench.output == 1 or wait_time <= go_time:
-            extra_time += 0
-        elif wait_time - go_time > cfg.MAX_WAIT_TIME:
-            extra_time += cfg.MAX_PENTALIY_VALUE
-        else:
-            extra_time += wait_time - go_time
-        return extra_time
-    else:
-        if wait_time == -1 and workbench.output == 1:
-            return 0
-        if wait_time == -1:
-            return cfg.MAX_PENTALIY_VALUE
-        extra_time = 0
-        if 1 <= workbench.work_type <= 3:
             extra_time += 0
         elif wait_time - go_time > cfg.MAX_WAIT_TIME:
             extra_time += cfg.MAX_PENTALIY_VALUE

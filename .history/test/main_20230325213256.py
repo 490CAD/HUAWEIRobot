@@ -141,9 +141,6 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
         all_time -> 整个过程的时间
     """
     global workbench_ids
-    workbench_mode = 0
-    if workbench_ids == 50:
-        workbench_mode = 3
     robot_id, target0_id, target1_id, best_val_time = -1, -1, -1, 0.0
     workbench_list = useful_workbench_list
     # if(workbench_ids in [50] and (9000 - frame_id < 300)):
@@ -198,7 +195,7 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                 all_dis = robot_target0_dis + target0_target1_dis
                 wait_time = target0_workbench.remain_time
                 robot_target0_time = robot_target0_dis * 50 / 6
-                all_time = all_dis * 50 / 6 + add_more_times_all(target0_workbench, wait_time, robot_target0_time, workbench_mode)
+                all_time = all_dis * 50 / 6 + add_more_times_all(target0_workbench, wait_time, robot_target0_time)
                 temp_val = cfg.THING_VALUE[target0_workbench.work_type]
                 temp_val_time = temp_val / all_time
                 next_time = 0
