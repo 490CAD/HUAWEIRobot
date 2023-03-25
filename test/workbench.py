@@ -6,10 +6,13 @@ class WorkBench():
         self.origin_thing =0
         self.output = 0
         self.table_id = id
+        self.father_workbench = -1
+        self.is_waiting = 0
 
         # the workbench is targeted by a robot
         # 第0位为买锁，其余第i位为第i钟原料的锁
         self.is_targeted_flag = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.up_down_flag = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     def get_from_frame(self, work_type, x, y, remain_time, origin_thing, output):
         self.work_type = int(work_type)
         self.x, self.y = float(x), float(y)
