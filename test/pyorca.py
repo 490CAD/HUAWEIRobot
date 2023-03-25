@@ -20,7 +20,6 @@ class Agent(object):
 
 def orca(robot_id, robots, t, dt, pid_list, mode=0):
     robot_next_state = []
-
     for k, i in enumerate(pid_list):
         new_speed = i[1]
         new_toward = robots[k].toward

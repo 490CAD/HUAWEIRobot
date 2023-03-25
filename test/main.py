@@ -143,14 +143,14 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                 robot_turn_dis = abs(drt_point_x_y(robot.x, robot.y, target0_workbench.x, target0_workbench.y, work_mode) - robot.toward)
 
                 turn_time = robot_turn_dis * 50 / cfg.PI / 6
-                if workbench_mode == 3:
+                if workbench_mode in [3, 4]:
                     turn_time = 0
 
                 all_dis = robot_target0_dis + target0_target1_dis
 
                 wait_time = target0_workbench.remain_time
                 robot_target0_time = robot_target0_dis * 50 / 6
-                all_time = all_dis * 50 / 6 + add_more_times_all(target0_workbench, wait_time, robot_target0_time, workbench_mode) +turn_time
+                all_time = all_dis * 50 / 6 + add_more_times_all(target0_workbench, wait_time, robot_target0_time + turn_time, workbench_mode) +turn_time
                 temp_val = cfg.THING_VALUE[target0_workbench.work_type]
                 temp_val_time = temp_val / all_time
                 next_time = 0
@@ -232,14 +232,17 @@ def map_init():
     
     if workbench_ids == 50:
         workbench_mode = 3
-        cfg.MAX_WAIT_TIME = 30
+        cfg.tau = 72 * cfg.dt
     elif workbench_ids == 43:
         workbench_mode = 1
-        cfg.MAX_WAIT_TIME = 50
+        cfg.tau = 123 * cfg.dt
     elif workbench_ids == 25:
         workbench_mode = 2
+        # cfg.tau = 37 * cfg.dt
     elif workbench_ids == 18:
         workbench_mode = 4
+        # 33 29 39_61 42_63
+        cfg.tau = 67 * cfg.dt
                         
     if workbench_mode == 3:
         workbench_type_num[4] = sorted(workbench_type_num[4], key=functools.cmp_to_key(map3cmp))
@@ -248,6 +251,19 @@ def map_init():
         # workbench_type_num[6] = workbench_type_num[6][0:2]
     if workbench_mode == 1:
         workbench_type_num[7] = sorted(workbench_type_num[7], key=functools.cmp_to_key(map1cmp))
+    if workbench_mode == 4:
+        workbench_type_num[4] = sorted(workbench_type_num[4], key=functools.cmp_to_key(map4cmp))
+        workbench_type_num[5] = sorted(workbench_type_num[5], key=functools.cmp_to_key(map4cmp))
+        workbench_type_num[6] = sorted(workbench_type_num[6], key=functools.cmp_to_key(map4cmp))
+
+def map4cmp(x, y):
+    x_dis = cal_point_x_y(workbenchs[x].x, workbenchs[x].y, workbenchs[workbench_type_num[7][0]].x, workbenchs[workbench_type_num[7][0]].y)
+    y_dis = cal_point_x_y(workbenchs[y].x, workbenchs[y].y, workbenchs[workbench_type_num[7][0]].x, workbenchs[workbench_type_num[7][0]].y)
+    if x_dis < y_dis:
+        return -1
+    if x_dis > y_dis:
+        return 1
+    return 0
 
 def map3cmp(x, y):
     x_dis = cal_point_x_y(workbenchs[x].x, workbenchs[x].y, workbenchs[workbench_type_num[9][0]].x, workbenchs[workbench_type_num[9][0]].y)
