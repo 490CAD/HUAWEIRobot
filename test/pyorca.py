@@ -37,7 +37,11 @@ def orca(robot_id, robots, t, dt, pid_list):
     v_x = robot_next_state[robot_id][1] * np.cos(robot_next_state[robot_id][0]) * flag
     v_y = -robot_next_state[robot_id][1] * np.sin(robot_next_state[robot_id][0]) * flag
 
+
+    robots[robot_id].value = cfg.THING_VALUE[robots[robot_id].take_thing] * robots[robot_id].time_f * robots[robot_id].crush_f
     for collider in robots[0: robot_id] + robots[robot_id + 1:]:
+
+        collider.value = cfg.THING_VALUE[collider.take_thing] * collider.time_f * collider.crush_f
         dv, n = get_avoidance_velocity(robots[robot_id], collider, t, dt, robot_next_state)
         if robots[robot_id].value > collider.value:
             # 不避障
