@@ -105,6 +105,7 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                 continue
             if workbench_mode == 1 and target0_workbench.work_type in [4, 5, 6]:
                 ava_list = [11, 22, 15, 17, 10, 12, 21, 23]
+
             if workbench_mode == 3:
                 if target0_workbench.work_type in [4]:
                     continue
@@ -136,11 +137,20 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                         continue
 
                 target0_target1_dis = DIS_MP[target0][target1]
+
                 robot_target0_dis = cal_point_x_y(robot.x, robot.y, target0_workbench.x, target0_workbench.y)
+                
+                robot_turn_dis = abs(drt_point_x_y(robot.x, robot.y, target0_workbench.x, target0_workbench.y, work_mode) - robot.toward)
+
+                turn_time = robot_turn_dis * 50 / cfg.PI / 6
+                if workbench_mode == 3:
+                    turn_time = 0
+
                 all_dis = robot_target0_dis + target0_target1_dis
+
                 wait_time = target0_workbench.remain_time
                 robot_target0_time = robot_target0_dis * 50 / 6
-                all_time = all_dis * 50 / 6 + add_more_times_all(target0_workbench, wait_time, robot_target0_time, workbench_mode)
+                all_time = all_dis * 50 / 6 + add_more_times_all(target0_workbench, wait_time, robot_target0_time, workbench_mode) +turn_time
                 temp_val = cfg.THING_VALUE[target0_workbench.work_type]
                 temp_val_time = temp_val / all_time
                 next_time = 0
@@ -631,7 +641,6 @@ if __name__ == '__main__':
                             generate_product[5] += 1
                         if workbenchs[target].work_type == 6 and ((1 << take_thing) | workbenchs[target].origin_thing) == 12:
                             generate_product[6] += 1
-                        
 
                         target_workbench = robots[robot_id].target_workbench_ids[1]
                         workbenchs[target_workbench].is_targeted_flag[take_thing] = 0
