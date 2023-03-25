@@ -24,4 +24,3 @@ pyorca/*
 *.pyc
 python.py
 .DS_Store
-python.py

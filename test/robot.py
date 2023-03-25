@@ -60,11 +60,11 @@ class Robot():
             # k = math.exp(cfg.MAX_STOP_DISTANCE_0) / 6 if self.take_thing == 0 else math.exp(cfg.MAX_STOP_DISTANCE_1) / 6
             
             # forward =  min(6, math.exp(distance) / k)
-            forward =  min(6, distance / 3)
-            # if distance >= 3:
-            #     forward = 6
-            # else:
-            #     forward = 6 / (1 + math.exp(-3 * (distance - 2.4)))
+            # forward =  min(6, distance / 3)
+            if distance >= 9:
+                forward = 6
+            else:
+                forward = 4 / (1 + math.exp(-15 * (distance - 8))) + 2
         if rotate > 0:
             rotate = min(PI, rotate)
         else:
@@ -78,22 +78,22 @@ class Robot():
         elif direction1 <= -PI:
             direction1 += 2*PI
 
-        if mode == 1:
-            ### 倒车
-            if direction1 > PI / 2 or direction1 < - PI/2:
-                distance = -distance
-            ###
-        else:
-            ### 靠墙倒车
-            DISTANCE_TOLERATION = 2
-            # 左墙面 -->右墙面 -->上墙面 -->下墙面
-            if ((self.x <= DISTANCE_TOLERATION) and (self.toward >= PI * 3 / 4 or self.toward <= -PI * 3 / 4)) \
-                or ((self.x >= (50 - DISTANCE_TOLERATION)) and (self.toward >= -PI / 4 and self.toward <= PI / 4)) \
-                or ((self.y >= (50 - DISTANCE_TOLERATION)) and (self.toward > PI / 4 or self.toward < PI * 3 / 4)) \
-                or ((self.y <= DISTANCE_TOLERATION) and (self.toward > -PI * 3 / 4 and self.toward < -PI / 4)):
-                if direction1 > PI / 2 or direction1 < -PI / 2:
-                    distance = - distance
-            ###
+        ### 靠墙倒车
+        # DISTANCE_TOLERATION = 2
+        # # 左墙面 -->右墙面 -->上墙面 -->下墙面
+        # if ((self.x <= DISTANCE_TOLERATION) and (self.toward >= PI * 3 / 4 or self.toward <= -PI * 3 / 4)) \
+        #     or ((self.x >= (50 - DISTANCE_TOLERATION)) and (self.toward >= -PI / 4 and self.toward <= PI / 4)) \
+        #     or ((self.y >= (50 - DISTANCE_TOLERATION)) and (self.toward > PI / 4 or self.toward < PI * 3 / 4)) \
+        #     or ((self.y <= DISTANCE_TOLERATION) and (self.toward > -PI * 3 / 4 and self.toward < -PI / 4)):
+        #     if direction1 > PI / 2 or direction1 < -PI / 2:
+        #         distance = - distance
+        ###
+        
+        ### 倒车
+        # if direction1 > PI / 2 or direction1 < - PI/2:
+        #     distance = -distance
+        ###
+
         steering = self.w_pid.control(-direction1)
         move_distance = self.s_pid.control(-distance)
         # log.write(f'{self.s_pid.accumulated_error} {self.s_pid.previous_error}\n')

@@ -9,6 +9,8 @@ test/__pycache__/robot.cpython-37.pyc
 test/__pycache__/workbench.cpython-37.pyc
 test/__pycache__/halfplaneintersect.cpython-37.pyc
 test/__pycache__/pyorca.cpython-37.pyc
+maps1/
+maps/
 *.txt
 
 Robot_gui.exe
@@ -24,4 +26,3 @@ pyorca/*
 *.pyc
 python.py
 .DS_Store
-python.py
