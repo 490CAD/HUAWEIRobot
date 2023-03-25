@@ -18,7 +18,7 @@ from robot import Robot
 from workbench import WorkBench
 from config import CFG
 from calcation import *
-import argparse
+# import argparse
 from pyorca import Agent, get_avoidance_velocity, orca, normalized, perp
 from numpy import array, rint, linspace, pi, cos, sin, sqrt
 
@@ -60,11 +60,11 @@ workbench_type_num = [[] for i in range(10)]
 workbench_minest_sell = []
 generate_product = {4:0, 5:0, 6:0}
 
-def parse_args():
-    parse = argparse.ArgumentParser(description='Calculate cylinder volume')  # 2、创建参数对象
-    parse.add_argument('--wait_time', type=int, help='wait time')  # 3、往参数对象添加参数
-    args = parse.parse_args()  # 4、解析参数对象获得解析对象
-    return args
+# def parse_args():
+#     parse = argparse.ArgumentParser(description='Calculate cylinder volume')  # 2、创建参数对象
+#     parse.add_argument('--wait_time', type=int, help='wait time')  # 3、往参数对象添加参数
+#     args = parse.parse_args()  # 4、解析参数对象获得解析对象
+#     return args
 def get_price_by_look_further(free_robots):
     robot_id, target0_id, target1_id, best_val_time = -1, -1, -1, 0.0
     workbench_list = useful_workbench_list
@@ -169,7 +169,7 @@ def get_price_by_targets(free_robots, work_mode):
                 all_dis = robot_target0_dis + target0_target1_dis
                 wait_time = target0_workbench.remain_time
                 robot_target0_time = robot_target0_dis * 50 / 6
-                all_time = all_dis * 50 / 6 + add_more_times_all(target0_workbench, wait_time, robot_target0_time, args.wait_time)
+                all_time = all_dis * 50 / 6 + add_more_times_all(target0_workbench, wait_time, robot_target0_time)
                 temp_val = cfg.THING_VALUE[target0_workbench.work_type]
                 temp_val_time = temp_val / all_time
                 next_time = 0
@@ -312,7 +312,7 @@ if __name__ == '__main__':
     map_init()
     finish()
     # start working
-    args = parse_args()
+    # args = parse_args()
     # log.write(f"{args}\n")
     while True:
         line = sys.stdin.readline()
@@ -459,25 +459,25 @@ if __name__ == '__main__':
         # robots[0].value = 100
         # robots[1].value = 0
 
-        ## 等待
-        if frame_id <= 15:
-            cfg.pid_list[2] = [0, 0]
-            cfg.pid_list[0] = [0, 0]
-        elif frame_id <=15:
-            cfg.pid_list[0] = [0, 0]
-        ##
+        # ## 等待
+        # if frame_id <= 15:
+        #     cfg.pid_list[2] = [0, 0]
+        #     cfg.pid_list[0] = [0, 0]
+        # elif frame_id <=15:
+        #     cfg.pid_list[0] = [0, 0]
+        # ##
 
-        ### 速度检测
-        for i in range(4):
-            speed = sqrt((robots[i].line_speed_x)**2 + (robots[i].line_speed_y)**2)
-            if speed > 5.8:
-                cfg.speed[i] += 1
+        # ### 速度检测
+        # for i in range(4):
+        #     speed = sqrt((robots[i].line_speed_x)**2 + (robots[i].line_speed_y)**2)
+        #     if speed > 5.8:
+        #         cfg.speed[i] += 1
 
-        if frame_id == 9000:
-            for i in range(4):
+        # if frame_id == 9000:
+        #     for i in range(4):
                 
-                log.write(f"{cfg.speed[i]}\n")
-        ###
+        #         log.write(f"{cfg.speed[i]}\n")
+        # ###
 
         ### 防碰撞检测与预防
         for i, robot in enumerate(robots):
