@@ -22,7 +22,7 @@ class CFG():
     THING_COEFF = [0, 1/6, 1/6, 1/6, 1/3, 1/3, 1/3, 1]
     HIGH_LEVEL_WORKBENCH = [4, 5, 6, 7]
     USEFUL_WORKBENCH = [1, 2, 3, 4, 5, 6, 7]
-    MAX_WAIT_TIME = 87
+    MAX_WAIT_TIME = 50
     MAX_PENTALIY_VALUE = 100000
     OVER_FRAME = 9000
     SUB_MISSION = 30000
@@ -32,7 +32,7 @@ class CFG():
     ###
     # use for orca
     dt = 1 / 50
-    tau = 30 * dt
+    tau = 25 * dt
     pid_list = [[0, 0], [0, 0], [0, 0], [0, 0]]
     ###
     temp_flag = 0
