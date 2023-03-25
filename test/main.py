@@ -476,6 +476,8 @@ if __name__ == '__main__':
     # start working
     # args = parse_args()
     # log.write(f"{args}\n")
+    if(workbench_mode!=1):
+        exit()
     while True:
         line = sys.stdin.readline()
         if not line:
