@@ -3,6 +3,7 @@ import sys
 from robot import Robot
 from workbench import WorkBench
 from config import CFG
+from queue import Queue
 
 cfg = CFG()
 
@@ -126,3 +127,43 @@ def get_ava_list(target_workbench_list, workbench_type_num):
         for j in type_num_list:
             ava_list.append(j)
     return ava_list
+
+
+def bfs(env_mp, st_pos, is_take_thing):
+    q = Queue()
+    q.put((st_pos, is_take_thing, (-1, -1)))
+    ans_mp = [[[] for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE)]
+    vis_mp = [[0 for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE)]
+    vis_mp[st_pos[0]][st_pos[1]] = 1
+    ans_mp[st_pos[0]][st_pos[1]] = [st_pos]
+    while not q.empty():
+        now_pos = q.get()
+        for i in range(4):
+            nx, ny = now_pos[0][0] + cfg.DIS_NORMAL[i][0], now_pos[0][1] + cfg.DIS_NORMAL[i][1]
+            is_taking = now_pos[1]
+            if nx < 0 or ny < 0 or nx >= cfg.MAP_SIZE or ny >= cfg.MAP_SIZE or env_mp[nx][ny] == '#' or vis_mp[nx][ny] == 1:
+                continue
+            if i == 0 and is_taking == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and env_mp[nx][ny - 1] == '#'  and env_mp[nx][ny + 1] == '#')):
+                continue 
+            if i == 1 and is_taking == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and env_mp[nx][ny - 1] == '#'  and env_mp[nx][ny + 1] == '#')):
+                continue 
+            if i == 2 and is_taking == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and env_mp[nx + 1][ny] == '#'  and env_mp[nx - 1][ny] == '#')):
+                continue 
+            if i == 3 and is_taking == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and env_mp[nx + 1][ny] == '#'  and env_mp[nx - 1][ny] == '#')):
+                continue 
+            vis_mp[nx][ny] = 1
+            ans_mp[nx][ny] = ans_mp[now_pos[0][0]][now_pos[0][1]]
+            ans_mp[nx][ny].append((nx, ny))
+            q.put(((nx, ny), is_taking, (now_pos[0])))
+    return ans_mp
+
+def path_better(env_mp, path_list, is_take_thing):
+    path_len = len(path_list)
+    new_path = []
+    st_point = path_list[0]
+    for pos in range(1, path_len - 1):
+
+
+
+            
+            

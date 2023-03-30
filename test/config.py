@@ -27,6 +27,8 @@ class CFG():
     OVER_FRAME = 9000
     SUB_MISSION = 1
     TASK_TYPE = [7, 6, 5, 4, 3, 2, 1]
+    DIS_NORMAL = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+    DIS_HIGHER = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
                         
 
     ###
