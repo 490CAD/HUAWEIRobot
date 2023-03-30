@@ -92,46 +92,46 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
         for target0 in workbench_list:
             target0_workbench = workbenchs[target0]
             
-            if workbench_mode == 3:
-                if target0_workbench.work_type == 6 and id in [2, 3]:
-                    continue
-                if target0_workbench.work_type == 5 and id in [0, 1]:
-                    continue
+            # if workbench_mode == 3:
+            #     if target0_workbench.work_type == 6 and id in [2, 3]:
+            #         continue
+            #     if target0_workbench.work_type == 5 and id in [0, 1]:
+            #         continue
                 
             if target0_workbench.is_targeted_flag[0] == 1 or (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time == -1):
                 continue
             
-            if workbench_mode == 1 and (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time >= 50):
-                continue
-            if workbench_mode == 1 and target0_workbench.work_type in [4, 5, 6]:
-                ava_list = [11, 22, 15, 17, 10, 12, 21, 23]
+            # if workbench_mode == 1 and (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time >= 50):
+            #     continue
+            # if workbench_mode == 1 and target0_workbench.work_type in [4, 5, 6]:
+            #     ava_list = [11, 22, 15, 17, 10, 12, 21, 23]
 
-            if workbench_mode == 3:
-                if target0_workbench.work_type in [4]:
-                    continue
-                if target0_workbench.work_type in [2]:
-                    target_workbench_list = [6]
-                elif target0_workbench.work_type in [1]:
-                    target_workbench_list = [5]
-                elif target0_workbench.work_type in [3]:
-                    target_workbench_list = [5, 6]
-                else:
-                    target_workbench_list = [9]
-                ava_list = get_ava_list(target_workbench_list, workbench_type_num)
-            else:
-                target_workbench_list = choose_target_workbench_list(generate_product, target0_workbench.work_type, work_mode)
-                ava_list = get_ava_list(target_workbench_list, workbench_type_num)
+            # if workbench_mode == 3:
+            #     if target0_workbench.work_type in [4]:
+            #         continue
+            #     if target0_workbench.work_type in [2]:
+            #         target_workbench_list = [6]
+            #     elif target0_workbench.work_type in [1]:
+            #         target_workbench_list = [5]
+            #     elif target0_workbench.work_type in [3]:
+            #         target_workbench_list = [5, 6]
+            #     else:
+            #         target_workbench_list = [9]
+            #     ava_list = get_ava_list(target_workbench_list, workbench_type_num)
+            # else:
+            target_workbench_list = choose_target_workbench_list(generate_product, target0_workbench.work_type, work_mode)
+            ava_list = get_ava_list(target_workbench_list, workbench_type_num)
 
             for target1 in ava_list:
                 target1_workbench = workbenchs[target1]
-                if workbench_mode == 3:
-                    if target1_workbench.work_type == 6 and id in [2, 3]:
-                        continue
-                    if target1_workbench.work_type == 5 and id in [0, 1]:
-                        continue
+                # if workbench_mode == 3:
+                #     if target1_workbench.work_type == 6 and id in [2, 3]:
+                #         continue
+                #     if target1_workbench.work_type == 5 and id in [0, 1]:
+                #         continue
                     
-                if target1_workbench.work_type == 9 and target0_workbench.work_type in [4, 5, 6] and workbench_mode == 1:
-                    continue
+                # if target1_workbench.work_type == 9 and target0_workbench.work_type in [4, 5, 6] and workbench_mode == 1:
+                #     continue
                 if target1_workbench.work_type in  cfg.HIGH_LEVEL_WORKBENCH:
                     if  target1_workbench.is_targeted_flag[target0_workbench.work_type] == 1 or ((1 << target0_workbench.work_type) & target1_workbench.origin_thing) != 0:
                         continue
@@ -143,8 +143,8 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                 robot_turn_dis = abs(drt_point_x_y(robot.x, robot.y, target0_workbench.x, target0_workbench.y, work_mode) - robot.toward)
 
                 turn_time = robot_turn_dis * 50 / cfg.PI / 6
-                if workbench_mode in [3, 4]:
-                    turn_time = 0
+                # if workbench_mode in [3, 4]:
+                #     turn_time = 0
 
                 all_dis = robot_target0_dis + target0_target1_dis
 
@@ -230,31 +230,31 @@ def map_init():
                 if workbench_minest_sell[workbench_a][cnt] == -1 or DIS_MP[workbench_a][workbench_b] < DIS_MP[workbench_a][workbench_minest_sell[workbench_a][cnt]]:
                     workbench_minest_sell[workbench_a][cnt] = workbench_b
     
-    if workbench_ids == 50:
-        workbench_mode = 3
-        cfg.tau = 72 * cfg.dt
-    elif workbench_ids == 43:
-        workbench_mode = 1
-        cfg.tau = 123 * cfg.dt
-    elif workbench_ids == 25:
-        workbench_mode = 2
-        # cfg.tau = 37 * cfg.dt
-    elif workbench_ids == 18:
-        workbench_mode = 4
-        # 33 29 39_61 42_63
-        cfg.tau = 67 * cfg.dt
+    # if workbench_ids == 50:
+    #     workbench_mode = 3
+    #     cfg.tau = 72 * cfg.dt
+    # elif workbench_ids == 43:
+    #     workbench_mode = 1
+    #     cfg.tau = 123 * cfg.dt
+    # elif workbench_ids == 25:
+    #     workbench_mode = 2
+    #     # cfg.tau = 37 * cfg.dt
+    # elif workbench_ids == 18:
+    #     workbench_mode = 4
+    #     # 33 29 39_61 42
+    #     cfg.tau = 33 * cfg.dt
                         
-    if workbench_mode == 3:
-        workbench_type_num[4] = sorted(workbench_type_num[4], key=functools.cmp_to_key(map3cmp))
-        workbench_type_num[5] = sorted(workbench_type_num[5], key=functools.cmp_to_key(map3cmp))
-        workbench_type_num[6] = sorted(workbench_type_num[6], key=functools.cmp_to_key(map3cmp))
+    # if workbench_mode == 3:
+    #     workbench_type_num[4] = sorted(workbench_type_num[4], key=functools.cmp_to_key(map3cmp))
+    #     workbench_type_num[5] = sorted(workbench_type_num[5], key=functools.cmp_to_key(map3cmp))
+    #     workbench_type_num[6] = sorted(workbench_type_num[6], key=functools.cmp_to_key(map3cmp))
         # workbench_type_num[6] = workbench_type_num[6][0:2]
-    if workbench_mode == 1:
-        workbench_type_num[7] = sorted(workbench_type_num[7], key=functools.cmp_to_key(map1cmp))
-    if workbench_mode == 4:
-        workbench_type_num[4] = sorted(workbench_type_num[4], key=functools.cmp_to_key(map4cmp))
-        workbench_type_num[5] = sorted(workbench_type_num[5], key=functools.cmp_to_key(map4cmp))
-        workbench_type_num[6] = sorted(workbench_type_num[6], key=functools.cmp_to_key(map4cmp))
+    # if workbench_mode == 1:
+    #     workbench_type_num[7] = sorted(workbench_type_num[7], key=functools.cmp_to_key(map1cmp))
+    # if workbench_mode == 4:
+    #     workbench_type_num[4] = sorted(workbench_type_num[4], key=functools.cmp_to_key(map4cmp))
+    #     workbench_type_num[5] = sorted(workbench_type_num[5], key=functools.cmp_to_key(map4cmp))
+    #     workbench_type_num[6] = sorted(workbench_type_num[6], key=functools.cmp_to_key(map4cmp))
 
 def map4cmp(x, y):
     x_dis = cal_point_x_y(workbenchs[x].x, workbenchs[x].y, workbenchs[workbench_type_num[7][0]].x, workbenchs[workbench_type_num[7][0]].y)
@@ -527,23 +527,23 @@ if __name__ == '__main__':
         free_robots = find_free_robot(robots)
         # free_jobs = find_free_job(workbenchs)
         
-        if workbench_mode == 1:
-            update_task_list()
+        # if workbench_mode == 1:
+        #     update_task_list()
 
         for i in range(len(free_robots)):
-            if workbench_mode == 1:
-                employ_robot, target0, target1 = up_down_policy(free_robots)
-            elif workbench_mode == 4:
-                if frame_id < 200:
-                    employ_robot, target0, target1 = up_down_policy(free_robots)
-                else: 
-                    employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
-                    if employ_robot == -1:
-                        employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
-            else:
-                employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
-                if employ_robot == -1:
-                    employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
+            # if workbench_mode == 1:
+            #     employ_robot, target0, target1 = up_down_policy(free_robots)
+            # elif workbench_mode == 4:
+            #     if frame_id < 200:
+            #         employ_robot, target0, target1 = up_down_policy(free_robots)
+            #     else: 
+            #         employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
+            #         if employ_robot == -1:
+            #             employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
+            # else:
+            employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
+            if employ_robot == -1:
+                employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
             if employ_robot != -1:
                 robots[employ_robot].target_workbench_ids[0] = target0
                 robots[employ_robot].target_workbench_ids[1] = target1
@@ -673,10 +673,10 @@ if __name__ == '__main__':
             if cfg.pid_list[i][1] != 0:
                 # continue
                 ### 防碰撞
-                if workbench_mode == 3:
-                    v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list, 3)
-                else:      
-                    v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list)
+                # if workbench_mode == 3:
+                #     v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list, 3)
+                # else:      
+                v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list)
                 if cfg.pid_list[i][1] >= 0:
                     rotate =  math.atan2(-v[1], v[0])  - robot.toward
                     if rotate > cfg.PI:
