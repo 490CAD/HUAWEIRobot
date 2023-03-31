@@ -123,6 +123,5 @@ def get_ava_list(target_workbench_list, workbench_type_num):
     ava_list = []
     for i in target_workbench_list:
         type_num_list = workbench_type_num[i]
-        for j in type_num_list:
-            ava_list.append(j)
+        ava_list = ava_list + type_num_list
     return ava_list
