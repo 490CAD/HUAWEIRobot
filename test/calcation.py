@@ -157,13 +157,64 @@ def bfs(env_mp, st_pos, is_take_thing):
             q.put(((nx, ny), is_taking, (now_pos[0])))
     return ans_mp
 
+def check_one_line(point1, point2, point3):
+    # all tuple
+    # y2 - y1 / x2 - x1 = y3 - y1 / x3 - x1
+    if (point2[1] - point1[1]) * (point3[0] - point1[0]) == (point3[1] - point1[1]) * (point2[0] - point1[0]):
+        return 1
+    return 0
+
+def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
+    # x_1 == x_3, y_1 == y_3
+    min_x, max_x = min(point1[0], point3[0]), max(point1[0], point3[0])
+    min_y, max_y = min(point1[1], point3[1]), max(point1[1], point3[1])
+    if point1[0] == point3[0]:
+        for i in range(min_y, max_y + 1):
+            nx, ny = min_x, i
+            if env_mp[nx][ny] == '#':
+                return 0
+            if is_take_thing == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and env_mp[nx + 1][ny] == '#'  and env_mp[nx - 1][ny] == '#')):
+                return 0
+    elif point1[1] == point3[1]:
+        for i in range(min_x, max_x + 1):
+            nx, ny = i, min_y
+            if env_mp[nx][ny] == '#':
+                return 0
+            if is_take_thing == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and env_mp[nx][ny - 1] == '#'  and env_mp[nx][ny + 1] == '#')):
+                return 0
+    else:
+        # y = kx +b
+        # y_1 = kx_1 + b; y_2 = kx_2 +b; k = (y_2 - y_1) /(x_2 - x_1); b=y_2 - x_2*k
+        k = (point3[1] - point1[1]) / (point3[0] - point1[0])
+        b = point3[1] - point3[0] * k
+        for i in range(point1[0], point3[0]):
+            nx, ny = i, ny = k * nx + b
+            if env_mp[nx][ny] == '#':
+                return 0
+            if is_take_thing == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and env_mp[nx][ny - 1] == '#'  and env_mp[nx][ny + 1] == '#')):
+                return 0
+            if is_take_thing == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and env_mp[nx + 1][ny] == '#'  and env_mp[nx - 1][ny] == '#')):
+                return 0
+    
+    return 1
+
 def path_better(env_mp, path_list, is_take_thing):
     path_len = len(path_list)
     new_path = []
-    st_point = path_list[0]
+    pre_point = path_list[0]
+    new_path.append(pre_point)
     for pos in range(1, path_len - 1):
-
-
+        now_point = path_list[pos]
+        nxt_point = path_list[pos + 1]
+        if check_one_line(pre_point, now_point, nxt_point) == 1:
+            continue
+        if ignore_now_point(env_mp, pre_point, now_point, nxt_point, is_take_thing) == 1:
+            continue
+        else:
+            new_path.append(now_point)
+            pre_point = now_point
+    new_path.append(path_list[path_len - 1])
+    return new_path
 
             
             
