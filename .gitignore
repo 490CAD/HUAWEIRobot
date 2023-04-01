@@ -24,4 +24,5 @@ pyorca/*
 *.pyc
 python.py
 .DS_Store
-python.py
+.history/*
+test/main_test.py
