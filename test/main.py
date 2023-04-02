@@ -312,6 +312,12 @@ def workbench_cmp(x, y):
     if cfg.THING_VALUE[workbenchs[x[0]].work_type] < cfg.THING_VALUE[workbenchs[y[0]].work_type]:
         return 1
     return 0
+def workbench_cmp2(x, y):
+    if workbenchs[x].work_type < workbenchs[y].work_type:
+        return -1
+    if workbenchs[x].work_type > workbenchs[y].work_type:
+        return 1
+    return 0
 
 def update_task_list():
     global task_list, generate_list, finished_list, waiting_list
@@ -502,121 +508,220 @@ def up_down_policy(free_robots):
 
     return robot_id, target0_id, target1_id            
 
-def find_nearest_workbench(st_id, ed_id_list):
+def find_nearest_workbench(ed_id, st_id_list):
     min_dis = 1000000
     min_id = -1
-    for ed in ed_id_list:
-        if(min_dis > DIS_MP[st_id][ed]):
-            min_dis = DIS_MP[st_id][ed]
-            min_id = ed
+    if len(st_id_list) == 0:
+        return min_id
+    for st in st_id_list:
+        if(min_dis > DIS_MP[st][ed_id] and can_thing_put_in(st, ed_id, 1)):
+            min_dis = DIS_MP[st][ed_id]
+            min_id = st
     return min_id
 
-def can_thing_put_in(st_id, ed_id):
-    st_worktype = workbench[st_id].work_type
-    ed_worktype = workbench[ed_id].work_type
-    if ed_worktype not in [8, 9]:
-        if(workbenchs[ed_id].is_targeted_flag[st_worktype] == 1 or ((1 << st_worktype) & workbenchs[ed_id].origin_thing) != 0):
-            return False
-        else:
-            return True
-    else:
-        if(workbench[st_id].output == 1 and workbench[st_id].is_targeted_flag[0] == 0):
-            return True
-        else:
-            return False
-
-# 已知一个工作台，找离它最近的一个机器人
-def find_nearest_robot_workbench(robot_ids, free_robot_allocated, workbench_id):
+def find_nearest_workbench2(ed_id, st_id_list):
     min_dis = 1000000
     min_id = -1
-    for idx, robot_id in enumerate(robot_ids):
-        if(free_robot_allocated[idx] == 0):
-            continue
+    if len(st_id_list) == 0:
+        return min_id
+    for st in st_id_list:
+        if(min_dis > DIS_MP[st][ed_id] and can_thing_put_in(st, ed_id)):
+            min_dis = DIS_MP[st][ed_id]
+            min_id = st
+    return min_id
+
+def can_thing_put_in(st_id, ed_id, put_in_mode = 0):
+    # put_in_mode 
+    # 0 代表是原始版本 即如果起点成品槽没物体 就为0
+    # 1 代表是弱化版本 即起点成品槽没物体也可以为1 只看锁的情况 用于update_GRA_MP和分配任务的DFS
+    st_worktype = workbenchs[st_id].work_type
+    # log.write(f"workbenchs len is {len(workbenchs)}.\n")
+    # log.write(f"ed_id is {ed_id}.\n")
+    ed_worktype = workbenchs[ed_id].work_type
+    if ed_worktype in [4]:
+        if st_worktype in [1, 2] and workbenchs[st_id].is_targeted_flag[0] == 0 and workbenchs[ed_id].is_targeted_flag[st_worktype] == 0 and ((1 << st_worktype) & workbenchs[ed_id].origin_thing) == 0:
+            return 1
+        else:
+            return 0
+    elif ed_worktype in [5]:
+        if st_worktype in [1, 3] and workbenchs[st_id].is_targeted_flag[0] == 0 and workbenchs[ed_id].is_targeted_flag[st_worktype] == 0 and ((1 << st_worktype) & workbenchs[ed_id].origin_thing) == 0:
+            return 1
+        else:
+            return 0
+    elif ed_worktype in [6]:
+        if st_worktype in [2, 3] and workbenchs[st_id].is_targeted_flag[0] == 0 and workbenchs[ed_id].is_targeted_flag[st_worktype] == 0 and ((1 << st_worktype) & workbenchs[ed_id].origin_thing) == 0:
+            return 1
+        else:
+            return 0
+    elif ed_worktype in [7]:
+        if st_worktype in [4, 5, 6] and (workbenchs[st_id].output == 1 or put_in_mode == 1) and workbenchs[st_id].is_targeted_flag[0] == 0 and workbenchs[ed_id].is_targeted_flag[st_worktype] == 0 and ((1 << st_worktype) & workbenchs[ed_id].origin_thing) == 0:
+            return 1
+        else:
+            return 0
+    elif ed_worktype in [8]:
+        if st_worktype in [7] and (workbenchs[st_id].output == 1 or put_in_mode == 1) and workbenchs[st_id].is_targeted_flag[0] == 0 and workbenchs[ed_id].is_targeted_flag[st_worktype] == 0 and ((1 << st_worktype) & workbenchs[ed_id].origin_thing) == 0:
+            return 1
+        else:
+            return 0
+    elif ed_worktype in [9]:
+        if st_worktype in [1, 2, 3]:
+            return 1
+        elif st_worktype in [4, 5, 6, 7]:
+            if (workbenchs[st_id].output == 1 or put_in_mode == 1) and workbenchs[st_id].is_targeted_flag[0] == 0:
+                return 1
+            else:
+                return 0
+        else:
+            return 0
+
+# 已知一个工作台，找离它最近的一个机器人
+def find_nearest_robot_workbench(robot_ids, workbench_id):
+    min_dis = 1000000
+    min_id = -1
+    for robot_id in robot_ids:
         dis = cal_point_x_y(robots[robot_id].x, robots[robot_id].y, workbenchs[workbench_id].x, workbenchs[workbench_id].y)
         if(dis < min_dis):
             min_dis = dis
             min_id = robot_id
     return min_id
+def find_nearest_robots_workbenchs(robot_ids, workbench_ids):
+    min_dis = 1000000
+    min_robot_id, min_workbench_id = -1, -1
+    for robot_id in robot_ids:
+        for workbench_id in workbench_ids:
+            dis = cal_point_x_y(robots[robot_id].x, robots[robot_id].y, workbenchs[workbench_id].x, workbenchs[workbench_id].y)
+            if(dis < min_dis):
+                min_dis = dis
+                min_robot_id = robot_id
+                min_workbench_id = workbench_id
+    return min_robot_id, min_workbench_id
 
-def init_GRA_MAP():
+def update_GRA_MAP():
+    global GRA_MP, Re_GRA_MP
+    GRA_MP = np.zeros_like(GRA_MP)
     for idx, workbench in enumerate(workbenchs):
         if(workbench.work_type == 4):
             nearest_1_id = find_nearest_workbench(idx, workbench_type_num[1])
             nearest_2_id = find_nearest_workbench(idx, workbench_type_num[2])
-            nearest_9_id = find_nearest_workbench(idx, workbench_type_num[9])
-            GRA_MP[nearest_1_id][idx] = 1
-            GRA_MP[nearest_2_id][idx] = 1
-            GRA_MP[idx][nearest_9_id] = 1
-        elif(workbench.wrok_type == 5):
+            if nearest_1_id != -1:
+                GRA_MP[idx][nearest_1_id] = 1
+            if nearest_2_id != -1:
+                GRA_MP[idx][nearest_2_id] = 1
+        elif(workbench.work_type == 5):
             nearest_1_id = find_nearest_workbench(idx, workbench_type_num[1])
             nearest_3_id = find_nearest_workbench(idx, workbench_type_num[3])
-            nearest_9_id = find_nearest_workbench(idx, workbench_type_num[9])
-            GRA_MP[nearest_1_id][idx] = 1
-            GRA_MP[nearest_3_id][idx] = 1
-            GRA_MP[idx][nearest_9_id] = 1
+            if nearest_1_id != -1:
+                GRA_MP[idx][nearest_1_id] = 1
+            if nearest_3_id != -1:
+                GRA_MP[idx][nearest_3_id] = 1
         elif(workbench.work_type == 6):
             nearest_2_id = find_nearest_workbench(idx, workbench_type_num[2])
             nearest_3_id = find_nearest_workbench(idx, workbench_type_num[3])
-            nearest_9_id = find_nearest_workbench(idx, workbench_type_num[9])
-            GRA_MP[nearest_2_id][idx] = 1
-            GRA_MP[nearest_3_id][idx] = 1
-            GRA_MP[idx][nearest_9_id] = 1
+            if nearest_2_id != -1:
+                GRA_MP[idx][nearest_2_id] = 1
+            if nearest_3_id != -1:
+                GRA_MP[idx][nearest_3_id] = 1
         elif(workbench.work_type == 7):
             nearest_4_id = find_nearest_workbench(idx, workbench_type_num[4])
             nearest_5_id = find_nearest_workbench(idx, workbench_type_num[5])
             nearest_6_id = find_nearest_workbench(idx, workbench_type_num[6])
-            nearest_89_id = find_nearest_workbench(idx, workbench_type_num[8] + workbench_type_num[9])
-            GRA_MP[nearest_4_id][idx] = 1
-            GRA_MP[nearest_5_id][idx] = 1
-            GRA_MP[nearest_6_id][idx] = 1
-            GRA_MP[idx][nearest_89_id] = 1
+            if nearest_4_id != -1:
+                GRA_MP[idx][nearest_4_id] = 1
+            if nearest_5_id != -1:
+                GRA_MP[idx][nearest_5_id] = 1
+            if nearest_6_id != -1:
+                GRA_MP[idx][nearest_6_id] = 1
+        elif(workbench.work_type == 8):
+            nearest_7_id = find_nearest_workbench(idx, workbench_type_num[7])
+            if nearest_7_id != -1:
+                GRA_MP[idx][nearest_7_id] = 1
+        elif(workbench.work_type == 9):
+            for id in get_ava_list([1,2,3,4,5,6,7], workbench_type_num):
+                if(can_thing_put_in(id, idx, 1) == 1):
+                    GRA_MP[idx][id] = 1
+    Re_GRA_MP = GRA_MP.T
+    # log.write(f"GRA_MAP IS \n {GRA_MP}\n")
 
 def updata_LOCK_MAP():
-    for workbench_id in get_ava_list([1, 2, 3, 4, 5, 6, 7], workbench_type_num):
-        target_ids = np.where(GRA_MP[workbench_id]==1)[0]
-        for target_id in target_ids:
-            if(can_thing_put_in(workbench_id, target_id) == True):
-                LOCK_MAP[workbench_id][target_id] = 1
+    global LOCK_MAP
+    st_workbenchs_list = get_ava_list([1, 2, 3, 4, 5, 6, 7], workbench_type_num)
+    ed_workbenchs_list = get_ava_list([4, 5, 6, 7, 8, 9], workbench_type_num)
+    for st_workbench_id in st_workbenchs_list:
+        for ed_workbench_id in ed_workbenchs_list:
+            if(can_thing_put_in(st_workbench_id, ed_workbench_id) == 1):
+                LOCK_MAP[st_workbench_id][ed_workbench_id] = 1
             else:
-                LOCK_MAP[workbench_id][target_id] = 0
+                LOCK_MAP[st_workbench_id][ed_workbench_id] = 0
         
 
 def up_down_policy_sxw(free_robots):
-    if(len(free_robots) == 0):
-        return []
-    final_map = np.multiply(GRA_MP, LOCK_MAP)
-    free_robots_allocated = np.ones_like(free_robots)
+    global GRA_MP, LOCK_MAP
+    final_map = np.multiply(GRA_MP, LOCK_MAP.T)
     task_list = []
-    for workbench_id in range(len(workbenchs)):
-        if(workbenchs[workbench_id].work_type == 7 and len(np.where(final_map[workbench_id] == 1)[0]) != 0):
-            target_id = np.where(final_map[workbench_id] == 1)[0][0]
-            nearest_robot_id = find_nearest_robot_workbench(free_robots, free_robots_allocated, workbench_id)
-            task_list.append([nearest_robot_id, workbench_id, target_id])
-            free_robots_allocated[nearest_robot_id] = 0
-            if(free_robots_allocated == np.zeros_like(free_robots)):
-                return task_list
-        elif(workbenchs[workbench_id].work_type in [1, 2, 3, 4, 5, 6] and len(np.where(final_map[workbench_id] == 1)[0]) != 0):
-            target_ids = np.where(final_map[workbench_id] == 1)[0]
-            min_sum = 1000000
-            min_id = -1
-            for target_id in target_ids:
-                target_rudu_ids = np.where(final_map[:, id] == 1)[0]
-                target_rudu_sum = np.sum([DIS_MP[id][target_id] for id in target_rudu_ids])
-                if(target_rudu_sum < min_sum):
-                    min_sum = target_rudu_sum
-                    min_id = target_id
-            nearest_robot_id = find_nearest_robot_workbench(free_robots, free_robots_allocated, workbench_id)
-            task_list.append([nearest_robot_id, workbench_id, min_id])
-            free_robots_allocated[nearest_robot_id] = 0
-            if(free_robots_allocated == np.zeros_like(free_robots)):
-                return task_list
-    return task_list
+    father_dict = dict()
+    all_workbenchs_sorted = get_ava_list([7, 6, 5, 4, 3, 2, 1], workbench_type_num)
+    for workbench_id in all_workbenchs_sorted:
+        if(len(np.where(GRA_MP[workbench_id] == 1)[0]) != 0):
+            if len(task_list) == 0:
+                task_list.append(workbench_id)
+            while len(task_list) > 0:
+                top_id = task_list.pop()
+                
+                # all_valid_top_id = np.array(workbench_type_num[workbenchs[top_id].work_type])[np.where(np.sum(Re_GRA_MP[np.array(workbench_type_num[workbenchs[top_id].work_type])], axis=1) > 0)[0]]
+                # nearest_robot_id, nearest_top_id = find_nearest_robots_workbenchs(free_robots, all_valid_top_id)
+                # if(nearest_robot_id != -1):
+                #    target_ids = np.where(Re_GRA_MP[nearest_top_id] == 1)[0]
+                #    min_dis = 100000
+                #    min_id = -1
+                #    for target_id in target_ids:
+                #        if(DIS_MP[target_id][nearest_top_id] < min_dis):
+                #            min_dis = DIS_MP[target_id][nearest_top_id]
+                #            min_id = target_id
+                #    return nearest_robot_id, nearest_top_id, min_id
                
+                if(father_dict.get(top_id) != None and LOCK_MAP[top_id][father_dict[top_id]] == 1):
+                   nearest_robot_id = find_nearest_robot_workbench(free_robots, top_id)
+                   if nearest_robot_id != -1:
+                        # log.write(f"robot, target0, target1 is: {nearest_robot_id}, {top_id}, {father_dict[top_id]}\n")
+                        return nearest_robot_id, top_id, father_dict[top_id]
+                elif(workbenchs[top_id].work_type == 7):
+                    min_dis = 100000
+                    min_id = -1
+                    for id in get_ava_list([8, 9], workbench_type_num):
+                        if(LOCK_MAP[top_id][id] == 1 and DIS_MP[top_id][id] < min_dis):
+                            min_dis = DIS_MP[top_id][id]
+                            min_id = id
+                    if(min_id != -1):
+                        nearest_robot_id = find_nearest_robot_workbench(free_robots, top_id)
+                        if nearest_robot_id != -1:
+                            return nearest_robot_id, top_id, min_id
+                else:
+                    min_dis = 100000
+                    min_id = -1
+                    for id in get_ava_list([9], workbench_type_num):
+                        if(LOCK_MAP[top_id][id] == 1 and DIS_MP[top_id][id] < min_dis):
+                            min_dis = DIS_MP[top_id][id]
+                            min_id = id
+                    if(min_id != -1):
+                        nearest_robot_id = find_nearest_robot_workbench(free_robots, top_id)
+                        if nearest_robot_id != -1:
+                            return nearest_robot_id, top_id, min_id
+                target_ids = sorted(np.where(GRA_MP[top_id] == 1)[0], key=functools.cmp_to_key(workbench_cmp2))
+                for target_id in target_ids:
+                    task_list.append(target_id)
+                    father_dict[target_id] = top_id
+    return -1, -1, -1               
 # Main
 if __name__ == '__main__':
     # input env_map
-    env_mp, DIS_MP, GRA_MP, LOCK_MAP = read_map(), [[50.0 * 50.0 for j in range(50)] for i in range(50)], array([[0 for j in range(50)] for i in range(50)]), array([[1 for j in range(50)] for i in range(50)])
+    env_mp, DIS_MP, GRA_MP, Re_GRA_MP, LOCK_MAP = read_map(),\
+                                                  [[50.0 * 50.0 for j in range(50)] for i in range(50)],\
+                                                  array([[0 for j in range(50)] for i in range(50)]),\
+                                                  array([[0 for j in range(50)] for i in range(50)]),\
+                                                  array([[1 for j in range(50)] for i in range(50)])
     map_init()
+    updata_LOCK_MAP()
+    update_GRA_MAP()
     finish()
     # start working
     # args = parse_args()
@@ -649,26 +754,30 @@ if __name__ == '__main__':
         # if workbench_mode == 1:
         #     update_task_list()
 
-        for i in range(len(free_robots)):
+        free_robot_len = len(free_robots)
+        for i in range(free_robot_len):
             # if workbench_mode == 1:
             #     employ_robot, target0, target1 = up_down_policy(free_robots)
-            # elif workbench_mode == 4:
-            #     if frame_id < 200:
-            #         employ_robot, target0, target1 = up_down_policy(free_robots)
-            #     else: 
-            #         employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
-            #         if employ_robot == -1:
-            #             employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
+            updata_LOCK_MAP()
+            update_GRA_MAP()
+            # if workbench_mode == 2:
+                # if frame_id < 200:
+                #     employ_robot, target0, target1 = up_down_policy(free_robots)
+                # else: 
+                #     employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
+                #     if employ_robot == -1:
+                #         employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
+            employ_robot, target0, target1 = up_down_policy_sxw(free_robots)
             # else:
-            employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
-            if employ_robot == -1:
-                employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
+            #     employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
+            #     if employ_robot == -1:
+            #         employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
             if employ_robot != -1:
                 robots[employ_robot].target_workbench_ids[0] = target0
                 robots[employ_robot].target_workbench_ids[1] = target1
                 
-                workbenchs[robots[employ_robot].target_workbench_ids[0]].is_targeted_flag[0] = 1
-                workbenchs[robots[employ_robot].target_workbench_ids[1]].is_targeted_flag[workbenchs[robots[employ_robot].target_workbench_ids[0]].work_type] = 1
+                workbenchs[target0].is_targeted_flag[0] = 1
+                workbenchs[target1].is_targeted_flag[workbenchs[target0].work_type] = 1
                 # if workbenchs[robots[employ_robot].target_workbench_ids[0]].work_type in [1, 2, 3]:
                 #     workbenchs[robots[employ_robot].target_workbench_ids[0]].is_targeted_flag[0] = 0
                 free_robots.remove(employ_robot)
