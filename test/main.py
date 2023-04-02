@@ -68,6 +68,10 @@ workbench_mode = 0
 workbench_allocate_list = []
 finished_list, task_list, waiting_list, generate_list = [], [], [], []
 task_pos_list = [0 for i in range(8)]
+# 
+workbench_taking_mp, workbench_nothing_mp = [], []
+dis_taking_mp, dis_nothing_mp = [], []
+all_taking_mp, all_nothing_mp = [], []
 
 # # Arguments for up_down_policy_sxw function
 # # 7 and 654
@@ -710,7 +714,26 @@ def up_down_policy_sxw(free_robots):
                 for target_id in target_ids:
                     task_list.append(target_id)
                     father_dict[target_id] = top_id
-    return -1, -1, -1               
+    return -1, -1, -1       
+
+
+def bfs_init():
+    global env_mp, DIS_MP, workbench_taking_mp, workbench_nothing_mp, dis_taking_mp, dis_nothing_mp
+    # workbench_taking_mp[i]表示工作台i的带东西bfs地图, workbench_nothing_mp[i]表示工作台i的不带东西的bfs地图
+    # bfs返回的是一个map
+    for id in range(workbench_ids):
+        workbench_taking_mp.append(bfs(env_mp, (workbenchs[id].x, workbenchs[id].y), 1))
+        workbench_nothing_mp.append(bfs(env_mp, (workbenchs[id].x, workbenchs[id].y), 0))
+    # dis_taking_mp[id0][id1]表示工作台id0和工作台id1之间的距离, all_taking_m[id0][id1]表示工作台id0和工作台id1之间的路径
+    for id0 in range(workbench_ids):
+        for id1 in range(id0 + 1, workbench_ids):
+            id0_x, id0_y = workbenchs[id0].x, workbenchs[id0].y
+            id1_x, id1_y = workbenchs[id1].x, workbenchs[id1].y
+            dis_taking_mp[id0][id1] = dis_taking_mp[id1][id0] = len(workbench_taking_mp[id0][id1_x][id1_y])
+            dis_nothing_mp[id0][id1] = dis_nothing_mp[id1][id0] = len(workbench_nothing_mp[id0][id1_x][id1_y])
+            all_taking_mp[id0][id1] = path_better(env_mp, workbench_taking_mp[id0][id1_x][id1_y], 1)
+            all_nothing_mp[id0][id1] = path_better(env_mp, workbench_nothing_mp[id0][id1_x][id1_y], 0)
+
 # Main
 if __name__ == '__main__':
     # input env_map
@@ -719,7 +742,9 @@ if __name__ == '__main__':
                                                   array([[0 for j in range(50)] for i in range(50)]),\
                                                   array([[0 for j in range(50)] for i in range(50)]),\
                                                   array([[1 for j in range(50)] for i in range(50)])
+    all_taking_mp, all_nothing_mp, dis_nothing_mp, dis_taking_mp = [[[] for j in range(50)] for i in range(50)], [[[] for j in range(50)] for i in range(50)], [[0 for i in range(50)] for j in range(50)], [[0 for i in range(50)] for j in range(50)]
     map_init()
+    bfs_init()
     updata_LOCK_MAP()
     update_GRA_MAP()
     finish()

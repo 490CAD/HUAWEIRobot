@@ -153,6 +153,7 @@ def bfs(env_mp, st_pos, is_take_thing):
             vis_mp[nx][ny] = 1
             ans_mp[nx][ny] = ans_mp[now_pos[0][0]][now_pos[0][1]]
             ans_mp[nx][ny].append((nx, ny))
+            # ans_mp[nx][ny] = path_better(env_mp, ans_mp[nx][ny], is_take_thing)
             q.put(((nx, ny), is_taking, (now_pos[0])))
     return ans_mp
 
@@ -187,7 +188,8 @@ def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
         k = (point3[1] - point1[1]) / (point3[0] - point1[0])
         b = point3[1] - point3[0] * k
         for i in range(point1[0], point3[0]):
-            nx, ny = i, ny = k * nx + b
+            nx, ny = i, int(k * nx + b)
+            # TODO: 可能会存在问题
             if env_mp[nx][ny] == '#':
                 return 0
             if is_take_thing == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and env_mp[nx][ny - 1] == '#'  and env_mp[nx][ny + 1] == '#')):
