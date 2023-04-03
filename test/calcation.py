@@ -6,7 +6,7 @@ from config import CFG
 from queue import Queue
 import numpy as np
 cfg = CFG()
-# log = open("path_better.txt", "w")
+log = open("path_better.txt", "w")
 
 
 # cal_function
@@ -140,10 +140,10 @@ def get_ava_list(target_workbench_list, workbench_type_num):
 def bfs(env_mp, st_pos, is_take_thing):
     q = Queue()
     q.put((st_pos, is_take_thing, (-1, -1)))
-    ans_mp = [[[] for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE)]
+    ans_mp = [[None for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE)]
     vis_mp = [[0 for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE)]
     vis_mp[st_pos[0]][st_pos[1]] = 1
-    ans_mp[st_pos[0]][st_pos[1]] = [st_pos]
+    ans_mp[st_pos[0]][st_pos[1]] = st_pos
     while not q.empty():
         now_pos = q.get()
         for i in range(4):
@@ -159,12 +159,8 @@ def bfs(env_mp, st_pos, is_take_thing):
                 continue 
             if i == 3 and is_taking == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and env_mp[nx + 1][ny] == '#'  and env_mp[nx - 1][ny] == '#')):
                 continue 
-            temp_ans = []
-            for point in ans_mp[now_pos[0][0]][now_pos[0][1]]:
-                temp_ans.append(point)
-            temp_ans.append((nx, ny))
             vis_mp[nx][ny] = 1
-            ans_mp[nx][ny] = temp_ans
+            ans_mp[nx][ny] = now_pos[0]
             # ans_mp[nx][ny] = ans_mp[now_pos[0][0]][now_pos[0][1]]
             # ans_mp[nx][ny].append((nx, ny))
             # ans_mp[nx][ny] = path_better(env_mp, ans_mp[nx][ny], is_take_thing)
@@ -336,3 +332,17 @@ def path_better_np(env_mp, path_list, is_take_thing):
     return new_path, counter
             
             
+def ask_path(ed_pos, ans_mp):
+    path = []
+    path.append(ed_pos)
+    pos = ed_pos
+    log.write(f"{ed_pos}\n")
+    log.write(f"{ans_mp}\n")
+    log.write(f"---------\n")
+    nx, ny = pos[0], pos[1]
+    while ans_mp[nx][ny] != pos:
+        pos = ans_mp[nx][ny]
+        nx, ny = pos[0], pos[1]
+        path.append(pos)
+    path.reverse()
+    return path

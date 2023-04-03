@@ -717,6 +717,25 @@ def up_down_policy_sxw(free_robots):
                     father_dict[target_id] = top_id
     return -1, -1, -1       
 
+def bfs_init_normal():
+    global env_mp, dis_taking_mp, dis_nothing_mp, all_nothing_mp, all_taking_mp
+    workbench_taking_mp, workbench_nothing_mp = [], []
+    for id in range(workbench_ids):
+        nx, ny = anti_cal_x(workbenchs[id].x), anti_cal_y(workbenchs[id].y)
+        workbench_taking_mp.append(bfs(env_mp, (nx, ny), 1))
+        workbench_nothing_mp.append(bfs(env_mp, (nx, ny), 0))
+
+    for id0 in range(workbench_ids):
+        for id1 in range(id0 + 1, workbench_ids):
+            id0_x, id0_y = anti_cal_x(workbenchs[id0].x), anti_cal_y(workbenchs[id0].y)
+            id1_x, id1_y = anti_cal_x(workbenchs[id1].x), anti_cal_y(workbenchs[id1].y)
+            path_taking, path_nothing = ask_path((id1_x, id1_y), workbench_taking_mp[id0]), ask_path((id1_x, id1_y), workbench_nothing_mp[id0])
+            dis_taking_mp[id0][id1] = dis_taking_mp[id1][id0] = len(path_taking)
+            dis_nothing_mp[id0][id1] = dis_nothing_mp[id1][id0] = len(path_nothing)
+            all_taking_mp[id0][id1] = path_better_np(env_mp, path_taking, 1)
+            all_nothing_mp[id0][id1] = path_better_np(env_mp, path_nothing, 0)
+            
+
 
 def bfs_init():
     global env_mp, DIS_MP, workbench_taking_mp, workbench_nothing_mp, dis_taking_mp, dis_nothing_mp, index_taking_mp, index_nothing_mp
@@ -770,7 +789,8 @@ if __name__ == '__main__':
                                                   array([[1 for j in range(50)] for i in range(50)])
     all_taking_mp, all_nothing_mp, dis_nothing_mp, dis_taking_mp = [[[] for j in range(50)] for i in range(50)], [[[] for j in range(50)] for i in range(50)], [[0 for i in range(50)] for j in range(50)], [[0 for i in range(50)] for j in range(50)]
     map_init()
-    bfs_init()
+    bfs_init_normal()
+    # bfs_init()
     updata_LOCK_MAP()
     update_GRA_MAP()
     finish()
