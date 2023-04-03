@@ -29,7 +29,7 @@ class CFG():
     TASK_TYPE = [7, 6, 5, 4, 3, 2, 1]
     DIS_NORMAL = [(1, 0), (-1, 0), (0, 1), (0, -1)]
     DIS_HIGHER = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
-                        
+    MAX_ANS_MP_SIZE = 500                           
 
     ###
     # use for orca

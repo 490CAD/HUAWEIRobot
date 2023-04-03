@@ -69,7 +69,8 @@ workbench_allocate_list = []
 finished_list, task_list, waiting_list, generate_list = [], [], [], []
 task_pos_list = [0 for i in range(8)]
 # 
-workbench_taking_mp, workbench_nothing_mp = [], []
+workbench_taking_mp, workbench_nothing_mp = np.array([]), np.array([])
+index_taking_mp, index_nothing_mp = np.array([]), np.array([])
 dis_taking_mp, dis_nothing_mp = [], []
 all_taking_mp, all_nothing_mp = [], []
 
@@ -718,13 +719,24 @@ def up_down_policy_sxw(free_robots):
 
 
 def bfs_init():
-    global env_mp, DIS_MP, workbench_taking_mp, workbench_nothing_mp, dis_taking_mp, dis_nothing_mp
+    global env_mp, DIS_MP, workbench_taking_mp, workbench_nothing_mp, dis_taking_mp, dis_nothing_mp, index_taking_mp, index_nothing_mp
     # workbench_taking_mp[i]表示工作台i的带东西bfs地图, workbench_nothing_mp[i]表示工作台i的不带东西的bfs地图
     # bfs返回的是一个map
+    workbench_taking_mp = np.full((workbench_ids, cfg.MAP_SIZE, cfg.MAP_SIZE, cfg.MAX_ANS_MP_SIZE, 2), -1, dtype = int)
+    workbench_nothing_mp = np.full((workbench_ids, cfg.MAP_SIZE, cfg.MAP_SIZE, cfg.MAX_ANS_MP_SIZE, 2), -1, dtype = int)
+    index_taking_mp = np.zeros((workbench_ids, cfg.MAP_SIZE, cfg.MAP_SIZE), dtype = int)
+    index_nothing_mp = np.zeros((workbench_ids, cfg.MAP_SIZE, cfg.MAP_SIZE), dtype = int)
+
     for id in range(workbench_ids):
         # log.write(f'{anti_cal_x(workbenchs[id].x)},{anti_cal_y(workbenchs[id].y)}')
-        workbench_taking_mp.append(bfs(env_mp, (anti_cal_x(workbenchs[id].x), anti_cal_y(workbenchs[id].y)), 1))
-        workbench_nothing_mp.append(bfs(env_mp, (anti_cal_x(workbenchs[id].x), anti_cal_y(workbenchs[id].y)), 0))
+        workbench_taking_mp_temp, index_taking_mp_temp = bfs_np(env_mp, (anti_cal_x(workbenchs[id].x), anti_cal_y(workbenchs[id].y)), 1)
+        # log.write(f'{workbench_taking_mp}\n {np.array([workbench_taking_mp_temp])}\n')
+        workbench_taking_mp[id] = workbench_taking_mp_temp
+        index_taking_mp[id] = index_taking_mp_temp
+
+        workbench_nothing_mp_temp, index_nothing_mp_temp = bfs_np(env_mp, (anti_cal_x(workbenchs[id].x), anti_cal_y(workbenchs[id].y)), 0)
+        workbench_nothing_mp[id] = workbench_nothing_mp_temp
+        index_nothing_mp[id] = index_nothing_mp_temp
 
     # dis_taking_mp[id0][id1]表示工作台id0和工作台id1之间的距离, all_taking_m[id0][id1]表示工作台id0和工作台id1之间的路径
     # log.write(f"{workbench_taking_mp[0][anti_cal_x(workbenchs[19].x)][anti_cal_y(workbenchs[19].y)]}\n")
@@ -734,11 +746,11 @@ def bfs_init():
         for id1 in range(id0 + 1, workbench_ids):
             id0_x, id0_y = anti_cal_x(workbenchs[id0].x), anti_cal_y(workbenchs[id0].y)
             id1_x, id1_y = anti_cal_x(workbenchs[id1].x), anti_cal_y(workbenchs[id1].y)
-            dis_taking_mp[id0][id1] = dis_taking_mp[id1][id0] = len(workbench_taking_mp[id0][id1_x][id1_y])
-            dis_nothing_mp[id0][id1] = dis_nothing_mp[id1][id0] = len(workbench_nothing_mp[id0][id1_x][id1_y])
+            dis_taking_mp[id0][id1] = dis_taking_mp[id1][id0] = index_taking_mp[id0][id1_x][id1_y]
+            dis_nothing_mp[id0][id1] = dis_nothing_mp[id1][id0] = index_nothing_mp[id0][id1_x][id1_y]
             # log.write(f'workbench_taking_mp[id0][id1_x][id1_y]:{workbench_taking_mp[id0][id1_x][id1_y]}\n')
-            all_taking_mp[id0][id1] = path_better(env_mp, workbench_taking_mp[id0][id1_x][id1_y], 1)
-            all_nothing_mp[id0][id1] = path_better(env_mp, workbench_nothing_mp[id0][id1_x][id1_y], 0)
+            all_taking_mp[id0][id1] = path_better_np(env_mp, workbench_taking_mp[id0][id1_x][id1_y][:index_taking_mp[id0][id1_x][id1_y]], 1)
+            all_nothing_mp[id0][id1] = path_better_np(env_mp, workbench_nothing_mp[id0][id1_x][id1_y][:index_nothing_mp[id0][id1_x][id1_y]], 0)
 
     log.write(f"{(anti_cal_x(workbenchs[0].x), anti_cal_y(workbenchs[0].y))} {(anti_cal_x(workbenchs[19].x), anti_cal_y(workbenchs[19].y))}\n")
     log.write(f"dis_taking_mp:\n{dis_taking_mp[0][19]}\n")
