@@ -15,6 +15,14 @@ def cal_x(row: int):
 def cal_y(col: int):
     # return 0.25 + col * 0.50
     return 50.00 - (0.25 + col * 0.50)
+
+def anti_cal_x(row: float):
+    return int((row - 0.25) / 0.50)
+    
+def anti_cal_y(col: float):
+    # return 0.25 + col * 0.50
+    return int((50.00 - col - 0.25) / 0.50)
+
         
 def cal_point_x_y(origin_x: float, origin_y: float, target_x: float, target_y: float):
     return math.sqrt((origin_x - target_x) ** 2 + (origin_y - target_y) ** 2)
@@ -188,8 +196,9 @@ def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
         k = (point3[1] - point1[1]) / (point3[0] - point1[0])
         b = point3[1] - point3[0] * k
         for i in range(point1[0], point3[0]):
-            nx, ny = i, int(k * nx + b)
-            # TODO: 可能会存在问题
+            nx = i
+            ny = int(k * nx + b)
+            # TODO: 可能会存在问题  # 确实有问题
             if env_mp[nx][ny] == '#':
                 return 0
             if is_take_thing == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and env_mp[nx][ny - 1] == '#'  and env_mp[nx][ny + 1] == '#')):
@@ -200,6 +209,8 @@ def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
     return 1
 
 def path_better(env_mp, path_list, is_take_thing):
+    if path_list == []:
+        return []
     path_len = len(path_list)
     new_path = []
     pre_point = path_list[0]

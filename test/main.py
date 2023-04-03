@@ -28,7 +28,7 @@ import queue
 
 # hyperparameters
 cfg = CFG()
-# log = open("log.txt", "w")
+log = open("log.txt", "w")
 # global needs
 
 # map1 43
@@ -722,17 +722,30 @@ def bfs_init():
     # workbench_taking_mp[i]表示工作台i的带东西bfs地图, workbench_nothing_mp[i]表示工作台i的不带东西的bfs地图
     # bfs返回的是一个map
     for id in range(workbench_ids):
-        workbench_taking_mp.append(bfs(env_mp, (workbenchs[id].x, workbenchs[id].y), 1))
-        workbench_nothing_mp.append(bfs(env_mp, (workbenchs[id].x, workbenchs[id].y), 0))
+        # log.write(f'{anti_cal_x(workbenchs[id].x)},{anti_cal_y(workbenchs[id].y)}')
+        workbench_taking_mp.append(bfs(env_mp, (anti_cal_x(workbenchs[id].x), anti_cal_y(workbenchs[id].y)), 1))
+        workbench_nothing_mp.append(bfs(env_mp, (anti_cal_x(workbenchs[id].x), anti_cal_y(workbenchs[id].y)), 0))
+    # log.write(f"workbench_taking_mp:\n{workbench_taking_mp[0][1]}\n")
+    # log.write(f"workbench_nothing_mp:\n{workbench_nothing_mp[0][1]}\n")
     # dis_taking_mp[id0][id1]表示工作台id0和工作台id1之间的距离, all_taking_m[id0][id1]表示工作台id0和工作台id1之间的路径
     for id0 in range(workbench_ids):
         for id1 in range(id0 + 1, workbench_ids):
-            id0_x, id0_y = workbenchs[id0].x, workbenchs[id0].y
-            id1_x, id1_y = workbenchs[id1].x, workbenchs[id1].y
+            id0_x, id0_y = anti_cal_x(workbenchs[id0].x), anti_cal_y(workbenchs[id0].y)
+            id1_x, id1_y = anti_cal_x(workbenchs[id1].x), anti_cal_y(workbenchs[id1].y)
+            # log.write(f'{id0} {id1} {id1_x} {id1_y}\n')
             dis_taking_mp[id0][id1] = dis_taking_mp[id1][id0] = len(workbench_taking_mp[id0][id1_x][id1_y])
             dis_nothing_mp[id0][id1] = dis_nothing_mp[id1][id0] = len(workbench_nothing_mp[id0][id1_x][id1_y])
+            # log.write(f'workbench_taking_mp[id0][id1_x][id1_y]:{workbench_taking_mp[id0][id1_x][id1_y]}\n')
             all_taking_mp[id0][id1] = path_better(env_mp, workbench_taking_mp[id0][id1_x][id1_y], 1)
             all_nothing_mp[id0][id1] = path_better(env_mp, workbench_nothing_mp[id0][id1_x][id1_y], 0)
+    log.write(f"{(workbenchs[0].x, workbenchs[0].y)} {(workbenchs[19].x, workbenchs[19].y)}\n")
+    log.write(f"{(anti_cal_x(workbenchs[0].x), anti_cal_y(workbenchs[0].y))} {(anti_cal_x(workbenchs[19].x), anti_cal_y(workbenchs[19].y))}\n")
+    log.write(f"dis_taking_mp:\n{dis_taking_mp[0][19]}\n")
+    log.write(f"dis_nothing_mp:\n{dis_nothing_mp[0][19]}\n")
+    log.write(f"all_taking_mp:\n{all_taking_mp[0][19]}\n")
+    log.write(f"all_nothing_mp:\n{all_nothing_mp[0][19]}\n")
+    exit()
+
 
 # Main
 if __name__ == '__main__':
