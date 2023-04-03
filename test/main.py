@@ -725,20 +725,21 @@ def bfs_init():
         # log.write(f'{anti_cal_x(workbenchs[id].x)},{anti_cal_y(workbenchs[id].y)}')
         workbench_taking_mp.append(bfs(env_mp, (anti_cal_x(workbenchs[id].x), anti_cal_y(workbenchs[id].y)), 1))
         workbench_nothing_mp.append(bfs(env_mp, (anti_cal_x(workbenchs[id].x), anti_cal_y(workbenchs[id].y)), 0))
-    # log.write(f"workbench_taking_mp:\n{workbench_taking_mp[0][1]}\n")
-    # log.write(f"workbench_nothing_mp:\n{workbench_nothing_mp[0][1]}\n")
+
     # dis_taking_mp[id0][id1]表示工作台id0和工作台id1之间的距离, all_taking_m[id0][id1]表示工作台id0和工作台id1之间的路径
+    # log.write(f"{workbench_taking_mp[0][anti_cal_x(workbenchs[19].x)][anti_cal_y(workbenchs[19].y)]}\n")
+    # log.write(f"{path_better(env_mp,[(47, 5), (46, 5), (45, 5), (44, 5), (44, 6), (43, 6), (42, 6), (41, 6), (40, 6), (39, 6), (38, 6), (37, 6), (36, 6), (35, 6), (34, 6), (33, 6), (32, 6), (31, 6), (30, 6), (29, 6), (28, 6), (27, 6), (26, 6), (25, 6), (24, 6), (23, 6), (22, 6), (21, 6), (20, 6), (19, 6), (18, 6), (17, 6), (16, 6), (15, 6), (14, 6), (14, 7), (14, 8), (14, 9), (14, 10), (14, 11), (14, 12), (14, 13), (14, 14), (14, 15), (14, 16), (14, 17), (14, 18), (14, 19), (14, 20), (14, 21), (14, 22), (14, 23), (14, 24), (14, 25), (14, 26), (14, 27), (14, 28), (14, 29), (14, 30), (14, 31), (14, 32), (14, 33), (14, 34), (14, 35), (14, 36), (14, 37), (14, 38), (14, 39), (14, 40), (14, 41), (14, 42), (14, 43), (14, 44), (14, 45), (14, 46), (14, 47), (14, 48)], 1)}\n")
+
     for id0 in range(workbench_ids):
         for id1 in range(id0 + 1, workbench_ids):
             id0_x, id0_y = anti_cal_x(workbenchs[id0].x), anti_cal_y(workbenchs[id0].y)
             id1_x, id1_y = anti_cal_x(workbenchs[id1].x), anti_cal_y(workbenchs[id1].y)
-            # log.write(f'{id0} {id1} {id1_x} {id1_y}\n')
             dis_taking_mp[id0][id1] = dis_taking_mp[id1][id0] = len(workbench_taking_mp[id0][id1_x][id1_y])
             dis_nothing_mp[id0][id1] = dis_nothing_mp[id1][id0] = len(workbench_nothing_mp[id0][id1_x][id1_y])
             # log.write(f'workbench_taking_mp[id0][id1_x][id1_y]:{workbench_taking_mp[id0][id1_x][id1_y]}\n')
             all_taking_mp[id0][id1] = path_better(env_mp, workbench_taking_mp[id0][id1_x][id1_y], 1)
             all_nothing_mp[id0][id1] = path_better(env_mp, workbench_nothing_mp[id0][id1_x][id1_y], 0)
-    log.write(f"{(workbenchs[0].x, workbenchs[0].y)} {(workbenchs[19].x, workbenchs[19].y)}\n")
+
     log.write(f"{(anti_cal_x(workbenchs[0].x), anti_cal_y(workbenchs[0].y))} {(anti_cal_x(workbenchs[19].x), anti_cal_y(workbenchs[19].y))}\n")
     log.write(f"dis_taking_mp:\n{dis_taking_mp[0][19]}\n")
     log.write(f"dis_nothing_mp:\n{dis_nothing_mp[0][19]}\n")

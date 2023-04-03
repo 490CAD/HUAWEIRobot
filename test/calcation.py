@@ -6,6 +6,7 @@ from config import CFG
 from queue import Queue
 
 cfg = CFG()
+# log = open("path_better.txt", "w")
 
 
 # cal_function
@@ -158,9 +159,14 @@ def bfs(env_mp, st_pos, is_take_thing):
                 continue 
             if i == 3 and is_taking == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and env_mp[nx + 1][ny] == '#'  and env_mp[nx - 1][ny] == '#')):
                 continue 
+            temp_ans = []
+            for point in ans_mp[now_pos[0][0]][now_pos[0][1]]:
+                temp_ans.append(point)
+            temp_ans.append((nx, ny))
             vis_mp[nx][ny] = 1
-            ans_mp[nx][ny] = ans_mp[now_pos[0][0]][now_pos[0][1]]
-            ans_mp[nx][ny].append((nx, ny))
+            ans_mp[nx][ny] = temp_ans
+            # ans_mp[nx][ny] = ans_mp[now_pos[0][0]][now_pos[0][1]]
+            # ans_mp[nx][ny].append((nx, ny))
             # ans_mp[nx][ny] = path_better(env_mp, ans_mp[nx][ny], is_take_thing)
             q.put(((nx, ny), is_taking, (now_pos[0])))
     return ans_mp
@@ -195,9 +201,11 @@ def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
         # y_1 = kx_1 + b; y_2 = kx_2 +b; k = (y_2 - y_1) /(x_2 - x_1); b=y_2 - x_2*k
         k = (point3[1] - point1[1]) / (point3[0] - point1[0])
         b = point3[1] - point3[0] * k
-        for i in range(point1[0], point3[0]):
+        # log.write(f"{point1, point3}\n")
+        for i in range(min_x, max_x):
             nx = i
             ny = int(k * nx + b)
+            # log.write(f"{nx, ny}\n")
             # TODO: 可能会存在问题  # 确实有问题
             if env_mp[nx][ny] == '#':
                 return 0
@@ -205,27 +213,39 @@ def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
                 return 0
             if is_take_thing == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and env_mp[nx + 1][ny] == '#'  and env_mp[nx - 1][ny] == '#')):
                 return 0
+        # log.write("-------------------\n")
     
     return 1
 
 def path_better(env_mp, path_list, is_take_thing):
-    if path_list == []:
-        return []
+    if len(path_list) <= 1:
+        return path_list
+    # log.write(f"{path_list}\n")
     path_len = len(path_list)
     new_path = []
     pre_point = path_list[0]
     new_path.append(pre_point)
-    for pos in range(1, path_len - 1):
+    shr_point = path_list[1]
+    nxt_point = shr_point
+    for pos in range(2, path_len):
         now_point = path_list[pos]
-        nxt_point = path_list[pos + 1]
-        if check_one_line(pre_point, now_point, nxt_point) == 1:
-            continue
-        if ignore_now_point(env_mp, pre_point, now_point, nxt_point, is_take_thing) == 1:
+        if check_one_line(pre_point, shr_point, now_point) == 1:
+            shr_point = now_point
+            nxt_point = shr_point
             continue
         else:
-            new_path.append(now_point)
-            pre_point = now_point
-    new_path.append(path_list[path_len - 1])
+            if ignore_now_point(env_mp, pre_point, shr_point, now_point, is_take_thing) == 1:
+                nxt_point = now_point
+                continue
+            else:
+                new_path.append(nxt_point)
+                pre_point = now_point
+                if pos + 1 >= path_len:
+                    break
+                else:
+                    shr_point = nxt_point = path_list[pos + 1]
+    new_path.append(nxt_point)
+    # log.write(f"{new_path}\n")
     return new_path
 
             
