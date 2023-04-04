@@ -139,7 +139,7 @@ def get_ava_list(target_workbench_list, workbench_type_num):
 
 def bfs(env_mp, st_pos, is_take_thing):
     q = Queue()
-    q.put((st_pos, is_take_thing, (-1, -1)))
+    q.put((st_pos, is_take_thing))
     ans_mp = [[None for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE)]
     vis_mp = [[0 for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE)]
     vis_mp[st_pos[0]][st_pos[1]] = 1
@@ -149,7 +149,7 @@ def bfs(env_mp, st_pos, is_take_thing):
         for i in range(4):
             nx, ny = now_pos[0][0] + cfg.DIS_NORMAL[i][0], now_pos[0][1] + cfg.DIS_NORMAL[i][1]
             is_taking = now_pos[1]
-            if nx < 0 or ny < 0 or nx >= cfg.MAP_SIZE or ny >= cfg.MAP_SIZE or env_mp[nx][ny] == '#' or vis_mp[nx][ny] == 1:
+            if nx < 0 or ny < 0 or nx >= cfg.MAP_SIZE or ny >= cfg.MAP_SIZE or env_mp[nx][ny] == '#' or vis_mp[nx][ny] != 0:
                 continue
             if i == 0 and is_taking == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and env_mp[nx][ny - 1] == '#'  and env_mp[nx][ny + 1] == '#')):
                 continue 
@@ -159,177 +159,13 @@ def bfs(env_mp, st_pos, is_take_thing):
                 continue 
             if i == 3 and is_taking == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and env_mp[nx + 1][ny] == '#'  and env_mp[nx - 1][ny] == '#')):
                 continue 
-            vis_mp[nx][ny] = 1
+            vis_mp[nx][ny] = vis_mp[now_pos[0][0]][now_pos[0][1]] + 1
             ans_mp[nx][ny] = now_pos[0]
             # ans_mp[nx][ny] = ans_mp[now_pos[0][0]][now_pos[0][1]]
             # ans_mp[nx][ny].append((nx, ny))
             # ans_mp[nx][ny] = path_better(env_mp, ans_mp[nx][ny], is_take_thing)
-            q.put(((nx, ny), is_taking, (now_pos[0])))
-    return ans_mp
-
-def bfs_np(env_mp, st_pos, is_take_thing):
-    # [ [x,y]  [is_take_thing, is_take_thing] [-1, -1] ]
-    q = np.array([[np.array(st_pos), np.full(2, is_take_thing), np.array([-1, -1])]])
-
-    ans_mp = np.full((cfg.MAP_SIZE, cfg.MAP_SIZE, cfg.MAX_ANS_MP_SIZE, 2), -1, dtype = int)
-    # ans_mp = np.array([np.array([np.array([]) for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE))])
-    vis_mp = np.zeros((cfg.MAP_SIZE, cfg.MAP_SIZE), dtype = int)
-
-    # ans_mp1 = [[[] for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE)]
-    # vis_mp1 = [[0 for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE)]
-    # log.write(f'ans_mp:\n{ans_mp}\nans_mp1:\n{ans_mp1}\n')
-    # log.write(f'vis_mp:\n{vis_mp}\nvis_mp1:\n{vis_mp1}\n')
-    
-    # index_mp: 用于标记ans_mp更新到了第几步
-    index_mp = np.zeros((cfg.MAP_SIZE, cfg.MAP_SIZE), dtype = int)
-    vis_mp[st_pos[0]][st_pos[1]] = 1
-    ans_mp[st_pos[0]][st_pos[1]][index_mp[st_pos[0]][st_pos[1]]] = np.array(st_pos)
-    # log.write(f'{index_mp}\n')
-    index_mp[st_pos[0]][st_pos[1]] += 1
-
-    while q.size != 0:
-        now_pos = q[0]
-        # log.write(f'q{q}\n')
-        q = np.delete(q, 0, axis=0)
-
-        for i in range(4):
-            # log.write(f'{now_pos}\n')
-            nx, ny = now_pos[0][0] + cfg.DIS_NORMAL[i][0], now_pos[0][1] + cfg.DIS_NORMAL[i][1]
-            is_taking = now_pos[1][0]
-            if nx < 0 or ny < 0 or nx >= cfg.MAP_SIZE or ny >= cfg.MAP_SIZE or env_mp[nx][ny] == '#' or vis_mp[nx][ny] == 1:
-                continue
-            if i == 0 and is_taking == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and env_mp[nx][ny - 1] == '#'  and env_mp[nx][ny + 1] == '#')):
-                continue 
-            if i == 1 and is_taking == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and env_mp[nx][ny - 1] == '#'  and env_mp[nx][ny + 1] == '#')):
-                continue 
-            if i == 2 and is_taking == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and env_mp[nx + 1][ny] == '#'  and env_mp[nx - 1][ny] == '#')):
-                continue 
-            if i == 3 and is_taking == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and env_mp[nx + 1][ny] == '#'  and env_mp[nx - 1][ny] == '#')):
-                continue 
-            # temp_ans = []
-            # for point in ans_mp[now_pos[0][0]][now_pos[0][1]]:
-            #     temp_ans.append(point)
-            # temp_ans.append((nx, ny))
-            vis_mp[nx][ny] = 1
-            
-            ans_mp[nx][ny] = ans_mp[now_pos[0][0]][now_pos[0][1]]
-            ans_mp[nx][ny][index_mp[now_pos[0][0]][now_pos[0][1]]] = np.array((nx, ny))
-            index_mp[nx][ny] = index_mp[now_pos[0][0]][now_pos[0][1]] + 1
-            q = np.append(q, np.array([[np.array([nx, ny]), np.full(2, is_taking), now_pos[0]]]), axis=0)
-    # log.write(f'{index_mp}\n')
-    return ans_mp, index_mp
-
-def check_one_line(point1, point2, point3):
-    # all tuple
-    # y2 - y1 / x2 - x1 = y3 - y1 / x3 - x1
-    if (point2[1] - point1[1]) * (point3[0] - point1[0]) == (point3[1] - point1[1]) * (point2[0] - point1[0]):
-        return 1
-    return 0
-
-def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
-    # x_1 == x_3, y_1 == y_3
-    min_x, max_x = min(point1[0], point3[0]), max(point1[0], point3[0])
-    min_y, max_y = min(point1[1], point3[1]), max(point1[1], point3[1])
-    if point1[0] == point3[0]:
-        for i in range(min_y, max_y + 1):
-            nx, ny = min_x, i
-            if env_mp[nx][ny] == '#':
-                return 0
-            if is_take_thing == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and env_mp[nx + 1][ny] == '#'  and env_mp[nx - 1][ny] == '#')):
-                return 0
-    elif point1[1] == point3[1]:
-        for i in range(min_x, max_x + 1):
-            nx, ny = i, min_y
-            if env_mp[nx][ny] == '#':
-                return 0
-            if is_take_thing == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and env_mp[nx][ny - 1] == '#'  and env_mp[nx][ny + 1] == '#')):
-                return 0
-    else:
-        # y = kx +b
-        # y_1 = kx_1 + b; y_2 = kx_2 +b; k = (y_2 - y_1) /(x_2 - x_1); b=y_2 - x_2*k
-        k = (point3[1] - point1[1]) / (point3[0] - point1[0])
-        b = point3[1] - point3[0] * k
-        # log.write(f"{point1, point3}\n")
-        for i in range(min_x, max_x):
-            nx = i
-            ny = int(k * nx + b)
-            # log.write(f"{nx, ny}\n")
-            # TODO: 可能会存在问题  # 确实有问题
-            if env_mp[nx][ny] == '#':
-                return 0
-            if is_take_thing == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and env_mp[nx][ny - 1] == '#'  and env_mp[nx][ny + 1] == '#')):
-                return 0
-            if is_take_thing == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and env_mp[nx + 1][ny] == '#'  and env_mp[nx - 1][ny] == '#')):
-                return 0
-        # log.write("-------------------\n")
-    
-    return 1
-
-def path_better(env_mp, path_list, is_take_thing):
-    if len(path_list) <= 1:
-        return path_list
-    # log.write(f"{path_list}\n")
-    path_len = len(path_list)
-    new_path = []
-    pre_point = path_list[0]
-    new_path.append(pre_point)
-    shr_point = path_list[1]
-    nxt_point = shr_point
-    for pos in range(2, path_len):
-        now_point = path_list[pos]
-        if check_one_line(pre_point, shr_point, now_point) == 1:
-            shr_point = now_point
-            nxt_point = shr_point
-            continue
-        else:
-            if ignore_now_point(env_mp, pre_point, shr_point, now_point, is_take_thing) == 1:
-                nxt_point = now_point
-                continue
-            else:
-                new_path.append(nxt_point)
-                pre_point = now_point
-                if pos + 1 >= path_len:
-                    break
-                else:
-                    shr_point = nxt_point = path_list[pos + 1]
-    new_path.append(nxt_point)
-    # log.write(f"{new_path}\n")
-    return new_path
-
-def path_better_np(env_mp, path_list, is_take_thing):
-    if len(path_list) <= 1:
-        return path_list
-    # log.write(f"{path_list}\n")
-    path_len = len(path_list)
-    new_path = np.full((cfg.MAX_ANS_MP_SIZE, 2), -1, dtype = int)
-    pre_point = path_list[0]
-    new_path[0] = pre_point
-    shr_point = path_list[1]
-    nxt_point = shr_point
-
-    counter = 1
-    for pos in range(2, path_len):
-        now_point = path_list[pos]
-        if check_one_line(pre_point, shr_point, now_point) == 1:
-            shr_point = now_point
-            nxt_point = shr_point
-            continue
-        else:
-            if ignore_now_point(env_mp, pre_point, shr_point, now_point, is_take_thing) == 1:
-                nxt_point = now_point
-                continue
-            else:
-                new_path[counter] = nxt_point
-                counter += 1
-                pre_point = now_point
-                if pos + 1 >= path_len:
-                    break
-                else:
-                    shr_point = nxt_point = path_list[pos + 1]
-    new_path[counter] = nxt_point
-    counter += 1
-    # log.write(f"{new_path}\n")
-    return new_path, counter
+            q.put(((nx, ny), is_taking))
+    return ans_mp, vis_mp
             
             
 def ask_path(ed_pos, ans_mp):
