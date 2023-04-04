@@ -29,6 +29,7 @@ class Robot():
         # 50, 0.01, 3, 0
         self.w_pid=PID.PID(27, 0, 0, 0)
         self.value = 0
+        self.move_list = None
 
     def get_from_frame(self, work_space, take_thing, time_f, crush_f, angle_speed, line_speed_x, line_speed_y, toward, x, y):
         self.work_space = int(work_space)

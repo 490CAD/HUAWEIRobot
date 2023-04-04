@@ -290,3 +290,54 @@ def get_price_by_time(free_robots):
                 best_val_time = temp_val_time
     # robots[robot_id].value = best_val_time
     return robot_id, target0_id, target1_id   
+def bfs_np(env_mp, st_pos, is_take_thing):
+    # [ [x,y]  [is_take_thing, is_take_thing] [-1, -1] ]
+    start = time.time()
+    # st_pos = np.array(st_pos)
+    q = deque()
+    q.append((st_pos, is_take_thing, (-1, -1)))
+
+    ans_mp = np.full((cfg.MAP_SIZE, cfg.MAP_SIZE), None)
+    # ans_mp = np.array([np.array([np.array([]) for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE))])
+    vis_mp = np.zeros((cfg.MAP_SIZE, cfg.MAP_SIZE), dtype = int)
+
+    # ans_mp1 = [[[] for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE)]
+    # vis_mp1 = [[0 for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE)]
+    # log.write(f'ans_mp:\n{ans_mp}\nans_mp1:\n{ans_mp1}\n')
+    # log.write(f'vis_mp:\n{vis_mp}\nvis_mp1:\n{vis_mp1}\n')
+    
+    # index_mp: 用于标记ans_mp更新到了第几步
+    index_mp = np.zeros((cfg.MAP_SIZE, cfg.MAP_SIZE), dtype = int)
+    vis_mp[st_pos[0]][st_pos[1]] = 1
+    ans_mp[st_pos[0]][st_pos[1]] = st_pos
+    # log.write(f'{index_mp}\n')
+    index_mp[st_pos[0]][st_pos[1]] += 1
+    log.write(f'init time:{time.time()- start}\n')
+    while q:
+        now_pos = q.popleft()
+        for i, (nx, ny) in enumerate(cfg.DIS_NORMAL):
+            # log.write(f'{now_pos}\n')
+            is_taking = now_pos[1]
+            if nx < 0 or ny < 0 or nx >= cfg.MAP_SIZE or ny >= cfg.MAP_SIZE or env_mp[nx][ny] == '#' or vis_mp[nx][ny] == 1:
+                continue
+            if i == 0 and is_taking == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and env_mp[nx][ny - 1] == '#'  and env_mp[nx][ny + 1] == '#')):
+                continue 
+            if i == 1 and is_taking == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and env_mp[nx][ny - 1] == '#'  and env_mp[nx][ny + 1] == '#')):
+                continue 
+            if i == 2 and is_taking == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and env_mp[nx + 1][ny] == '#'  and env_mp[nx - 1][ny] == '#')):
+                continue 
+            if i == 3 and is_taking == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and env_mp[nx + 1][ny] == '#'  and env_mp[nx - 1][ny] == '#')):
+                continue 
+            # temp_ans = []
+            # for point in ans_mp[now_pos[0][0]][now_pos[0][1]]:
+            #     temp_ans.append(point)
+            # temp_ans.append((nx, ny))
+            vis_mp[nx][ny] = 1
+            
+            ans_mp[nx][ny] = now_pos[0]
+            index_mp[nx][ny] = index_mp[now_pos[0][0]][now_pos[0][1]] + 1
+            q.append(((nx, ny), is_taking, now_pos[0]))
+    # log.write(f'{index_mp}\n')
+    log.write(f'finish time:{time.time()- start}\n')
+    # exit()
+    return ans_mp, index_mp
