@@ -1,3 +1,13 @@
+'''
+Author: BigCiLeng && bigcileng@outlook.com
+Date: 2023-03-30 13:54:18
+LastEditors: BigCiLeng && bigcileng@outlook.com
+LastEditTime: 2023-04-04 18:27:54
+FilePath: \HUAWEIRobot\test\workbench.py
+Description: 
+
+Copyright (c) 2023 by bigcileng@outlook.com, All Rights Reserved. 
+'''
 class WorkBench():
     def __init__(self, id):
         self.work_type = 0
@@ -13,6 +23,8 @@ class WorkBench():
         # 第0位为买锁，其余第i位为第i钟原料的锁
         self.is_targeted_flag = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.up_down_flag = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.anti_x = None
+        self.anti_y = None
     def get_from_frame(self, work_type, x, y, remain_time, origin_thing, output):
         self.work_type = int(work_type)
         self.x, self.y = float(x), float(y)

@@ -1,9 +1,9 @@
 '''
 Author: BigCiLeng w15516937650@outlook.com
 Date: 2023-03-22 16:27:44
-LastEditors: BigCiLeng w15516937650@outlook.com
-LastEditTime: 2023-03-24 23:24:06
-FilePath: \WindowsRelease\test\config.py
+LastEditors: BigCiLeng && bigcileng@outlook.com
+LastEditTime: 2023-04-04 21:23:21
+FilePath: \HUAWEIRobot\test\config.py
 Description: 
 
 Copyright (c) 2023 by ${git_name_email}, All Rights Reserved. 
