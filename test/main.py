@@ -69,8 +69,8 @@ workbench_allocate_list = []
 finished_list, task_list, waiting_list, generate_list = [], [], [], []
 task_pos_list = [0 for i in range(8)]
 # 
-workbench_taking_mp, workbench_nothing_mp = np.array([]), np.array([])
-index_taking_mp, index_nothing_mp = np.array([]), np.array([])
+workbench_taking_mp, workbench_nothing_mp = [], []
+index_taking_mp, index_nothing_mp = [], []
 dis_taking_mp, dis_nothing_mp = [], []
 all_taking_mp, all_nothing_mp = [], []
 
@@ -717,67 +717,22 @@ def up_down_policy_sxw(free_robots):
                     father_dict[target_id] = top_id
     return -1, -1, -1       
 
-def bfs_init_normal():
-    global env_mp, dis_taking_mp, dis_nothing_mp, all_nothing_mp, all_taking_mp
-    workbench_taking_mp, workbench_nothing_mp = [], []
+def bfs_init():
+    global env_mp, dis_taking_mp, dis_nothing_mp, workbench_taking_mp, workbench_nothing_mp, index_taking_mp
     for id in range(workbench_ids):
         nx, ny = anti_cal_x(workbenchs[id].x), anti_cal_y(workbenchs[id].y)
-        workbench_taking_mp.append(bfs(env_mp, (nx, ny), 1))
-        workbench_nothing_mp.append(bfs(env_mp, (nx, ny), 0))
+        taking_temp, dis_temp = bfs(env_mp, (nx, ny), 1)
+        workbench_taking_mp.append(taking_temp)
+        index_taking_mp.append(dis_temp)
+        # workbench_nothing_mp.append(bfs(env_mp, (nx, ny), 0))
 
     for id0 in range(workbench_ids):
         for id1 in range(id0 + 1, workbench_ids):
-            id0_x, id0_y = anti_cal_x(workbenchs[id0].x), anti_cal_y(workbenchs[id0].y)
             id1_x, id1_y = anti_cal_x(workbenchs[id1].x), anti_cal_y(workbenchs[id1].y)
-            path_taking, path_nothing = ask_path((id1_x, id1_y), workbench_taking_mp[id0]), ask_path((id1_x, id1_y), workbench_nothing_mp[id0])
-            dis_taking_mp[id0][id1] = dis_taking_mp[id1][id0] = len(path_taking)
-            dis_nothing_mp[id0][id1] = dis_nothing_mp[id1][id0] = len(path_nothing)
-            all_taking_mp[id0][id1] = path_better_np(env_mp, path_taking, 1)
-            all_nothing_mp[id0][id1] = path_better_np(env_mp, path_nothing, 0)
+            # path_taking, path_nothing = ask_path((id1_x, id1_y), workbench_taking_mp[id0]), ask_path((id1_x, id1_y), workbench_nothing_mp[id0])
+            dis_taking_mp[id0][id1] = dis_taking_mp[id1][id0] = index_taking_mp[0][id1_x][id1_y]
+            # dis_nothing_mp[id0][id1] = dis_nothing_mp[id1][id0] = len(path_nothing)
             
-
-
-def bfs_init():
-    global env_mp, DIS_MP, workbench_taking_mp, workbench_nothing_mp, dis_taking_mp, dis_nothing_mp, index_taking_mp, index_nothing_mp
-    # workbench_taking_mp[i]表示工作台i的带东西bfs地图, workbench_nothing_mp[i]表示工作台i的不带东西的bfs地图
-    # bfs返回的是一个map
-    workbench_taking_mp = np.full((workbench_ids, cfg.MAP_SIZE, cfg.MAP_SIZE, cfg.MAX_ANS_MP_SIZE, 2), -1, dtype = int)
-    workbench_nothing_mp = np.full((workbench_ids, cfg.MAP_SIZE, cfg.MAP_SIZE, cfg.MAX_ANS_MP_SIZE, 2), -1, dtype = int)
-    index_taking_mp = np.zeros((workbench_ids, cfg.MAP_SIZE, cfg.MAP_SIZE), dtype = int)
-    index_nothing_mp = np.zeros((workbench_ids, cfg.MAP_SIZE, cfg.MAP_SIZE), dtype = int)
-
-    for id in range(workbench_ids):
-        # log.write(f'{anti_cal_x(workbenchs[id].x)},{anti_cal_y(workbenchs[id].y)}')
-        workbench_taking_mp_temp, index_taking_mp_temp = bfs_np(env_mp, (anti_cal_x(workbenchs[id].x), anti_cal_y(workbenchs[id].y)), 1)
-        # log.write(f'{workbench_taking_mp}\n {np.array([workbench_taking_mp_temp])}\n')
-        workbench_taking_mp[id] = workbench_taking_mp_temp
-        index_taking_mp[id] = index_taking_mp_temp
-
-        workbench_nothing_mp_temp, index_nothing_mp_temp = bfs_np(env_mp, (anti_cal_x(workbenchs[id].x), anti_cal_y(workbenchs[id].y)), 0)
-        workbench_nothing_mp[id] = workbench_nothing_mp_temp
-        index_nothing_mp[id] = index_nothing_mp_temp
-
-    # dis_taking_mp[id0][id1]表示工作台id0和工作台id1之间的距离, all_taking_m[id0][id1]表示工作台id0和工作台id1之间的路径
-    # log.write(f"{workbench_taking_mp[0][anti_cal_x(workbenchs[19].x)][anti_cal_y(workbenchs[19].y)]}\n")
-    # log.write(f"{path_better(env_mp,[(47, 5), (46, 5), (45, 5), (44, 5), (44, 6), (43, 6), (42, 6), (41, 6), (40, 6), (39, 6), (38, 6), (37, 6), (36, 6), (35, 6), (34, 6), (33, 6), (32, 6), (31, 6), (30, 6), (29, 6), (28, 6), (27, 6), (26, 6), (25, 6), (24, 6), (23, 6), (22, 6), (21, 6), (20, 6), (19, 6), (18, 6), (17, 6), (16, 6), (15, 6), (14, 6), (14, 7), (14, 8), (14, 9), (14, 10), (14, 11), (14, 12), (14, 13), (14, 14), (14, 15), (14, 16), (14, 17), (14, 18), (14, 19), (14, 20), (14, 21), (14, 22), (14, 23), (14, 24), (14, 25), (14, 26), (14, 27), (14, 28), (14, 29), (14, 30), (14, 31), (14, 32), (14, 33), (14, 34), (14, 35), (14, 36), (14, 37), (14, 38), (14, 39), (14, 40), (14, 41), (14, 42), (14, 43), (14, 44), (14, 45), (14, 46), (14, 47), (14, 48)], 1)}\n")
-
-    for id0 in range(workbench_ids):
-        for id1 in range(id0 + 1, workbench_ids):
-            id0_x, id0_y = anti_cal_x(workbenchs[id0].x), anti_cal_y(workbenchs[id0].y)
-            id1_x, id1_y = anti_cal_x(workbenchs[id1].x), anti_cal_y(workbenchs[id1].y)
-            dis_taking_mp[id0][id1] = dis_taking_mp[id1][id0] = index_taking_mp[id0][id1_x][id1_y]
-            dis_nothing_mp[id0][id1] = dis_nothing_mp[id1][id0] = index_nothing_mp[id0][id1_x][id1_y]
-            # log.write(f'workbench_taking_mp[id0][id1_x][id1_y]:{workbench_taking_mp[id0][id1_x][id1_y]}\n')
-            all_taking_mp[id0][id1] = path_better_np(env_mp, workbench_taking_mp[id0][id1_x][id1_y][:index_taking_mp[id0][id1_x][id1_y]], 1)
-            all_nothing_mp[id0][id1] = path_better_np(env_mp, workbench_nothing_mp[id0][id1_x][id1_y][:index_nothing_mp[id0][id1_x][id1_y]], 0)
-
-    log.write(f"{(anti_cal_x(workbenchs[0].x), anti_cal_y(workbenchs[0].y))} {(anti_cal_x(workbenchs[19].x), anti_cal_y(workbenchs[19].y))}\n")
-    log.write(f"dis_taking_mp:\n{dis_taking_mp[0][19]}\n")
-    log.write(f"dis_nothing_mp:\n{dis_nothing_mp[0][19]}\n")
-    log.write(f"all_taking_mp:\n{all_taking_mp[0][19]}\n")
-    log.write(f"all_nothing_mp:\n{all_nothing_mp[0][19]}\n")
-    exit()
-
 
 # Main
 if __name__ == '__main__':
@@ -789,8 +744,7 @@ if __name__ == '__main__':
                                                   array([[1 for j in range(50)] for i in range(50)])
     all_taking_mp, all_nothing_mp, dis_nothing_mp, dis_taking_mp = [[[] for j in range(50)] for i in range(50)], [[[] for j in range(50)] for i in range(50)], [[0 for i in range(50)] for j in range(50)], [[0 for i in range(50)] for j in range(50)]
     map_init()
-    bfs_init_normal()
-    # bfs_init()
+    bfs_init()
     updata_LOCK_MAP()
     update_GRA_MAP()
     finish()
