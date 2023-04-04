@@ -760,7 +760,7 @@ def robot_bfs_init():
     global env_mp, robot_taking_mp, robot_index_taking_mp
     for id in range(4):
         nx, ny = robots[id].anti_x, robots[id].anti_y
-        robot_taking_mp[id], robot_index_taking_mp[id] = bfs(env_mp, (nx, ny), 0)
+        robot_taking_mp[id], robot_index_taking_mp[id] = bfs(env_mp, (nx, ny), 1)
 
 
 # Main
@@ -778,7 +778,11 @@ if __name__ == '__main__':
     updata_LOCK_MAP()
     update_GRA_MAP()
     finish()
-    # log.write(f"{env_mp[37][46]}\n")
+    log.write(f"{env_mp[43][94]}\n")
+    for i in range(cfg.MAP_SIZE):
+        for j in range(cfg.MAP_SIZE):
+            log.write(f"{robot_taking_mp[1][i][j]}")
+        log.write(f"\n")
     # log.write(f"{workbenchs[12].anti_x, workbenchs[12].anti_y}\n")
     # start working
     # args = parse_args()
@@ -829,6 +833,8 @@ if __name__ == '__main__':
             employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
             if employ_robot == -1:
                 employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
+            if employ_robot != 1:
+                continue
             if employ_robot != -1:
                 robots[employ_robot].target_workbench_ids[0] = target0
 
@@ -839,7 +845,7 @@ if __name__ == '__main__':
                     robots[employ_robot].move_list_target0 = ask_path((workbenchs[target0].anti_x, workbenchs[target0].anti_y), robot_taking_mp[employ_robot], env_mp)[1:]
                 elif path_better_map[work_space][target0] is None:
                     path_better_map[work_space][target0] = ask_path((workbenchs[target0].anti_x, workbenchs[target0].anti_y), workbench_taking_mp[work_space], env_mp)
-                    path_better_map[target0][work_space] = path_better_map[work_space][target0].reverse()
+                    # path_better_map[target0][work_space] = path_better_map[work_space][target0].reverse()
                     robots[employ_robot].move_list_target0 = path_better_map[work_space][target0][1:]
                 else:
                     robots[employ_robot].move_list_target0 = path_better_map[work_space][target0][1:]
@@ -849,7 +855,7 @@ if __name__ == '__main__':
                 robots[employ_robot].target_workbench_ids[1] = target1
                 if path_better_map[target0][target1] is None:
                     path_better_map[target0][target1] = ask_path((workbenchs[target1].anti_x, workbenchs[target1].anti_y), workbench_taking_mp[target0], env_mp)
-                    path_better_map[target1][target0] = path_better_map[target0][target1].reverse()
+                    # path_better_map[target1][target0] = path_better_map[target0][target1].reverse()
                     robots[employ_robot].move_list_target1 = path_better_map[target0][target1][1:]
                 else:
                     robots[employ_robot].move_list_target1 = path_better_map[target0][target1][1:]
@@ -861,6 +867,8 @@ if __name__ == '__main__':
                 #     workbenchs[robots[employ_robot].target_workbench_ids[0]].is_targeted_flag[0] = 0
                 robots[employ_robot].move_list_target0 = deque(robots[employ_robot].move_list_target0)
                 robots[employ_robot].move_list_target1 = deque(robots[employ_robot].move_list_target1)
+                # log.write(f"{robots[employ_robot].move_list_target0}\n")
+                # log.write(f"{robots[employ_robot].move_list_target1}\n")
                 free_robots.remove(employ_robot)
             # update_task_list()
 
@@ -878,7 +886,10 @@ if __name__ == '__main__':
         for robot_id in range(cfg.ROBOT_NUM):
             # if robot_id != 1:
             #     continue
+            log.write(f"{robots[robot_id].x, robots[robot_id].y, robots[robot_id].state}\n")
             log.write(f'{robots[robot_id].move_list_target0}\n')
+            log.write(f'{robots[robot_id].move_list_target1}\n')
+            log.write(f"~~\n")
             rotate, forward = None, None
             if robots[robot_id].target_workbench_ids[0] == -1:
                 continue
@@ -899,13 +910,13 @@ if __name__ == '__main__':
                             robots[robot_id].now_suppose_work_space = robots[robot_id].target_workbench_ids[0]
                             sys.stdout.write('forward %d %f\n' % (robot_id, 0))
                             robots[robot_id].state = 1
-                    elif remain_path_len != 1 and distance <= 0.01:
+                    elif remain_path_len != 1 and distance <= 0.04:
                             robots[robot_id].move_list_target0.popleft()
                         # rotate, forward = robots[robot_id].move_to_target(direction, distance)
                         # cfg.pid_list[robot_id] = [rotate, forward]
                     else:
                         rotate, forward = robots[robot_id].move_to_target(direction, distance)
-                        if abs(direction - robots[robot_id].toward) <= cfg.PI / 8:
+                        if abs(direction - robots[robot_id].toward) <= cfg.PI / 4:
                             cfg.pid_list[robot_id] = [rotate, forward]
                         else:
                             cfg.pid_list[robot_id] = [rotate, 0]
@@ -937,13 +948,13 @@ if __name__ == '__main__':
                             robots[robot_id].now_suppose_work_space = robots[robot_id].target_workbench_ids[1]
                             sys.stdout.write('forward %d %f\n' % (robot_id, 0))
                             robots[robot_id].state = 3
-                    elif remain_path_len != 1 and distance <= 0.01:
+                    elif remain_path_len != 1 and distance <= 0.04:
                             robots[robot_id].move_list_target1.popleft()
                         # rotate, forward = robots[robot_id].move_to_target(direction, distance)
                         # cfg.pid_list[robot_id] = [rotate, forward]
                     else:
                         rotate, forward = robots[robot_id].move_to_target(direction, distance)
-                        if abs(direction - robots[robot_id].toward) <= cfg.PI / 8:
+                        if abs(direction - robots[robot_id].toward) <= cfg.PI / 4:
                             cfg.pid_list[robot_id] = [rotate, forward]
                         else:
                             cfg.pid_list[robot_id] = [rotate, 0]
