@@ -73,6 +73,7 @@ workbench_taking_mp, workbench_nothing_mp = [], []
 index_taking_mp, index_nothing_mp = [], []
 dis_taking_mp, dis_nothing_mp = [], []
 all_taking_mp, all_nothing_mp = [], []
+robot_taking_mp, robot_index_taking_mp = [[] for i in range(cfg.ROBOT_NUM)], [[] for i in range(cfg.ROBOT_NUM)]
 
 # # Arguments for up_down_policy_sxw function
 # # 7 and 654
@@ -221,6 +222,7 @@ def map_init():
                 workbench_ids += 1
             if env_mp[row][col] == 'A':
                 robots.append(Robot(robot_ids))
+                robots[robot_ids].x, robots[robot_ids].y = cal_x(col), cal_y(row)
                 robot_ids += 1
 
     for workbench_a in range(0, workbench_ids):
@@ -734,6 +736,13 @@ def bfs_init():
             # dis_nothing_mp[id0][id1] = dis_nothing_mp[id1][id0] = len(path_nothing)
             
 
+def robot_bfs_init():
+    global env_mp, robot_taking_mp, robot_index_taking_mp
+    for id in range(4):
+        nx, ny = anti_cal_x(robots[id].x), anti_cal_y(robots[id].y)
+        robot_taking_mp[id], robot_index_taking_mp[id] = bfs(env_mp, (nx, ny), 1)
+
+
 # Main
 if __name__ == '__main__':
     # input env_map
@@ -745,6 +754,7 @@ if __name__ == '__main__':
     all_taking_mp, all_nothing_mp, dis_nothing_mp, dis_taking_mp = [[[] for j in range(50)] for i in range(50)], [[[] for j in range(50)] for i in range(50)], [[0 for i in range(50)] for j in range(50)], [[0 for i in range(50)] for j in range(50)]
     map_init()
     bfs_init()
+    robot_bfs_init()
     updata_LOCK_MAP()
     update_GRA_MAP()
     finish()
