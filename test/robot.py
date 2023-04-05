@@ -66,10 +66,10 @@ class Robot():
             # forward =  min(6, math.exp(distance) / k)
             # forward =  min(6, distance / 3)
             
-            if distance >= 10:
+            if distance >= 6:
                 forward = 6
             else:
-                forward = distance / 10 * 6
+                forward = max(distance / 3, 1)
             # if distance >= 9:
             #     forward = 6
             # else:

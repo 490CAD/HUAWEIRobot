@@ -926,7 +926,8 @@ if __name__ == '__main__':
                             robots[robot_id].s_pid.clear()
                             robots[robot_id].w_pid.clear()
                             robots[robot_id].now_suppose_work_space = robots[robot_id].target_workbench_ids[0]
-                            sys.stdout.write('forward %d %f\n' % (robot_id, 0))
+                            # sys.stdout.write('forward %d %f\n' % (robot_id, 0))
+                            cfg.pid_list[robot_id] = [0, 0]
                             robots[robot_id].state = 1
                     elif remain_path_len != 1 and distance <= 0.4:
                             robots[robot_id].move_list_target0.popleft()
@@ -964,7 +965,8 @@ if __name__ == '__main__':
                             robots[robot_id].s_pid.clear()
                             robots[robot_id].w_pid.clear()
                             robots[robot_id].now_suppose_work_space = robots[robot_id].target_workbench_ids[1]
-                            sys.stdout.write('forward %d %f\n' % (robot_id, 0))
+                            cfg.pid_list[robot_id] = [0, 0]
+                            # sys.stdout.write('forward %d %f\n' % (robot_id, 0))
                             robots[robot_id].state = 3
                     elif remain_path_len != 1 and distance <= 0.4:
                             robots[robot_id].move_list_target1.popleft()
@@ -1007,14 +1009,14 @@ if __name__ == '__main__':
             #     continue
             rotate = cfg.pid_list[i][0]
             forward = cfg.pid_list[i][1]
-            if cfg.pid_list[i][1] != 0:
+            if forward != 0:
                 # continue
                 ### 防碰撞
                 # if workbench_mode == 3:
                 #     v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list, 3)
                 # else:      
                 v, _ = orca(i, robots, wall_list[i], cfg.tau, cfg.dt, cfg.pid_list)
-                if cfg.pid_list[i][1] >= 0:
+                if forward > 0:
                     rotate =  math.atan2(-v[1], v[0])  - robot.toward
                     if rotate > cfg.PI:
                         rotate += -2*cfg.PI
@@ -1022,7 +1024,7 @@ if __name__ == '__main__':
                         rotate += 2*cfg.PI
                     rotate = rotate / cfg.dt
                     forward = sqrt(v[0]**2 + v[1]**2)
-                    if cfg.pid_list[i][1] < 0:
+                    if forward < 0:
                         forward = -forward
                         
             sys.stdout.write('rotate %d %f\n' % (i, rotate))
