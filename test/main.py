@@ -766,7 +766,7 @@ def bfs_init():
         for id1 in range(id0 + 1, workbench_ids):
             id1_x, id1_y = workbenchs[id1].anti_x, workbenchs[id1].anti_y
             # path_taking, path_nothing = ask_path((id1_x, id1_y), workbench_taking_mp[id0]), ask_path((id1_x, id1_y), workbench_nothing_mp[id0])
-            dis_taking_mp[id0][id1] = dis_taking_mp[id1][id0] = index_taking_mp[0][id1_x][id1_y] * 0.25
+            dis_taking_mp[id0][id1] = dis_taking_mp[id1][id0] = index_taking_mp[id0][id1_x][id1_y] * 0.25
             # dis_nothing_mp[id0][id1] = dis_nothing_mp[id1][id0] = len(path_nothing)
             
 
