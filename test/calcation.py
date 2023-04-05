@@ -230,16 +230,13 @@ def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
     if point1[0] == point3[0]:
         for i in range(min_y, max_y + 1):
             nx, ny = min_x, i
-            if env_mp[nx][ny] == '#':
-                return 0
-            if is_take_thing == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and env_mp[nx + 1][ny] == '#'  and env_mp[nx - 1][ny] == '#')):
+            if check_points(env_mp, nx, ny, is_take_thing) == 0:
                 return 0
     elif point1[1] == point3[1]:
         for i in range(min_x, max_x + 1):
             nx, ny = i, min_y
-            if env_mp[nx][ny] == '#':
-                return 0
-            if is_take_thing == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and env_mp[nx][ny - 1] == '#'  and env_mp[nx][ny + 1] == '#')):
+            
+            if check_points(env_mp, nx, ny, is_take_thing) == 0:
                 return 0
     else:
         # return 0
@@ -259,7 +256,7 @@ def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
             #         return 0
             #     # if env_mp[nx][int_ny - 1] == '#' or env_mp[nx][int_ny] =='#' or env_mp[nx][int_ny + 1] == '#':
             #     #     continue
-            # else:
+        # else:
             ny = int_ny
             # log.write(f"{nx, ny}\n")
             # TODO: 可能会存在问题  # 确实有问题
