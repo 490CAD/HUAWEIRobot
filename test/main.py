@@ -844,8 +844,8 @@ if __name__ == '__main__':
             employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
             if employ_robot == -1:
                 employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
-            if employ_robot != 1:
-                continue
+            # if employ_robot != 1:
+            #     continue
             if employ_robot != -1:
                 robots[employ_robot].target_workbench_ids[0] = target0
 
@@ -895,8 +895,8 @@ if __name__ == '__main__':
         #     rotate, forward = robots[1].move_to_target(direction, distance)
         #     cfg.pid_list[1] = [rotate, forward]
         for robot_id in range(cfg.ROBOT_NUM):
-            if robot_id != 1:
-                continue
+            # if robot_id != 1:
+            #     continue
             log.write(f"{robots[robot_id].x, robots[robot_id].y, robots[robot_id].state}\n")
             log.write(f'{robots[robot_id].move_list_target0}\n')
             log.write(f'{robots[robot_id].move_list_target1}\n')
@@ -935,9 +935,9 @@ if __name__ == '__main__':
                 elif robots[robot_id].state == 1:
                     # buy
                     if workbenchs[robots[robot_id].target_workbench_ids[0]].output == 1 and robots[robot_id].work_space == robots[robot_id].target_workbench_ids[0]:
-                        if DIS_MP[robots[robot_id].target_workbench_ids[0]][robots[robot_id].target_workbench_ids[1]] / 6 > (9000 - frame_id) / 50 - 1:
-                            # go to 8,9
-                            continue
+                        # if DIS_MP[robots[robot_id].target_workbench_ids[0]][robots[robot_id].target_workbench_ids[1]] / 6 > (9000 - frame_id) / 50 - 1:
+                        #     # go to 8,9
+                        #     continue
                         sys.stdout.write('buy %d\n' % robot_id)
                         workbenchs[robots[robot_id].target_workbench_ids[0]].is_targeted_flag[0] = 0
                         robots[robot_id].state = 2
@@ -965,7 +965,7 @@ if __name__ == '__main__':
                         # cfg.pid_list[robot_id] = [rotate, forward]
                     else:
                         rotate, forward = robots[robot_id].move_to_target(direction, distance)
-                        if abs(direction - robots[robot_id].toward) <= cfg.PI / 9:
+                        if abs(direction - robots[robot_id].toward) <= cfg.PI / 4:
                             cfg.pid_list[robot_id] = [rotate, forward]
                         else:
                             cfg.pid_list[robot_id] = [rotate, 0]
@@ -1017,7 +1017,7 @@ if __name__ == '__main__':
                     forward = sqrt(v[0]**2 + v[1]**2)
                     if cfg.pid_list[i][1] < 0:
                         forward = -forward
-            ##
+                        
             sys.stdout.write('rotate %d %f\n' % (i, rotate))
             sys.stdout.write('forward %d %f\n' % (i, forward))
         ###

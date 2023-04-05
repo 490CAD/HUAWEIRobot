@@ -203,7 +203,7 @@ def ask_path(ed_pos, ans_mp, env_mp):
         # log.write(f"{nx, ny}\n")
         path.append(pos)
     path.reverse()
-    # path = path_better(env_mp, path, 1)
+    path = path_better(env_mp, path, 1)
     log.write(f"{path}\n")
     for i in range(len(path)):
         path[i] = (cal_x(path[i][1]), cal_y(path[i][0]))

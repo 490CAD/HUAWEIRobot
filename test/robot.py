@@ -65,10 +65,15 @@ class Robot():
             
             # forward =  min(6, math.exp(distance) / k)
             # forward =  min(6, distance / 3)
-            if distance >= 9:
+            
+            if distance >= 10:
                 forward = 6
             else:
-                forward = 4 / (1 + math.exp(-15 * (distance - 8))) + 2
+                forward = distance / 10 * 6
+            # if distance >= 9:
+            #     forward = 6
+            # else:
+            #     forward = 4 / (1 + math.exp(-15 * (distance - 8))) + 2
         if rotate > 0:
             rotate = min(PI, rotate)
         else:

@@ -42,16 +42,17 @@ def orca(robot_id, robots, walls, t, dt, pid_list, mode=0):
         # if mode != 3:
         collider.value = cfg.THING_VALUE[collider.take_thing] * collider.time_f * collider.crush_f
         dv, n = get_avoidance_velocity(robots[robot_id], collider, t, dt, robot_next_state)
-        if robots[robot_id].value > collider.value:
-            # 不避障
-            # line = Line(array([v_x, v_y]) + dv / 2, n)
-            line = Line(array([v_x, v_y]), n)
-        elif robots[robot_id].value == collider.value:
-            # 承担一半责任
-            line = Line(array([v_x, v_y]) + dv / 2, n)
-        else:
-            # 承担全部
-            line = Line(array([v_x, v_y]) + dv, n)
+        # if robots[robot_id].value > collider.value:
+        #     # 不避障
+        #     # line = Line(array([v_x, v_y]) + dv / 2, n)
+        #     line = Line(array([v_x, v_y]), n)
+        # elif robots[robot_id].value == collider.value:
+        #     # 承担一半责任
+        #     line = Line(array([v_x, v_y]) + dv / 2, n)
+        # else:
+        #     # 承担全部
+        #     line = Line(array([v_x, v_y]) + 2 * dv, n)
+        line = Line(array([v_x, v_y]) + dv, n)
         lines.append(line)
     for wall in walls:
         dv, n = get_avoidance_velocity(robots[robot_id], wall, t, dt, robot_next_state)
@@ -87,7 +88,8 @@ def get_avoidance_velocity(robot, collider, t, dt, robot_next_state):
     if hasattr(collider, 'take_thing'):
         r2 = cfg.ROBOT_RADIUS if collider.take_thing == 0 else cfg.ROBOT_RADIUS_MAX
     else:
-        r2 = 0.5 * sqrt(2)
+        # r2 = 0.25 * sqrt(2)
+        r2 = 0.25
     r = r1 + r2
 
     x_len_sq = norm_sq(x)
