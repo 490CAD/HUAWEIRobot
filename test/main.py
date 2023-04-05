@@ -26,6 +26,7 @@ from numpy import array, rint, linspace, pi, cos, sin, sqrt
 import numpy as np
 import queue
 from collections import deque
+from wall import Wall
 
 # hyperparameters
 cfg = CFG()
@@ -60,7 +61,7 @@ high_level_workbench_list = []
 useful_workbench_list = []
 env_mp, DIS_MP = None, None
 workbench_ids = 0
-workbenchs, robots = [], []
+workbenchs, robots, walls = [], [], []
 workbench_type_num = [[] for i in range(10)]
 workbench_minest_sell = []
 generate_product = {4:0, 5:0, 6:0}
@@ -75,6 +76,8 @@ index_taking_mp, index_nothing_mp = [], []
 dis_taking_mp = [[10001 for i in range(50)] for j in range(50)]
 robot_taking_mp, robot_index_taking_mp = [[] for i in range(cfg.ROBOT_NUM)], [[] for i in range(cfg.ROBOT_NUM)]
 path_better_map = [[None for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE)]
+wall_list = [[] for i in range(4)]
+
 # # Arguments for up_down_policy_sxw function
 # # 7 and 654
 # task_allocate_list = [[], []]
@@ -227,6 +230,7 @@ def map_init():
     global workbench_ids
     global workbench_mode
     robot_ids = 0
+    wall_ids = 0
     for row in range(cfg.MAP_SIZE):
         for col in range(cfg.MAP_SIZE):
             if '1' <= env_mp[row][col] <= '9':
@@ -242,9 +246,12 @@ def map_init():
                 robots.append(Robot(robot_ids))
                 robots[robot_ids].x, robots[robot_ids].y = cal_x(col), cal_y(row)
                 robots[robot_ids].anti_x, robots[robot_ids].anti_y = row, col
-                
-                robot_ids += 1
 
+                robot_ids += 1
+            if env_mp[row][col] == '#':
+                wall = Wall(wall_ids, cal_x(col), cal_y(row))
+                walls.append(wall)
+                wall_ids += 1
     for workbench_a in range(0, workbench_ids):
         for workbench_b in range(workbench_a + 1, workbench_ids):
             DIS_MP[workbench_a][workbench_b] = DIS_MP[workbench_b][workbench_a] = cal_point_x_y(workbenchs[workbench_a].x, workbenchs[workbench_a].y, workbenchs[workbench_b].x, workbenchs[workbench_b].y)
@@ -807,7 +814,11 @@ if __name__ == '__main__':
             robot_work, robot_take, robot_time, robot_crush, robot_angle, robot_line_x, robot_line_y, robot_toward, robot_x, robot_y = input().split()
             # update the robot state
             robots[robot].get_from_frame(robot_work, robot_take, robot_time, robot_crush, robot_angle, robot_line_x, robot_line_y, robot_toward, robot_x, robot_y)
-
+        for idx, robot in enumerate(robots):
+            wall_list[idx].clear()
+            for wall in walls:
+                if cal_point_x_y(robot.x, robot.y, wall.x, wall.y) < 2:
+                   wall_list[idx].append(wall) 
         # 分配任务
         free_robots = find_free_robot(robots)
         # free_jobs = find_free_job(workbenchs)
@@ -877,15 +888,15 @@ if __name__ == '__main__':
         # exit()
         # do some operation
         sys.stdout.write('%d\n' % frame_id)
-        log.write(f"----------------------------{frame_id}----------------------------")
+        log.write(f"----------------------------{frame_id}----------------------------\n")
         # if frame_id <=100:
         #     direction = -cfg.PI / 4
         #     distance = 10
         #     rotate, forward = robots[1].move_to_target(direction, distance)
         #     cfg.pid_list[1] = [rotate, forward]
         for robot_id in range(cfg.ROBOT_NUM):
-            # if robot_id != 1:
-            #     continue
+            if robot_id != 1:
+                continue
             log.write(f"{robots[robot_id].x, robots[robot_id].y, robots[robot_id].state}\n")
             log.write(f'{robots[robot_id].move_list_target0}\n')
             log.write(f'{robots[robot_id].move_list_target1}\n')
@@ -910,7 +921,7 @@ if __name__ == '__main__':
                             robots[robot_id].now_suppose_work_space = robots[robot_id].target_workbench_ids[0]
                             sys.stdout.write('forward %d %f\n' % (robot_id, 0))
                             robots[robot_id].state = 1
-                    elif remain_path_len != 1 and distance <= 0.04:
+                    elif remain_path_len != 1 and distance <= 0.4:
                             robots[robot_id].move_list_target0.popleft()
                         # rotate, forward = robots[robot_id].move_to_target(direction, distance)
                         # cfg.pid_list[robot_id] = [rotate, forward]
@@ -948,13 +959,13 @@ if __name__ == '__main__':
                             robots[robot_id].now_suppose_work_space = robots[robot_id].target_workbench_ids[1]
                             sys.stdout.write('forward %d %f\n' % (robot_id, 0))
                             robots[robot_id].state = 3
-                    elif remain_path_len != 1 and distance <= 0.04:
+                    elif remain_path_len != 1 and distance <= 0.4:
                             robots[robot_id].move_list_target1.popleft()
                         # rotate, forward = robots[robot_id].move_to_target(direction, distance)
                         # cfg.pid_list[robot_id] = [rotate, forward]
                     else:
                         rotate, forward = robots[robot_id].move_to_target(direction, distance)
-                        if abs(direction - robots[robot_id].toward) <= cfg.PI / 4:
+                        if abs(direction - robots[robot_id].toward) <= cfg.PI / 9:
                             cfg.pid_list[robot_id] = [rotate, forward]
                         else:
                             cfg.pid_list[robot_id] = [rotate, 0]
@@ -995,7 +1006,7 @@ if __name__ == '__main__':
                 # if workbench_mode == 3:
                 #     v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list, 3)
                 # else:      
-                v, _ = orca(i, robots, cfg.tau, cfg.dt, cfg.pid_list)
+                v, _ = orca(i, robots, wall_list[i], cfg.tau, cfg.dt, cfg.pid_list)
                 if cfg.pid_list[i][1] >= 0:
                     rotate =  math.atan2(-v[1], v[0])  - robot.toward
                     if rotate > cfg.PI:

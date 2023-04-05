@@ -18,7 +18,7 @@ class Agent(object):
         self.pref_velocity = array(pref_velocity)
 
 
-def orca(robot_id, robots, t, dt, pid_list, mode=0):
+def orca(robot_id, robots, walls, t, dt, pid_list, mode=0):
     robot_next_state = []
     for k, i in enumerate(pid_list):
         new_speed = i[1]
@@ -47,11 +47,16 @@ def orca(robot_id, robots, t, dt, pid_list, mode=0):
             # line = Line(array([v_x, v_y]) + dv / 2, n)
             line = Line(array([v_x, v_y]), n)
         elif robots[robot_id].value == collider.value:
-            # 承担所有责任
+            # 承担一半责任
             line = Line(array([v_x, v_y]) + dv / 2, n)
         else:
-            # line = Line(array([v_x, v_y]) + dv / 2, n)
+            # 承担全部
             line = Line(array([v_x, v_y]) + dv, n)
+        lines.append(line)
+    for wall in walls:
+        dv, n = get_avoidance_velocity(robots[robot_id], wall, t, dt, robot_next_state)
+        # 承担全部
+        line = Line(array([v_x, v_y]) + dv, n)
         lines.append(line)
 
     pref_velocity = array([v_x, v_y])
@@ -68,14 +73,21 @@ def get_avoidance_velocity(robot, collider, t, dt, robot_next_state):
     
     v_x = robot_next_state[robot.robot_id][1] * np.cos(robot_next_state[robot.robot_id][0])
     v_y = - robot_next_state[robot.robot_id][1] * np.sin(robot_next_state[robot.robot_id][0])
-    c_x = robot_next_state[collider.robot_id][1] * np.cos(robot_next_state[collider.robot_id][0])
-    c_y = - robot_next_state[collider.robot_id][1] * np.sin(robot_next_state[collider.robot_id][0])
+    if hasattr(collider, 'robot_id'):
+        c_x = robot_next_state[collider.robot_id][1] * np.cos(robot_next_state[collider.robot_id][0])
+        c_y = - robot_next_state[collider.robot_id][1] * np.sin(robot_next_state[collider.robot_id][0])
+    else:
+        c_x = 0
+        c_y = 0
 
 
 
     v = array([v_x, v_y]) - array([c_x, c_y])
     r1 = cfg.ROBOT_RADIUS if robot.take_thing == 0 else cfg.ROBOT_RADIUS_MAX
-    r2 = cfg.ROBOT_RADIUS if collider.take_thing == 0 else cfg.ROBOT_RADIUS_MAX
+    if hasattr(collider, 'take_thing'):
+        r2 = cfg.ROBOT_RADIUS if collider.take_thing == 0 else cfg.ROBOT_RADIUS_MAX
+    else:
+        r2 = 0.5 * sqrt(2)
     r = r1 + r2
 
     x_len_sq = norm_sq(x)
