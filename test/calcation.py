@@ -242,7 +242,7 @@ def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
             if is_take_thing == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and env_mp[nx][ny - 1] == '#'  and env_mp[nx][ny + 1] == '#')):
                 return 0
     else:
-        return 0
+        # return 0
         # y = kx +b
         # y_1 = kx_1 + b; y_2 = kx_2 +b; k = (y_2 - y_1) /(x_2 - x_1); b=y_2 - x_2*k
         k = (point3[1] - point1[1]) / (point3[0] - point1[0])
@@ -253,22 +253,22 @@ def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
             ny = (k * nx + b)
 
             int_ny = int(ny)
-            if int_ny == ny:
+            # if int_ny == ny:
 
-                if check_points(env_mp, nx, int_ny, is_take_thing) == 0:
-                    return 0
-                # if env_mp[nx][int_ny - 1] == '#' or env_mp[nx][int_ny] =='#' or env_mp[nx][int_ny + 1] == '#':
-                #     continue
-            else:
-                ny = int_ny
-                # log.write(f"{nx, ny}\n")
-                # TODO: 可能会存在问题  # 确实有问题
-                if check_points(env_mp, nx, ny, is_take_thing) == 0:
-                    return 0
-                if check_points(env_mp, nx, ny + 1, is_take_thing) == 0:
-                    return 0
-                if check_points(env_mp, nx, ny - 1, is_take_thing) == 0:
-                    return 0
+            #     if check_points(env_mp, nx, int_ny, is_take_thing) == 0:
+            #         return 0
+            #     # if env_mp[nx][int_ny - 1] == '#' or env_mp[nx][int_ny] =='#' or env_mp[nx][int_ny + 1] == '#':
+            #     #     continue
+            # else:
+            ny = int_ny
+            # log.write(f"{nx, ny}\n")
+            # TODO: 可能会存在问题  # 确实有问题
+            if check_points(env_mp, nx, ny, is_take_thing) == 0:
+                return 0
+            if check_points(env_mp, nx, ny + 1, is_take_thing) == 0:
+                return 0
+            if check_points(env_mp, nx, ny - 1, is_take_thing) == 0:
+                return 0
 
             # ny += 1
             # if env_mp[nx][ny] == '#':

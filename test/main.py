@@ -72,6 +72,7 @@ workbench_allocate_list = []
 finished_list, task_list, waiting_list, generate_list = [], [], [], []
 task_pos_list = [0 for i in range(8)]
 # 
+refuse_workbench_dist = {}
 workbench_taking_mp, workbench_nothing_mp = [], []
 index_taking_mp, index_nothing_mp = [], []
 dis_taking_mp = [[10001 for i in range(50)] for j in range(50)]
@@ -108,19 +109,13 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
 
     robot_id, target0_id, target1_id, best_val_time = -1, -1, -1, 0.0
     workbench_list = useful_workbench_list
-    # if(workbench_ids in [50] and (9000 - frame_id < 300)):
-    #     workbench_list = workbench_type_num[6]
+
     for id in free_robots:
         robot = robots[id]
 
         for target0 in workbench_list:
             target0_workbench = workbenchs[target0]
-            
-            # if workbench_mode == 3:
-            #     if target0_workbench.work_type == 6 and id in [2, 3]:
-            #         continue
-            #     if target0_workbench.work_type == 5 and id in [0, 1]:
-            #         continue
+
             if robot.now_suppose_work_space == -1:
                 if robot_taking_mp[id][target0_workbench.anti_x][target0_workbench.anti_y] is None:
                     continue
@@ -131,38 +126,12 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
             if target0_workbench.is_targeted_flag[0] == 1 or (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time == -1):
                 continue
             
-            
-            # if workbench_mode == 1 and (target0_workbench.output != 1 and target0_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH and target0_workbench.remain_time >= 50):
-            #     continue
-            # if workbench_mode == 1 and target0_workbench.work_type in [4, 5, 6]:
-            #     ava_list = [11, 22, 15, 17, 10, 12, 21, 23]
-
-            # if workbench_mode == 3:
-            #     if target0_workbench.work_type in [4]:
-            #         continue
-            #     if target0_workbench.work_type in [2]:
-            #         target_workbench_list = [6]
-            #     elif target0_workbench.work_type in [1]:
-            #         target_workbench_list = [5]
-            #     elif target0_workbench.work_type in [3]:
-            #         target_workbench_list = [5, 6]
-            #     else:
-            #         target_workbench_list = [9]
-            #     ava_list = get_ava_list(target_workbench_list, workbench_type_num)
-            # else:
             target_workbench_list = choose_target_workbench_list(generate_product, target0_workbench.work_type, work_mode)
             ava_list = get_ava_list(target_workbench_list, workbench_type_num)
 
             for target1 in ava_list:
                 target1_workbench = workbenchs[target1]
-                # if workbench_mode == 3:
-                #     if target1_workbench.work_type == 6 and id in [2, 3]:
-                #         continue
-                #     if target1_workbench.work_type == 5 and id in [0, 1]:
-                #         continue
-                    
-                # if target1_workbench.work_type == 9 and target0_workbench.work_type in [4, 5, 6] and workbench_mode == 1:
-                #     continue
+
                 if workbench_taking_mp[target0][target1_workbench.anti_x][target1_workbench.anti_y] is None:
                     continue
 
@@ -170,7 +139,6 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                     if  target1_workbench.is_targeted_flag[target0_workbench.work_type] == 1 or ((1 << target0_workbench.work_type) & target1_workbench.origin_thing) != 0:
                         continue
 
-                # target0_target1_dis = DIS_MP[target0][target1]
                 target0_target1_dis = dis_taking_mp[target0][target1]
 
                 if robot.now_suppose_work_space == -1:
@@ -181,8 +149,6 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                 robot_turn_dis = abs(drt_point_x_y(robot.x, robot.y, target0_workbench.x, target0_workbench.y, work_mode) - robot.toward)
 
                 turn_time = robot_turn_dis * 50 / cfg.PI / 6
-                # if workbench_mode in [3, 4]:
-                #     turn_time = 0
 
                 all_dis = robot_target0_dis + target0_target1_dis
 
@@ -756,6 +722,10 @@ def up_down_policy_sxw(free_robots):
 def bfs_init():
     global env_mp, dis_taking_mp, dis_nothing_mp, workbench_taking_mp, workbench_nothing_mp, index_taking_mp, new_env_mp
     for id in range(workbench_ids):
+        if refuse_workbench_dist[id] == 1:
+            workbench_taking_mp.append([])
+            index_taking_mp.append([])
+            continue
         nx, ny = workbenchs[id].anti_x, workbenchs[id].anti_y
         taking_temp, dis_temp = bfs(new_env_mp, (nx, ny), 1)
         workbench_taking_mp.append(taking_temp)
@@ -763,18 +733,29 @@ def bfs_init():
         # workbench_nothing_mp.append(bfs(env_mp, (nx, ny), 0))
 
     for id0 in range(workbench_ids):
+        if refuse_workbench_dist[id0] == 1:
+            continue
         for id1 in range(id0 + 1, workbench_ids):
+            if refuse_workbench_dist[id1] == 1:
+                continue
             id1_x, id1_y = workbenchs[id1].anti_x, workbenchs[id1].anti_y
             # path_taking, path_nothing = ask_path((id1_x, id1_y), workbench_taking_mp[id0]), ask_path((id1_x, id1_y), workbench_nothing_mp[id0])
-            dis_taking_mp[id0][id1] = dis_taking_mp[id1][id0] = index_taking_mp[0][id1_x][id1_y] * 0.25
+            dis_taking_mp[id0][id1] = dis_taking_mp[id1][id0] = index_taking_mp[id0][id1_x][id1_y] * 0.25
             # dis_nothing_mp[id0][id1] = dis_nothing_mp[id1][id0] = len(path_nothing)
             
 
 def robot_bfs_init():
-    global env_mp, robot_taking_mp, robot_index_taking_mp
+    global new_env_mp, robot_taking_mp, robot_index_taking_mp, workbenchs
     for id in range(4):
         nx, ny = robots[id].anti_x, robots[id].anti_y
         robot_taking_mp[id], robot_index_taking_mp[id] = bfs(new_env_mp, (nx, ny), 1)
+
+    for id in range(workbench_ids):
+        workbench = workbenchs[id]
+        if robot_taking_mp[0][workbench.anti_x][workbench.anti_y] == None and robot_taking_mp[1][workbench.anti_x][workbench.anti_y] == None and robot_taking_mp[2][workbench.anti_x][workbench.anti_y] == None and robot_taking_mp[3][workbench.anti_x][workbench.anti_y] == None:
+            refuse_workbench_dist[id] = 1
+        else:
+            refuse_workbench_dist[id] = 0
 
 # Main
 if __name__ == '__main__':
@@ -786,12 +767,13 @@ if __name__ == '__main__':
                                                   array([[1 for j in range(50)] for i in range(50)])
     all_taking_mp, all_nothing_mp, dis_nothing_mp, dis_taking_mp = [[[] for j in range(50)] for i in range(50)], [[[] for j in range(50)] for i in range(50)], [[0 for i in range(50)] for j in range(50)], [[0 for i in range(50)] for j in range(50)]
     map_init()
-    bfs_init()
     robot_bfs_init()
+    bfs_init()
     updata_LOCK_MAP()
     update_GRA_MAP()
     finish()
     # log.write(f"{env_mp[43][94]}\n")
+    log.write(f"{refuse_workbench_dist}\n")
     for i in range(cfg.MAP_SIZE_2):
         for j in range(cfg.MAP_SIZE_2):
             log.write(f"{new_env_mp[i][j]}")
