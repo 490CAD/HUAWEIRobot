@@ -779,7 +779,6 @@ def robot_bfs_init():
         nx, ny = robots[id].anti_x, robots[id].anti_y
         robot_taking_mp[id], robot_index_taking_mp[id] = bfs(new_env_mp, (nx, ny), 1)
 
-
 # Main
 if __name__ == '__main__':
     # input env_map

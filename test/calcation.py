@@ -147,32 +147,14 @@ def bfs(env_mp, st_pos, is_take_thing):
     ans_mp[st_pos[0]][st_pos[1]] = st_pos
     while not q.empty():
         now_pos = q.get()
-        for i in range(4):
-            nx, ny = now_pos[0][0] + cfg.DIS_NORMAL[i][0], now_pos[0][1] + cfg.DIS_NORMAL[i][1]
+        for i in range(8):
+            nx, ny = now_pos[0][0] + cfg.DIS_HIGHER[i][0], now_pos[0][1] + cfg.DIS_HIGHER[i][1]
+            # nx, ny = now_pos[0][0] + cfg.DIS_NORMAL[i][0], now_pos[0][1] + cfg.DIS_NORMAL[i][1]
             is_taking = now_pos[1]
             if nx < 0 or ny < 0 or nx >= cfg.MAP_SIZE_2 or ny >= cfg.MAP_SIZE_2 or vis_mp[nx][ny] != 0 or env_mp[nx][ny] == '#':
                 continue
-            ny1, ny2 = max(0, ny - 1), min(cfg.MAP_SIZE_2 - 1, ny + 1)
-            nx1, nx2 = max(0, nx - 1), min(cfg.MAP_SIZE_2 - 1, nx + 1)
-            if env_mp[nx][ny1] == '#' or env_mp[nx][ny2] == '#' or env_mp[nx1][ny] == '#' or env_mp[nx2][ny] == '#':
+            if check_points(env_mp, nx, ny ,is_taking) == 0:
                 continue
-            if env_mp[nx1][ny1] == '#' or env_mp[nx1][ny2] == '#' or env_mp[nx2][ny1] == '#' or env_mp[nx2][ny2] == '#':
-                continue
-            if is_taking == 1:
-                nx3, nx4 = max(0, nx - 2), min(cfg.MAP_SIZE_2 - 1, nx + 2)
-                ny3, ny4 = max(0, ny - 2), min(cfg.MAP_SIZE_2 - 1, ny + 2)
-                # log.write(f"{nx1, nx2, nx3, nx4}\n")
-                # log.write(f"{ny1, ny2, ny3, ny4}\n")
-                if env_mp[nx3][ny3] == '#' or env_mp[nx3][ny1] == '#' or env_mp[nx3][ny] == '#' or env_mp[nx3][ny2] == '#' or env_mp[nx3][ny4] == '#':
-                    continue
-                if env_mp[nx1][ny3] == '#' or env_mp[nx2][ny4] == '#':
-                    continue
-                if env_mp[nx][ny3] == '#' or env_mp[nx][ny4] == '#':
-                    continue
-                if env_mp[nx2][ny3] == '#' or env_mp[nx2][ny4] == '#':
-                    continue
-                if env_mp[nx4][ny3] == '#' or env_mp[nx4][ny1] == '#' or env_mp[nx4][ny] == '#' or env_mp[nx4][ny2] == '#' or env_mp[nx4][ny4] == '#':
-                    continue
                 
             vis_mp[nx][ny] = vis_mp[now_pos[0][0]][now_pos[0][1]] + 1
             ans_mp[nx][ny] = now_pos[0]
@@ -216,6 +198,31 @@ def check_one_line(point1, point2, point3):
         return 1
     return 0
 
+def check_points(env_mp, nx, ny, is_take_thing):
+    if env_mp[nx][ny] == '#':
+        return 0
+            
+    ny1, ny2 = max(0, ny - 1), min(cfg.MAP_SIZE_2 - 1, ny + 1)
+    nx1, nx2 = max(0, nx - 1), min(cfg.MAP_SIZE_2 - 1, nx + 1)
+    if env_mp[nx][ny1] == '#' or env_mp[nx][ny2] == '#' or env_mp[nx1][ny] == '#' or env_mp[nx2][ny] == '#':
+        return 0
+    if env_mp[nx1][ny1] == '#' or env_mp[nx1][ny2] == '#' or env_mp[nx2][ny1] == '#' or env_mp[nx2][ny2] == '#':
+        return 0
+    if is_take_thing == 1:
+        nx3, nx4 = max(0, nx - 2), min(cfg.MAP_SIZE_2 - 1, nx + 2)
+        ny3, ny4 = max(0, ny - 2), min(cfg.MAP_SIZE_2 - 1, ny + 2)
+        # log.write(f"{nx1, nx2, nx3, nx4}\n")
+        # log.write(f"{ny1, ny2, ny3, ny4}\n")
+        if env_mp[nx3][ny] == '#':
+            return 0
+        if env_mp[nx][ny3] == '#' or env_mp[nx][ny4] == '#':
+            return 0
+        if env_mp[nx4][ny] == '#':
+            return 0
+        if env_mp[nx3][ny1] == '#' or env_mp[nx3][ny2] == '#' or env_mp[nx4][ny1] == '#' or env_mp[nx4][ny2] == '#' or env_mp[nx1][ny3] == '#' or env_mp[nx1][ny4] == '#' or env_mp[nx2][ny3] == '#' or env_mp[nx2][ny4] == '#':
+            return 0
+    return 1
+
 def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
     # x_1 == x_3, y_1 == y_3
     min_x, max_x = min(point1[0], point3[0]), max(point1[0], point3[0])
@@ -246,19 +253,22 @@ def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
             ny = (k * nx + b)
 
             int_ny = int(ny)
-            if int_ny != ny:
-                if env_mp[nx][int_ny - 1] == '#' or env_mp[nx][int_ny] =='#' or env_mp[nx][int_ny + 1] == '#':
-                    continue
-            ny = int_ny
-            # log.write(f"{nx, ny}\n")
-            # TODO: 可能会存在问题  # 确实有问题
-            if env_mp[nx][ny] == '#':
-                return 0
-            if is_take_thing == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and (env_mp[nx][ny - 1] == '#'  and env_mp[nx][ny + 1] == '#'))):
-                return 0
-            if is_take_thing == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and (env_mp[nx + 1][ny] == '#'  and env_mp[nx - 1][ny] == '#'))):
-                return 0
-            
+            if int_ny == ny:
+
+                if check_points(env_mp, nx, int_ny, is_take_thing) == 0:
+                    return 0
+                # if env_mp[nx][int_ny - 1] == '#' or env_mp[nx][int_ny] =='#' or env_mp[nx][int_ny + 1] == '#':
+                #     continue
+            else:
+                ny = int_ny
+                # log.write(f"{nx, ny}\n")
+                # TODO: 可能会存在问题  # 确实有问题
+                if check_points(env_mp, nx, ny, is_take_thing) == 0:
+                    return 0
+                if check_points(env_mp, nx, ny + 1, is_take_thing) == 0:
+                    return 0
+                if check_points(env_mp, nx, ny - 1, is_take_thing) == 0:
+                    return 0
 
             # ny += 1
             # if env_mp[nx][ny] == '#':
