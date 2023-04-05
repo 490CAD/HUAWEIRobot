@@ -28,6 +28,8 @@ import queue
 from collections import deque
 from wall import Wall
 
+import time
+
 # hyperparameters
 cfg = CFG()
 log = open("log.txt", "w")
@@ -38,7 +40,6 @@ log = open("log.txt", "w")
 # map3 50
 # map4 18
 """
-    high_level_workbench_list: 类型为4567的工作台
     useful_workbench_list: 类型为1234567的工作台
     env_mp: 地图
     DIS_MP: DIS_MP[a][b]表示a号工作台与b号工作台之间的距离
@@ -57,9 +58,8 @@ log = open("log.txt", "w")
         choose_target_workbench_list(generate_product, origin_workbench_work_type, choose_mode=1): 顾名思义, 1是默认状态, 2是特殊状态 将会根据456的生成情况删除相应的4 或5或6
         get_ava_list(target_workbench_list, workbench_type_num): 根据target_workbench_list得到ava_list
 """
-high_level_workbench_list = []
 useful_workbench_list = []
-env_mp, DIS_MP = None, [[40000 for i in range(50)] for j in range(50)]
+env_mp, DIS_MP = None, []
 workbench_ids = 0
 workbenchs, robots, walls = [], [], []
 workbench_type_num = [[] for i in range(10)]
@@ -67,6 +67,8 @@ workbench_minest_sell = []
 generate_product = {4:0, 5:0, 6:0}
 workbench_mode = 0
 new_env_mp = [['' for i in range(cfg.MAP_SIZE_2)] for j in range(cfg.MAP_SIZE_2)]
+mask_env_mp = [[0 for i in range(cfg.MAP_SIZE_2)] for j in range(cfg.MAP_SIZE_2)]
+map_limit = [0, 0, 0, 0]
 
 workbench_allocate_list = []
 finished_list, task_list, waiting_list, generate_list = [], [], [], []
@@ -75,9 +77,8 @@ task_pos_list = [0 for i in range(8)]
 refuse_workbench_dist = {}
 workbench_taking_mp, workbench_nothing_mp = [], []
 index_taking_mp, index_nothing_mp = [], []
-dis_taking_mp = [[40000 for i in range(50)] for j in range(50)]
 robot_taking_mp, robot_index_taking_mp = [[] for i in range(cfg.ROBOT_NUM)], [[] for i in range(cfg.ROBOT_NUM)]
-path_better_map = [[None for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE)]
+path_better_map = []
 wall_list = [[] for i in range(4)]
 
 # # Arguments for up_down_policy_sxw function
@@ -139,12 +140,12 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                     if  target1_workbench.is_targeted_flag[target0_workbench.work_type] == 1 or ((1 << target0_workbench.work_type) & target1_workbench.origin_thing) != 0:
                         continue
 
-                target0_target1_dis = dis_taking_mp[target0][target1]
+                target0_target1_dis = DIS_MP[target0][target1]
 
                 if robot.now_suppose_work_space == -1:
                     robot_target0_dis = robot_index_taking_mp[id][target0_workbench.anti_x][target0_workbench.anti_y]
                 else:
-                    robot_target0_dis = dis_taking_mp[robot.now_suppose_work_space][target0]
+                    robot_target0_dis = DIS_MP[robot.now_suppose_work_space][target0]
 
                 robot_turn_dis = abs(drt_point_x_y(robot.x, robot.y, target0_workbench.x, target0_workbench.y, work_mode) - robot.toward)
 
@@ -160,11 +161,11 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
                 next_time = 0
                 if target1_workbench.work_type in cfg.HIGH_LEVEL_WORKBENCH:
                     if workbench_minest_sell[target1][0] == -1:
-                        next_time = dis_taking_mp[target1][workbench_minest_sell[target1][1]] * 50 / 6
+                        next_time = DIS_MP[target1][workbench_minest_sell[target1][1]] * 50 / 6
                     elif workbench_minest_sell[target1][1] == -1:
-                        next_time = dis_taking_mp[target1][workbench_minest_sell[target1][0]] * 50 / 6
+                        next_time = DIS_MP[target1][workbench_minest_sell[target1][0]] * 50 / 6
                     else:
-                        next_time = min(dis_taking_mp[target1][workbench_minest_sell[target1][1]], dis_taking_mp[target1][workbench_minest_sell[target1][0]]) * 50 / 6
+                        next_time = min(DIS_MP[target1][workbench_minest_sell[target1][1]], DIS_MP[target1][workbench_minest_sell[target1][0]]) * 50 / 6
 
                 if target1_workbench.work_type == 7:
                     if target1_workbench.origin_thing == 0:
@@ -195,13 +196,17 @@ def get_price_by_targets(free_robots, work_mode, frame_id):
 
 def map_init():
     global workbench_ids
-    global workbench_mode
-    global new_env_mp, env_mp
+    global workbench_mode, workbench_taking_mp, index_taking_mp
+    global new_env_mp, env_mp, mask_env_mp, path_better_map, DIS_MP
+    global map_limit
     robot_ids = 0
     wall_ids = 0
     for row in range(cfg.MAP_SIZE):
         for col in range(cfg.MAP_SIZE):
-            if '1' <= env_mp[row][col] <= '9':
+            new_env_mp[row * 2][col * 2] = new_env_mp[row * 2 + 1][col * 2] = new_env_mp[row * 2][col * 2 + 1] = new_env_mp[row * 2 + 1][col * 2 + 1] = env_mp[row][col]
+            if env_mp[row][col] == '.':
+                continue
+            elif '1' <= env_mp[row][col] <= '9':
                 workbench_type = int(env_mp[row][col])
                 workbenchs.append(WorkBench(workbench_ids))
                 workbench_type_num[workbench_type].append(workbench_ids)
@@ -209,40 +214,67 @@ def map_init():
                 workbenchs[workbench_ids].work_type = workbench_type
                 workbenchs[workbench_ids].x, workbenchs[workbench_ids].y = cal_x(col), cal_y(row)
                 workbenchs[workbench_ids].anti_x, workbenchs[workbench_ids].anti_y = row * 2, col * 2
+                if workbenchs[workbench_ids].work_type in cfg.USEFUL_WORKBENCH:
+                    useful_workbench_list.append(workbench_ids)
                 workbench_ids += 1
-            if env_mp[row][col] == 'A':
+            elif env_mp[row][col] == 'A':
                 robots.append(Robot(robot_ids))
                 robots[robot_ids].x, robots[robot_ids].y = cal_x(col), cal_y(row)
                 robots[robot_ids].anti_x, robots[robot_ids].anti_y = row * 2, col * 2
 
                 robot_ids += 1
-            if env_mp[row][col] == '#':
+            elif env_mp[row][col] == '#':
                 wall = Wall(wall_ids, cal_x(col), cal_y(row))
                 walls.append(wall)
                 wall_ids += 1
 
     for row in range(cfg.MAP_SIZE):
+        flag = 0
         for col in range(cfg.MAP_SIZE):
-            new_env_mp[row * 2][col * 2] = new_env_mp[row * 2 + 1][col * 2] = new_env_mp[row * 2][col * 2 + 1] = new_env_mp[row * 2 + 1][col * 2 + 1] = env_mp[row][col]
+            if env_mp[row][col] != '.':
+                flag = 1
+                break
+        if flag == 1:
+            map_limit[0] = max(0, row - 3) * 2
+            break
+    for row in range(cfg.MAP_SIZE - 1, 0, -1):
+        flag = 0
+        for col in range(cfg.MAP_SIZE):
+            if env_mp[row][col] != '.':
+                flag = 1
+                break
+        if flag == 1:
+            map_limit[1] = min(cfg.MAP_SIZE - 1, row + 3) * 2
+            break
+    for col in range(cfg.MAP_SIZE):
+        flag = 0
+        for row in range(cfg.MAP_SIZE):
+            if env_mp[row][col] != '.':
+                flag = 1
+                break
+        if flag == 1:
+            map_limit[2] = max(0, col - 3) * 2
+            break
+    for col in range(cfg.MAP_SIZE - 1, 0, -1):
+        flag = 0
+        for row in range(cfg.MAP_SIZE):
+            if env_mp[row][col] != '.':
+                flag = 1
+                break
+        if flag == 1:
+            map_limit[3] = min(cfg.MAP_SIZE - 1, col + 3) * 2
+            break
+    log.write(f"{map_limit}\n")
 
-    for workbench_type in cfg.HIGH_LEVEL_WORKBENCH:
-        for workbench in workbench_type_num[workbench_type]:
-            high_level_workbench_list.append(workbench)
+    workbench_taking_mp, index_taking_mp = [[] for i in range(workbench_ids)],  [[] for i in range(workbench_ids)]
+    path_better_map = [[None for i in range(workbench_ids)] for j in range(workbench_ids)]
+    DIS_MP = [[40000 for i in range(workbench_ids)] for j in range(workbench_ids)]
 
-    for workbench_type in cfg.USEFUL_WORKBENCH:
-        for workbench in workbench_type_num[workbench_type]:
-            useful_workbench_list.append(workbench)
-    # log.write(f'{useful_workbench_list}\n')
-
-    for workbench_a in range(0, workbench_ids):
-        target_workbench_type = choose_target_workbench_list(generate_product, workbenchs[workbench_a].work_type)
-        cnt = -1
-        for type in target_workbench_type:
-            workbench_minest_sell[workbench_a].append(-1)
-            cnt += 1
-            for workbench_b in workbench_type_num[type]:
-                if workbench_minest_sell[workbench_a][cnt] == -1 or DIS_MP[workbench_a][workbench_b] < DIS_MP[workbench_a][workbench_minest_sell[workbench_a][cnt]]:
-                    workbench_minest_sell[workbench_a][cnt] = workbench_b
+    # for row in range(map_limit[0], map_limit[1] + 1):
+    #     for col in range(map_limit[2], map_limit[3] + 1):
+    for row in range(cfg.MAP_SIZE_2):
+        for col in range(cfg.MAP_SIZE_2):
+            mask_env_mp[row][col] = check_points(new_env_mp, row, col, 1)
     
     # if workbench_ids == 50:
     #     workbench_mode = 3
@@ -270,23 +302,23 @@ def map_init():
     #     workbench_type_num[5] = sorted(workbench_type_num[5], key=functools.cmp_to_key(map4cmp))
     #     workbench_type_num[6] = sorted(workbench_type_num[6], key=functools.cmp_to_key(map4cmp))
 
-def map4cmp(x, y):
-    x_dis = cal_point_x_y(workbenchs[x].x, workbenchs[x].y, workbenchs[workbench_type_num[7][0]].x, workbenchs[workbench_type_num[7][0]].y)
-    y_dis = cal_point_x_y(workbenchs[y].x, workbenchs[y].y, workbenchs[workbench_type_num[7][0]].x, workbenchs[workbench_type_num[7][0]].y)
-    if x_dis < y_dis:
-        return -1
-    if x_dis > y_dis:
-        return 1
-    return 0
+# def map4cmp(x, y):
+#     x_dis = cal_point_x_y(workbenchs[x].x, workbenchs[x].y, workbenchs[workbench_type_num[7][0]].x, workbenchs[workbench_type_num[7][0]].y)
+#     y_dis = cal_point_x_y(workbenchs[y].x, workbenchs[y].y, workbenchs[workbench_type_num[7][0]].x, workbenchs[workbench_type_num[7][0]].y)
+#     if x_dis < y_dis:
+#         return -1
+#     if x_dis > y_dis:
+#         return 1
+#     return 0
 
-def map3cmp(x, y):
-    x_dis = cal_point_x_y(workbenchs[x].x, workbenchs[x].y, workbenchs[workbench_type_num[9][0]].x, workbenchs[workbench_type_num[9][0]].y)
-    y_dis = cal_point_x_y(workbenchs[y].x, workbenchs[y].y, workbenchs[workbench_type_num[9][0]].x, workbenchs[workbench_type_num[9][0]].y)
-    if x_dis < y_dis:
-        return -1
-    if x_dis > y_dis:
-        return 1
-    return 0
+# def map3cmp(x, y):
+#     x_dis = cal_point_x_y(workbenchs[x].x, workbenchs[x].y, workbenchs[workbench_type_num[9][0]].x, workbenchs[workbench_type_num[9][0]].y)
+#     y_dis = cal_point_x_y(workbenchs[y].x, workbenchs[y].y, workbenchs[workbench_type_num[9][0]].x, workbenchs[workbench_type_num[9][0]].y)
+#     if x_dis < y_dis:
+#         return -1
+#     if x_dis > y_dis:
+#         return 1
+#     return 0
 
 def find_free_workbench(st_workbench_type, ed_workbench):
     minest_dis = 10000
@@ -300,14 +332,14 @@ def find_free_workbench(st_workbench_type, ed_workbench):
             minest_no = id
     return minest_no
 
-def map1cmp(x, y):
-    x_dis = cal_point_x_y(workbenchs[x].x, workbenchs[x].y, workbenchs[workbench_type_num[8][0]].x, workbenchs[workbench_type_num[8][0]].y)
-    y_dis = cal_point_x_y(workbenchs[y].x, workbenchs[y].y, workbenchs[workbench_type_num[8][0]].x, workbenchs[workbench_type_num[8][0]].y)
-    if x_dis < y_dis:
-        return -1
-    if x_dis > y_dis:
-        return 1
-    return 0
+# def map1cmp(x, y):
+#     x_dis = cal_point_x_y(workbenchs[x].x, workbenchs[x].y, workbenchs[workbench_type_num[8][0]].x, workbenchs[workbench_type_num[8][0]].y)
+#     y_dis = cal_point_x_y(workbenchs[y].x, workbenchs[y].y, workbenchs[workbench_type_num[8][0]].x, workbenchs[workbench_type_num[8][0]].y)
+#     if x_dis < y_dis:
+#         return -1
+#     if x_dis > y_dis:
+#         return 1
+#     return 0
 
 def workbench_cmp(x, y):
     if cfg.THING_VALUE[workbenchs[x[0]].work_type] > cfg.THING_VALUE[workbenchs[y[0]].work_type]:
@@ -725,35 +757,64 @@ def up_down_policy_sxw(free_robots):
     return -1, -1, -1       
 
 def bfs_init():
-    global env_mp, dis_taking_mp, dis_nothing_mp, workbench_taking_mp, workbench_nothing_mp, index_taking_mp, new_env_mp
+    global env_mp, mask_env_mp, workbench_taking_mp, workbench_nothing_mp, index_taking_mp, new_env_mp
+    global workbench_minest_sell
     for id in range(workbench_ids):
         if refuse_workbench_dist[id] == 1:
-            workbench_taking_mp.append([])
-            index_taking_mp.append([])
             continue
-        nx, ny = workbenchs[id].anti_x, workbenchs[id].anti_y
-        taking_temp, dis_temp = bfs(new_env_mp, (nx, ny), 1)
-        workbench_taking_mp.append(taking_temp)
-        index_taking_mp.append(dis_temp)
-        # workbench_nothing_mp.append(bfs(env_mp, (nx, ny), 0))
+        workbench_taking_mp[id], index_taking_mp[id] = bfs(new_env_mp, (workbenchs[id].anti_x, workbenchs[id].anti_y), 1, mask_env_mp, map_limit)
 
+        # workbench_nothing_mp.append(bfs(env_mp, (nx, ny), 0))
+    # for id0 in range(workbench_ids):
+    #     if refuse_workbench_dist[id0] == 1:
+    #         continue
+    #     for id1 in range(id0 + 1, workbench_ids):
+    #         if refuse_workbench_dist[id1] == 1:
+    #             continue
+    #         # path_taking, path_nothing = ask_path((id1_x, id1_y), workbench_taking_mp[id0]), ask_path((id1_x, id1_y), workbench_nothing_mp[id0])
+    #         DIS_MP[id0][id1] = DIS_MP[id1][id0] = index_taking_mp[id0][workbenchs[id1].anti_x][ workbenchs[id1].anti_y] * 0.25
+    #         # dis_nothing_mp[id0][id1] = dis_nothing_mp[id1][id0] = len(path_nothing)
+    
+    # for workbench_a in range(0, workbench_ids):
+    #     target_workbench_type = choose_target_workbench_list(generate_product, workbenchs[workbench_a].work_type)
+    #     cnt = -1
+    #     for type in target_workbench_type:
+    #         workbench_minest_sell[workbench_a].append(-1)
+    #         cnt += 1
+    #         for workbench_b in workbench_type_num[type]:
+    #             if workbench_minest_sell[workbench_a][cnt] == -1 or DIS_MP[workbench_a][workbench_b] < DIS_MP[workbench_a][workbench_minest_sell[workbench_a][cnt]]:
+    #                 workbench_minest_sell[workbench_a][cnt] = workbench_b
+
+
+def workbench_after_init():
+    global env_mp, mask_env_mp, workbench_taking_mp, workbench_nothing_mp, index_taking_mp, new_env_mp
+    global workbench_minest_sell, robot_taking_mp, robot_index_taking_mp
+    
     for id0 in range(workbench_ids):
         if refuse_workbench_dist[id0] == 1:
             continue
         for id1 in range(id0 + 1, workbench_ids):
             if refuse_workbench_dist[id1] == 1:
                 continue
-            id1_x, id1_y = workbenchs[id1].anti_x, workbenchs[id1].anti_y
             # path_taking, path_nothing = ask_path((id1_x, id1_y), workbench_taking_mp[id0]), ask_path((id1_x, id1_y), workbench_nothing_mp[id0])
-            DIS_MP[id0][id1] = DIS_MP[id1][id0] = dis_taking_mp[id0][id1] = dis_taking_mp[id1][id0] = index_taking_mp[id0][id1_x][id1_y] * 0.25
+            DIS_MP[id0][id1] = DIS_MP[id1][id0] = index_taking_mp[id0][workbenchs[id1].anti_x][ workbenchs[id1].anti_y] * 0.25
             # dis_nothing_mp[id0][id1] = dis_nothing_mp[id1][id0] = len(path_nothing)
-            
+    
+    for workbench_a in range(0, workbench_ids):
+        target_workbench_type = choose_target_workbench_list(generate_product, workbenchs[workbench_a].work_type)
+        cnt = -1
+        for type in target_workbench_type:
+            workbench_minest_sell[workbench_a].append(-1)
+            cnt += 1
+            for workbench_b in workbench_type_num[type]:
+                if workbench_minest_sell[workbench_a][cnt] == -1 or DIS_MP[workbench_a][workbench_b] < DIS_MP[workbench_a][workbench_minest_sell[workbench_a][cnt]]:
+                    workbench_minest_sell[workbench_a][cnt] = workbench_b
 
 def robot_bfs_init():
-    global new_env_mp, robot_taking_mp, robot_index_taking_mp, workbenchs
+    global new_env_mp, robot_taking_mp, robot_index_taking_mp, workbenchs, mask_env_mp
     for id in range(4):
         nx, ny = robots[id].anti_x, robots[id].anti_y
-        robot_taking_mp[id], robot_index_taking_mp[id] = bfs(new_env_mp, (nx, ny), 1)
+        robot_taking_mp[id], robot_index_taking_mp[id] = bfs(new_env_mp, (nx, ny), 1, mask_env_mp, map_limit)
 
     for id in range(workbench_ids):
         workbench = workbenchs[id]
@@ -770,17 +831,24 @@ def robot_bfs_init():
 # Main
 if __name__ == '__main__':
     # input env_map
-    env_mp, DIS_MP, GRA_MP, Re_GRA_MP, LOCK_MAP = read_map(),\
-                                                  [[50.0 * 50.0 for j in range(50)] for i in range(50)],\
-                                                  array([[0 for j in range(50)] for i in range(50)]),\
-                                                  array([[0 for j in range(50)] for i in range(50)]),\
-                                                  array([[1 for j in range(50)] for i in range(50)])
+    d1 = time.time()
+    env_mp, GRA_MP, Re_GRA_MP, LOCK_MAP = read_map(),\
+                                                  [[0 for j in range(50)] for i in range(50)],\
+                                                  [[0 for j in range(50)] for i in range(50)],\
+                                                  [[1 for j in range(50)] for i in range(50)]
     map_init()
+    d2 = time.time()
     robot_bfs_init()
+    d3 = time.time()
     bfs_init()
+    d4 = time.time()
     finish()
-    
+    workbench_after_init()
+    log.write(f"{'{:.10f}s.'.format(d2 - d1)}\n")
+    log.write(f"{'{:.10f}s.'.format(d3 - d1)}\n")
+    log.write(f"{'{:.10f}s.'.format(d4 - d1)}\n")
     log.write(f"{refuse_workbench_dist}\n")
+
     for i in range(cfg.MAP_SIZE_2):
         for j in range(cfg.MAP_SIZE_2):
             log.write(f"{new_env_mp[i][j]}")
@@ -826,13 +894,13 @@ if __name__ == '__main__':
         for i in range(free_robot_len):
             # if workbench_mode == 1:
             #     employ_robot, target0, target1 = up_down_policy(free_robots)
-            updata_LOCK_MAP()
-            update_GRA_MAP()
-            employ_robot, target0, target1 = up_down_policy_sxw(free_robots)
+            # updata_LOCK_MAP()
+            # update_GRA_MAP()
+            # employ_robot, target0, target1 = up_down_policy_sxw(free_robots)
             # log.write(f"{employ_robot, target0, target1}!!!!!!!\n")
-            # employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
-            # if employ_robot == -1:
-            #     employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
+            employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
+            if employ_robot == -1:
+                employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
 
             if employ_robot != -1:
                 robots[employ_robot].target_workbench_ids[0] = target0
@@ -841,9 +909,9 @@ if __name__ == '__main__':
                 work_space = robots[employ_robot].now_suppose_work_space
                 if work_space == -1:
                     # log.write(f'{target0} {(workbenchs[target0].anti_x, workbenchs[target0].anti_y)},\n {robot_taking_mp[employ_robot]}\n')
-                    robots[employ_robot].move_list_target0 = ask_path((workbenchs[target0].anti_x, workbenchs[target0].anti_y), robot_taking_mp[employ_robot], new_env_mp)[1:]
+                    robots[employ_robot].move_list_target0 = ask_path((workbenchs[target0].anti_x, workbenchs[target0].anti_y), robot_taking_mp[employ_robot], new_env_mp, mask_env_mp)[1:]
                 elif path_better_map[work_space][target0] is None:
-                    path_better_map[work_space][target0] = ask_path((workbenchs[target0].anti_x, workbenchs[target0].anti_y), workbench_taking_mp[work_space], new_env_mp)
+                    path_better_map[work_space][target0] = ask_path((workbenchs[target0].anti_x, workbenchs[target0].anti_y), workbench_taking_mp[work_space], new_env_mp, mask_env_mp)
                     # path_better_map[target0][work_space] = path_better_map[work_space][target0].reverse()
                     robots[employ_robot].move_list_target0 = path_better_map[work_space][target0]
                 else:
@@ -853,7 +921,7 @@ if __name__ == '__main__':
                 ### 更新target0到target1的路径move_list_target1
                 robots[employ_robot].target_workbench_ids[1] = target1
                 if path_better_map[target0][target1] is None:
-                    path_better_map[target0][target1] = ask_path((workbenchs[target1].anti_x, workbenchs[target1].anti_y), workbench_taking_mp[target0], new_env_mp)
+                    path_better_map[target0][target1] = ask_path((workbenchs[target1].anti_x, workbenchs[target1].anti_y), workbench_taking_mp[target0], new_env_mp, mask_env_mp)
                     # path_better_map[target1][target0] = path_better_map[target0][target1].reverse()
                     robots[employ_robot].move_list_target1 = path_better_map[target0][target1]
                 else:

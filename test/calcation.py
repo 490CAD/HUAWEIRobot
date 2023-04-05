@@ -5,6 +5,7 @@ from workbench import WorkBench
 from config import CFG
 from queue import Queue
 import numpy as np
+from collections import deque
 cfg = CFG()
 log = open("path_better.txt", "w")
 
@@ -137,28 +138,25 @@ def get_ava_list(target_workbench_list, workbench_type_num):
     return ava_list
 
 
-def bfs(env_mp, st_pos, is_take_thing):
-    q = Queue()
-    q.put((st_pos, is_take_thing))
+def bfs(env_mp, st_pos, is_take_thing, mask_env_mp, map_limit):
+    q = deque()
+    q.append(st_pos)
     # log.write(f"{len(env_mp), len(env_mp[0])}\n")
     ans_mp = [[None for i in range(cfg.MAP_SIZE_2)] for j in range(cfg.MAP_SIZE_2)]
     vis_mp = [[0 for i in range(cfg.MAP_SIZE_2)] for j in range(cfg.MAP_SIZE_2)]
     vis_mp[st_pos[0]][st_pos[1]] = 1
     ans_mp[st_pos[0]][st_pos[1]] = st_pos
-    while not q.empty():
-        now_pos = q.get()
+    while len(q) != 0:
+        now_pos = q.popleft()
+        x, y = now_pos[0], now_pos[1]
         for i in range(8):
-            nx, ny = now_pos[0][0] + cfg.DIS_HIGHER[i][0], now_pos[0][1] + cfg.DIS_HIGHER[i][1]
+            nx, ny = x + cfg.DIS_HIGHER[i][0], y + cfg.DIS_HIGHER[i][1]
             # nx, ny = now_pos[0][0] + cfg.DIS_NORMAL[i][0], now_pos[0][1] + cfg.DIS_NORMAL[i][1]
-            is_taking = now_pos[1]
-            if nx < 0 or ny < 0 or nx >= cfg.MAP_SIZE_2 or ny >= cfg.MAP_SIZE_2 or vis_mp[nx][ny] != 0 or env_mp[nx][ny] == '#':
+            if nx < map_limit[0] or ny < map_limit[2] or nx > map_limit[1] or ny > map_limit[3] or vis_mp[nx][ny] != 0 or mask_env_mp[nx][ny] == 0:
                 continue
-            if check_points(env_mp, nx, ny ,is_taking) == 0:
-                continue
-                
-            vis_mp[nx][ny] = vis_mp[now_pos[0][0]][now_pos[0][1]] + 1
-            ans_mp[nx][ny] = now_pos[0]
-            q.put(((nx, ny), is_taking))
+            vis_mp[nx][ny] = vis_mp[x][y] + 1
+            ans_mp[nx][ny] = now_pos
+            q.append((nx, ny))
         # for i in range(4):
         #     nx, ny = now_pos[0][0] + cfg.HALF_DIS_2[i][0], now_pos[0][1] + cfg.HALF_DIS_2[i][2]
         #     if nx < 0 or ny < 0 or nx >= cfg.MAP_SIZE or ny >= cfg.MAP_SIZE or env_mp[nx][ny] == '#' or vis_mp[nx][ny] != 0:
@@ -168,7 +166,7 @@ def bfs(env_mp, st_pos, is_take_thing):
     return ans_mp, vis_mp
             
             
-def ask_path(ed_pos, ans_mp, env_mp):
+def ask_path(ed_pos, ans_mp, env_mp, mask_env_mp):
     path = []
     path.append(ed_pos)
     pos = ed_pos
@@ -183,7 +181,7 @@ def ask_path(ed_pos, ans_mp, env_mp):
         log.write(f"{nx, ny}\n")
         path.append(pos)
     path.reverse()
-    path = path_better(env_mp, path, 1)
+    path = path_better(env_mp, path, 1, mask_env_mp)
     log.write(f"{path}\n")
     for i in range(len(path)):
         path[i] = (cal_x(path[i][1] / 2), cal_y(path[i][0] / 2))
@@ -230,13 +228,12 @@ def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
     if point1[0] == point3[0]:
         for i in range(min_y, max_y + 1):
             nx, ny = min_x, i
-            if check_points(env_mp, nx, ny, is_take_thing) == 0:
+            if env_mp[nx][ny] == 0:
                 return 0
     elif point1[1] == point3[1]:
         for i in range(min_x, max_x + 1):
             nx, ny = i, min_y
-            
-            if check_points(env_mp, nx, ny, is_take_thing) == 0:
+            if env_mp[nx][ny] == 0:
                 return 0
     else:
         # return 0
@@ -250,42 +247,16 @@ def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
             ny = (k * nx + b)
 
             int_ny = int(ny)
-            # if int_ny == ny:
-
-            #     if check_points(env_mp, nx, int_ny, is_take_thing) == 0:
-            #         return 0
-            #     # if env_mp[nx][int_ny - 1] == '#' or env_mp[nx][int_ny] =='#' or env_mp[nx][int_ny + 1] == '#':
-            #     #     continue
-        # else:
             ny = int_ny
             # log.write(f"{nx, ny}\n")
             # TODO: 可能会存在问题  # 确实有问题
-            if check_points(env_mp, nx, ny, is_take_thing) == 0:
+            if env_mp[nx][ny] == 0 or env_mp[nx][ny + 1] == 0 or env_mp[nx][ny - 1] == 0:
                 return 0
-            if check_points(env_mp, nx, ny + 1, is_take_thing) == 0:
-                return 0
-            if check_points(env_mp, nx, ny - 1, is_take_thing) == 0:
-                return 0
-
-            # ny += 1
-            # if env_mp[nx][ny] == '#':
-            #     return 0
-            # if is_take_thing == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and (env_mp[nx][ny - 1] == '#'  or env_mp[nx][ny + 1] == '#'))):
-            #     return 0
-            # if is_take_thing == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and (env_mp[nx + 1][ny] == '#'  or env_mp[nx - 1][ny] == '#'))):
-            #     return 0
-            # ny -= 2
-            # if env_mp[nx][ny] == '#':
-            #     return 0
-            # if is_take_thing == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and (env_mp[nx][ny - 1] == '#'  or env_mp[nx][ny + 1] == '#'))):
-            #     return 0
-            # if is_take_thing == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and (env_mp[nx + 1][ny] == '#'  or env_mp[nx - 1][ny] == '#'))):
-            #     return 0
         # log.write("-------------------\n")
     
     return 1
 
-def path_better(env_mp, path_list, is_take_thing):
+def path_better(env_mp, path_list, is_take_thing, mask_env_mp):
     if len(path_list) <= 1:
         return path_list
     # log.write(f"{path_list}\n")
@@ -302,7 +273,7 @@ def path_better(env_mp, path_list, is_take_thing):
             nxt_point = shr_point
             continue
         else:
-            if ignore_now_point(env_mp, pre_point, shr_point, now_point, is_take_thing) == 1:
+            if ignore_now_point(mask_env_mp, pre_point, shr_point, now_point, is_take_thing) == 1:
                 nxt_point = now_point
                 continue
             else:
