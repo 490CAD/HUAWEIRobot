@@ -10,10 +10,10 @@ log = open("path_better.txt", "w")
 
 
 # cal_function
-def cal_x(row: int):
+def cal_x(row: float):
     return 0.25 + row * 0.50
     
-def cal_y(col: int):
+def cal_y(col: float):
     # return 0.25 + col * 0.50
     return 50.00 - (0.25 + col * 0.50)
 
@@ -140,8 +140,9 @@ def get_ava_list(target_workbench_list, workbench_type_num):
 def bfs(env_mp, st_pos, is_take_thing):
     q = Queue()
     q.put((st_pos, is_take_thing))
-    ans_mp = [[None for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE)]
-    vis_mp = [[0 for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE)]
+    # log.write(f"{len(env_mp), len(env_mp[0])}\n")
+    ans_mp = [[None for i in range(cfg.MAP_SIZE_2)] for j in range(cfg.MAP_SIZE_2)]
+    vis_mp = [[0 for i in range(cfg.MAP_SIZE_2)] for j in range(cfg.MAP_SIZE_2)]
     vis_mp[st_pos[0]][st_pos[1]] = 1
     ans_mp[st_pos[0]][st_pos[1]] = st_pos
     while not q.empty():
@@ -149,42 +150,38 @@ def bfs(env_mp, st_pos, is_take_thing):
         for i in range(4):
             nx, ny = now_pos[0][0] + cfg.DIS_NORMAL[i][0], now_pos[0][1] + cfg.DIS_NORMAL[i][1]
             is_taking = now_pos[1]
-            if nx < 0 or ny < 0 or nx >= cfg.MAP_SIZE or ny >= cfg.MAP_SIZE or env_mp[nx][ny] == '#' or vis_mp[nx][ny] != 0:
+            if nx < 0 or ny < 0 or nx >= cfg.MAP_SIZE_2 or ny >= cfg.MAP_SIZE_2 or vis_mp[nx][ny] != 0 or env_mp[nx][ny] == '#':
+                continue
+            ny1, ny2 = max(0, ny - 1), min(cfg.MAP_SIZE_2 - 1, ny + 1)
+            nx1, nx2 = max(0, nx - 1), min(cfg.MAP_SIZE_2 - 1, nx + 1)
+            if env_mp[nx][ny1] == '#' or env_mp[nx][ny2] == '#' or env_mp[nx1][ny] == '#' or env_mp[nx2][ny] == '#':
+                continue
+            if env_mp[nx1][ny1] == '#' or env_mp[nx1][ny2] == '#' or env_mp[nx2][ny1] == '#' or env_mp[nx2][ny2] == '#':
                 continue
             if is_taking == 1:
-                ny1, ny2 = max(0, ny - 1), min(cfg.MAP_SIZE - 1, ny + 1)
-                nx1, nx2 = max(0, nx - 1), min(cfg.MAP_SIZE - 1, nx + 1)
-                if env_mp[nx][ny1] == '#' or env_mp[nx][ny2] == '#' or env_mp[nx1][ny] == '#' or env_mp[nx2][ny] == '#':
+                nx3, nx4 = max(0, nx - 2), min(cfg.MAP_SIZE_2 - 1, nx + 2)
+                ny3, ny4 = max(0, ny - 2), min(cfg.MAP_SIZE_2 - 1, ny + 2)
+                # log.write(f"{nx1, nx2, nx3, nx4}\n")
+                # log.write(f"{ny1, ny2, ny3, ny4}\n")
+                if env_mp[nx3][ny3] == '#' or env_mp[nx3][ny1] == '#' or env_mp[nx3][ny] == '#' or env_mp[nx3][ny2] == '#' or env_mp[nx3][ny4] == '#':
                     continue
-                if env_mp[nx1][ny1] == '#' or env_mp[nx1][ny2] == '#' or env_mp[nx2][ny1] == '#' or env_mp[nx2][ny2] == '#':
+                if env_mp[nx1][ny3] == '#' or env_mp[nx2][ny4] == '#':
                     continue
-            # if i == 0 and is_taking == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and (env_mp[nx][ny - 1] == '#'  or env_mp[nx][ny + 1] == '#'))):
-            #     continue 
-            # if i == 1 and is_taking == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and (env_mp[nx][ny - 1] == '#'  or env_mp[nx][ny + 1] == '#'))):
-            #     continue 
-            # if i == 2 and is_taking == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and (env_mp[nx + 1][ny] == '#'  or env_mp[nx - 1][ny] == '#'))):
-            #     continue 
-            # if i == 3 and is_taking == 1 and ((nx + 1 >= cfg.MAP_SIZE and env_mp[nx - 1][ny] == '#') or (nx - 1 < 0 and env_mp[nx + 1][ny] == '#') or (nx + 1 < cfg.MAP_SIZE and nx - 1 >= 0 and (env_mp[nx + 1][ny] == '#'  or env_mp[nx - 1][ny] == '#'))):
-            #     continue
+                if env_mp[nx][ny3] == '#' or env_mp[nx][ny4] == '#':
+                    continue
+                if env_mp[nx2][ny3] == '#' or env_mp[nx2][ny4] == '#':
+                    continue
+                if env_mp[nx4][ny3] == '#' or env_mp[nx4][ny1] == '#' or env_mp[nx4][ny] == '#' or env_mp[nx4][ny2] == '#' or env_mp[nx4][ny4] == '#':
+                    continue
+                
             vis_mp[nx][ny] = vis_mp[now_pos[0][0]][now_pos[0][1]] + 1
             ans_mp[nx][ny] = now_pos[0]
-            # ans_mp[nx][ny] = ans_mp[now_pos[0][0]][now_pos[0][1]]
-            # ans_mp[nx][ny].append((nx, ny))
-            # ans_mp[nx][ny] = path_better(env_mp, ans_mp[nx][ny], is_take_thing)
             q.put(((nx, ny), is_taking))
-        # for i in range(4): 
-        #     nx, ny = now_pos[0][0] + cfg.DIS_HIGHER[i][0], now_pos[0][1] + cfg.DIS_HIGHER[i][1]
-        #     is_taking = now_pos[1]
+        # for i in range(4):
+        #     nx, ny = now_pos[0][0] + cfg.HALF_DIS_2[i][0], now_pos[0][1] + cfg.HALF_DIS_2[i][2]
         #     if nx < 0 or ny < 0 or nx >= cfg.MAP_SIZE or ny >= cfg.MAP_SIZE or env_mp[nx][ny] == '#' or vis_mp[nx][ny] != 0:
         #         continue
-        #     if is_taking == 1:
-        #         ny1, ny2 = max(0, ny - 1), min(cfg.MAP_SIZE - 1, ny + 1)
-        #         nx1, nx2 = max(0, nx - 1), min(cfg.MAP_SIZE - 1, nx + 1)
-        #         if env_mp[nx][ny1] == '#' or env_mp[nx][ny2] == '#' or env_mp[nx1][ny] == '#' or env_mp[nx2][ny] == '#':
-        #             continue
-        #     vis_mp[nx][ny] = vis_mp[now_pos[0][0]][now_pos[0][1]] + 1
-        #     ans_mp[nx][ny] = now_pos[0]
-        #     q.put(((nx, ny), is_taking))
+            
             
     return ans_mp, vis_mp
             
@@ -194,19 +191,20 @@ def ask_path(ed_pos, ans_mp, env_mp):
     path.append(ed_pos)
     pos = ed_pos
     nx, ny = pos[0], pos[1]
-    # log.write(f"{ans_mp}\n")
+    log.write(f"{ans_mp[nx][ny]}\n")
+    log.write(f"{env_mp[nx][ny]}\n")
     log.write(f"{nx, ny}\n")
     while ans_mp[nx][ny] != pos:
         pos = ans_mp[nx][ny]
         nx, ny = pos[0], pos[1]
         
-        # log.write(f"{nx, ny}\n")
+        log.write(f"{nx, ny}\n")
         path.append(pos)
     path.reverse()
-    # path = path_better(env_mp, path, 1)
+    path = path_better(env_mp, path, 1)
     log.write(f"{path}\n")
     for i in range(len(path)):
-        path[i] = (cal_x(path[i][1]), cal_y(path[i][0]))
+        path[i] = (cal_x(path[i][1] / 2), cal_y(path[i][0] / 2))
     log.write(f"{path}\n")
     log.write(f"-----------------\n")
     return path
