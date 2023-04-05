@@ -247,7 +247,6 @@ def map_init():
             if env_mp[row][col] == 'A':
                 robots.append(Robot(robot_ids))
                 robots[robot_ids].x, robots[robot_ids].y = cal_x(col), cal_y(row)
-<<<<<<< Updated upstream
                 robots[robot_ids].anti_x, robots[robot_ids].anti_y = row, col
 
                 robot_ids += 1
@@ -255,7 +254,6 @@ def map_init():
                 wall = Wall(wall_ids, cal_x(col), cal_y(row))
                 walls.append(wall)
                 wall_ids += 1
-=======
                 robots[robot_ids].anti_x, robots[robot_ids].anti_y = row * 2, col * 2
                 
                 robot_ids += 1
@@ -264,7 +262,6 @@ def map_init():
         for col in range(cfg.MAP_SIZE):
             new_env_mp[row * 2][col * 2] = new_env_mp[row * 2 + 1][col * 2] = new_env_mp[row * 2][col * 2 + 1] = new_env_mp[row * 2 + 1][col * 2 + 1] = env_mp[row][col]
 
->>>>>>> Stashed changes
     for workbench_a in range(0, workbench_ids):
         for workbench_b in range(workbench_a + 1, workbench_ids):
             DIS_MP[workbench_a][workbench_b] = DIS_MP[workbench_b][workbench_a] = cal_point_x_y(workbenchs[workbench_a].x, workbenchs[workbench_a].y, workbenchs[workbench_b].x, workbenchs[workbench_b].y)

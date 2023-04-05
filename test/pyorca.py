@@ -52,12 +52,12 @@ def orca(robot_id, robots, walls, t, dt, pid_list, mode=0):
         # else:
         #     # 承担全部
         #     line = Line(array([v_x, v_y]) + 2 * dv, n)
-        line = Line(array([v_x, v_y]) + dv, n)
+        line = Line(array([v_x, v_y]) + dv / 2, n)
         lines.append(line)
     for wall in walls:
         dv, n = get_avoidance_velocity(robots[robot_id], wall, t, dt, robot_next_state)
         # 承担全部
-        line = Line(array([v_x, v_y]) + dv, n)
+        line = Line(array([v_x, v_y]) + dv / 2, n)
         lines.append(line)
 
     pref_velocity = array([v_x, v_y])
