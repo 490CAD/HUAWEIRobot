@@ -156,6 +156,8 @@ def bfs(env_mp, st_pos, is_take_thing):
                 nx1, nx2 = max(0, nx - 1), min(cfg.MAP_SIZE - 1, nx + 1)
                 if env_mp[nx][ny1] == '#' or env_mp[nx][ny2] == '#' or env_mp[nx1][ny] == '#' or env_mp[nx2][ny] == '#':
                     continue
+                if env_mp[nx1][ny1] == '#' or env_mp[nx1][ny2] == '#' or env_mp[nx2][ny1] == '#' or env_mp[nx2][ny2] == '#':
+                    continue
             # if i == 0 and is_taking == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and (env_mp[nx][ny - 1] == '#'  or env_mp[nx][ny + 1] == '#'))):
             #     continue 
             # if i == 1 and is_taking == 1 and ((ny + 1 >= cfg.MAP_SIZE and env_mp[nx][ny - 1] == '#') or (ny - 1 < 0 and env_mp[nx][ny + 1] == '#') or (ny + 1 < cfg.MAP_SIZE and ny - 1 >= 0 and (env_mp[nx][ny - 1] == '#'  or env_mp[nx][ny + 1] == '#'))):
@@ -170,19 +172,19 @@ def bfs(env_mp, st_pos, is_take_thing):
             # ans_mp[nx][ny].append((nx, ny))
             # ans_mp[nx][ny] = path_better(env_mp, ans_mp[nx][ny], is_take_thing)
             q.put(((nx, ny), is_taking))
-        for i in range(4): 
-            nx, ny = now_pos[0][0] + cfg.DIS_HIGHER[i][0], now_pos[0][1] + cfg.DIS_HIGHER[i][1]
-            is_taking = now_pos[1]
-            if nx < 0 or ny < 0 or nx >= cfg.MAP_SIZE or ny >= cfg.MAP_SIZE or env_mp[nx][ny] == '#' or vis_mp[nx][ny] != 0:
-                continue
-            if is_taking == 1:
-                ny1, ny2 = max(0, ny - 1), min(cfg.MAP_SIZE - 1, ny + 1)
-                nx1, nx2 = max(0, nx - 1), min(cfg.MAP_SIZE - 1, nx + 1)
-                if env_mp[nx][ny1] == '#' or env_mp[nx][ny2] == '#' or env_mp[nx1][ny] == '#' or env_mp[nx2][ny] == '#':
-                    continue
-            vis_mp[nx][ny] = vis_mp[now_pos[0][0]][now_pos[0][1]] + 1
-            ans_mp[nx][ny] = now_pos[0]
-            q.put(((nx, ny), is_taking))
+        # for i in range(4): 
+        #     nx, ny = now_pos[0][0] + cfg.DIS_HIGHER[i][0], now_pos[0][1] + cfg.DIS_HIGHER[i][1]
+        #     is_taking = now_pos[1]
+        #     if nx < 0 or ny < 0 or nx >= cfg.MAP_SIZE or ny >= cfg.MAP_SIZE or env_mp[nx][ny] == '#' or vis_mp[nx][ny] != 0:
+        #         continue
+        #     if is_taking == 1:
+        #         ny1, ny2 = max(0, ny - 1), min(cfg.MAP_SIZE - 1, ny + 1)
+        #         nx1, nx2 = max(0, nx - 1), min(cfg.MAP_SIZE - 1, nx + 1)
+        #         if env_mp[nx][ny1] == '#' or env_mp[nx][ny2] == '#' or env_mp[nx1][ny] == '#' or env_mp[nx2][ny] == '#':
+        #             continue
+        #     vis_mp[nx][ny] = vis_mp[now_pos[0][0]][now_pos[0][1]] + 1
+        #     ans_mp[nx][ny] = now_pos[0]
+        #     q.put(((nx, ny), is_taking))
             
     return ans_mp, vis_mp
             

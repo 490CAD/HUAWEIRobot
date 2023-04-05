@@ -785,11 +785,11 @@ if __name__ == '__main__':
     updata_LOCK_MAP()
     update_GRA_MAP()
     finish()
-    log.write(f"{env_mp[43][94]}\n")
-    for i in range(cfg.MAP_SIZE):
-        for j in range(cfg.MAP_SIZE):
-            log.write(f"{robot_taking_mp[1][i][j]}")
-        log.write(f"\n")
+    # log.write(f"{env_mp[43][94]}\n")
+    # for i in range(cfg.MAP_SIZE):
+    #     for j in range(cfg.MAP_SIZE):
+    #         log.write(f"{robot_taking_mp[1][i][j]}")
+    #     log.write(f"\n")
     # log.write(f"{workbenchs[12].anti_x, workbenchs[12].anti_y}\n")
     # start working
     # args = parse_args()
