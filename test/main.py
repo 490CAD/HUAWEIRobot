@@ -247,16 +247,13 @@ def map_init():
             if env_mp[row][col] == 'A':
                 robots.append(Robot(robot_ids))
                 robots[robot_ids].x, robots[robot_ids].y = cal_x(col), cal_y(row)
-                robots[robot_ids].anti_x, robots[robot_ids].anti_y = row, col
+                robots[robot_ids].anti_x, robots[robot_ids].anti_y = row * 2, col * 2
 
                 robot_ids += 1
             if env_mp[row][col] == '#':
                 wall = Wall(wall_ids, cal_x(col), cal_y(row))
                 walls.append(wall)
                 wall_ids += 1
-                robots[robot_ids].anti_x, robots[robot_ids].anti_y = row * 2, col * 2
-                
-                robot_ids += 1
 
     for row in range(cfg.MAP_SIZE):
         for col in range(cfg.MAP_SIZE):
