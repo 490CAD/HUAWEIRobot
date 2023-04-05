@@ -59,7 +59,7 @@ log = open("log.txt", "w")
 """
 high_level_workbench_list = []
 useful_workbench_list = []
-env_mp, DIS_MP = None, None
+env_mp, DIS_MP = None, [[40000 for i in range(50)] for j in range(50)]
 workbench_ids = 0
 workbenchs, robots, walls = [], [], []
 workbench_type_num = [[] for i in range(10)]
@@ -75,7 +75,7 @@ task_pos_list = [0 for i in range(8)]
 refuse_workbench_dist = {}
 workbench_taking_mp, workbench_nothing_mp = [], []
 index_taking_mp, index_nothing_mp = [], []
-dis_taking_mp = [[10001 for i in range(50)] for j in range(50)]
+dis_taking_mp = [[40000 for i in range(50)] for j in range(50)]
 robot_taking_mp, robot_index_taking_mp = [[] for i in range(cfg.ROBOT_NUM)], [[] for i in range(cfg.ROBOT_NUM)]
 path_better_map = [[None for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE)]
 wall_list = [[] for i in range(4)]
@@ -224,10 +224,6 @@ def map_init():
     for row in range(cfg.MAP_SIZE):
         for col in range(cfg.MAP_SIZE):
             new_env_mp[row * 2][col * 2] = new_env_mp[row * 2 + 1][col * 2] = new_env_mp[row * 2][col * 2 + 1] = new_env_mp[row * 2 + 1][col * 2 + 1] = env_mp[row][col]
-
-    for workbench_a in range(0, workbench_ids):
-        for workbench_b in range(workbench_a + 1, workbench_ids):
-            DIS_MP[workbench_a][workbench_b] = DIS_MP[workbench_b][workbench_a] = cal_point_x_y(workbenchs[workbench_a].x, workbenchs[workbench_a].y, workbenchs[workbench_b].x, workbenchs[workbench_b].y)
 
     for workbench_type in cfg.HIGH_LEVEL_WORKBENCH:
         for workbench in workbench_type_num[workbench_type]:
@@ -586,17 +582,26 @@ def find_nearest_robot_workbench(robot_ids, workbench_id):
     min_dis = 1000000
     min_id = -1
     for robot_id in robot_ids:
-        dis = cal_point_x_y(robots[robot_id].x, robots[robot_id].y, workbenchs[workbench_id].x, workbenchs[workbench_id].y)
+        if robots[robot_id].now_suppose_work_space == -1:
+            dis = robot_index_taking_mp[robot_id][workbenchs[workbench_id].anti_x][workbenchs[workbench_id].anti_y]
+        else:
+            dis = DIS_MP[robots[robot_id].now_suppose_work_space][workbench_id]
+        # dis = cal_point_x_y(robots[robot_id].x, robots[robot_id].y, workbenchs[workbench_id].x, workbenchs[workbench_id].y)
         if(dis < min_dis):
             min_dis = dis
             min_id = robot_id
     return min_id
+
 def find_nearest_robots_workbenchs(robot_ids, workbench_ids):
     min_dis = 1000000
     min_robot_id, min_workbench_id = -1, -1
     for robot_id in robot_ids:
         for workbench_id in workbench_ids:
-            dis = cal_point_x_y(robots[robot_id].x, robots[robot_id].y, workbenchs[workbench_id].x, workbenchs[workbench_id].y)
+            if robots[robot_id].now_suppose_work_space == -1:
+                dis = robot_index_taking_mp[robot_id][workbenchs[workbench_id].anti_x][workbenchs[workbench_id].anti_y]
+            else:
+                dis = DIS_MP[robots[robot_id].now_suppose_work_space][workbench_id]
+            # dis = cal_point_x_y(robots[robot_id].x, robots[robot_id].y, workbenchs[workbench_id].x, workbenchs[workbench_id].y)
             if(dis < min_dis):
                 min_dis = dis
                 min_robot_id = robot_id
@@ -740,7 +745,7 @@ def bfs_init():
                 continue
             id1_x, id1_y = workbenchs[id1].anti_x, workbenchs[id1].anti_y
             # path_taking, path_nothing = ask_path((id1_x, id1_y), workbench_taking_mp[id0]), ask_path((id1_x, id1_y), workbench_nothing_mp[id0])
-            dis_taking_mp[id0][id1] = dis_taking_mp[id1][id0] = index_taking_mp[id0][id1_x][id1_y] * 0.25
+            DIS_MP[id0][id1] = DIS_MP[id1][id0] = dis_taking_mp[id0][id1] = dis_taking_mp[id1][id0] = index_taking_mp[id0][id1_x][id1_y] * 0.25
             # dis_nothing_mp[id0][id1] = dis_nothing_mp[id1][id0] = len(path_nothing)
             
 
@@ -756,6 +761,11 @@ def robot_bfs_init():
             refuse_workbench_dist[id] = 1
         else:
             refuse_workbench_dist[id] = 0
+        for i in range(4):
+            if robot_taking_mp[i][workbench.anti_x][workbench.anti_y] == None:
+                robot_index_taking_mp[i][workbench.anti_x][workbench.anti_y] = 40000
+        
+
 
 # Main
 if __name__ == '__main__':
@@ -765,14 +775,11 @@ if __name__ == '__main__':
                                                   array([[0 for j in range(50)] for i in range(50)]),\
                                                   array([[0 for j in range(50)] for i in range(50)]),\
                                                   array([[1 for j in range(50)] for i in range(50)])
-    all_taking_mp, all_nothing_mp, dis_nothing_mp, dis_taking_mp = [[[] for j in range(50)] for i in range(50)], [[[] for j in range(50)] for i in range(50)], [[0 for i in range(50)] for j in range(50)], [[0 for i in range(50)] for j in range(50)]
     map_init()
     robot_bfs_init()
     bfs_init()
-    updata_LOCK_MAP()
-    update_GRA_MAP()
     finish()
-    # log.write(f"{env_mp[43][94]}\n")
+    
     log.write(f"{refuse_workbench_dist}\n")
     for i in range(cfg.MAP_SIZE_2):
         for j in range(cfg.MAP_SIZE_2):
@@ -821,20 +828,12 @@ if __name__ == '__main__':
             #     employ_robot, target0, target1 = up_down_policy(free_robots)
             updata_LOCK_MAP()
             update_GRA_MAP()
-            # if workbench_mode == 2:
-                # if frame_id < 200:
-                #     employ_robot, target0, target1 = up_down_policy(free_robots)
-                # else: 
-                #     employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
-                #     if employ_robot == -1:
-                #         employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
-            # employ_robot, target0, target1 = up_down_policy_sxw(free_robots)
-            # else:
-            employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
-            if employ_robot == -1:
-                employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
-            # if employ_robot != 1:
-            #     continue
+            employ_robot, target0, target1 = up_down_policy_sxw(free_robots)
+            # log.write(f"{employ_robot, target0, target1}!!!!!!!\n")
+            # employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
+            # if employ_robot == -1:
+            #     employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
+
             if employ_robot != -1:
                 robots[employ_robot].target_workbench_ids[0] = target0
 
