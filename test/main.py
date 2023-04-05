@@ -864,9 +864,9 @@ if __name__ == '__main__':
                 elif path_better_map[work_space][target0] is None:
                     path_better_map[work_space][target0] = ask_path((workbenchs[target0].anti_x, workbenchs[target0].anti_y), workbench_taking_mp[work_space], new_env_mp)
                     # path_better_map[target0][work_space] = path_better_map[work_space][target0].reverse()
-                    robots[employ_robot].move_list_target0 = path_better_map[work_space][target0][1:]
+                    robots[employ_robot].move_list_target0 = path_better_map[work_space][target0]
                 else:
-                    robots[employ_robot].move_list_target0 = path_better_map[work_space][target0][1:]
+                    robots[employ_robot].move_list_target0 = path_better_map[work_space][target0]
                 ###
 
                 ### 更新target0到target1的路径move_list_target1
@@ -874,9 +874,9 @@ if __name__ == '__main__':
                 if path_better_map[target0][target1] is None:
                     path_better_map[target0][target1] = ask_path((workbenchs[target1].anti_x, workbenchs[target1].anti_y), workbench_taking_mp[target0], new_env_mp)
                     # path_better_map[target1][target0] = path_better_map[target0][target1].reverse()
-                    robots[employ_robot].move_list_target1 = path_better_map[target0][target1][1:]
+                    robots[employ_robot].move_list_target1 = path_better_map[target0][target1]
                 else:
-                    robots[employ_robot].move_list_target1 = path_better_map[target0][target1][1:]
+                    robots[employ_robot].move_list_target1 = path_better_map[target0][target1]
                 ###
 
                 workbenchs[target0].is_targeted_flag[0] = 1
