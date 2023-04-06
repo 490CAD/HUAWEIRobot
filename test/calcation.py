@@ -242,18 +242,40 @@ def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
         # y = kx +b
         # y_1 = kx_1 + b; y_2 = kx_2 +b; k = (y_2 - y_1) /(x_2 - x_1); b=y_2 - x_2*k
         k = (point3[1] - point1[1]) / (point3[0] - point1[0])
-        b = point3[1] - point3[0] * k
+        b1 = point3[1] - point3[0] * k
+        b2 = (2.4) * math.sqrt(k * k + 1) + b1
+        b3 = -(2.4) * math.sqrt(k * k + 1) + b1
+        # b2 = point3[1] - point3[0] * k + 0.53
+        # b3 = point3[1] - point3[0] * k - 0.53
         # log.write(f"{point1, point3}\n")
         for i in range(min_x, max_x):
             nx = i
-            ny = (k * nx + b)
+            ny1 = (k * nx + b1)
+            ny2 = (k * nx + b2)
+            ny3 = (k * nx + b3)
 
-            int_ny = int(ny)
-            ny = int_ny
+            int_ny = int(ny1)
+            ny = max(0, int_ny)
+            ny = min(ny, cfg.MAP_SIZE_2 - 1)
             # log.write(f"{nx, ny}\n")
             # TODO: 可能会存在问题  # 确实有问题
-            if env_mp[nx][ny] == 0 or env_mp[nx][ny + 1] == 0 or env_mp[nx][ny - 1] == 0:
+            if env_mp[nx][ny] == 0 or env_mp[nx][min(ny + 1, cfg.MAP_SIZE_2 - 1)] == 0 or env_mp[nx][max(0, ny - 1)] == 0:
                 return 0
+            int_ny = int(ny2)
+            ny = max(0, int_ny)
+            ny = min(ny, cfg.MAP_SIZE_2 - 1)
+            # log.write(f"{nx, ny}\n")
+            # TODO: 可能会存在问题  # 确实有问题
+            if env_mp[nx][ny] == 0 or env_mp[nx][min(ny + 1, cfg.MAP_SIZE_2 - 1)] == 0 or env_mp[nx][max(0, ny - 1)] == 0:
+                return 0
+            int_ny = int(ny3)
+            ny = max(0, int_ny)
+            ny = min(ny, cfg.MAP_SIZE_2 - 1)
+            # log.write(f"{nx, ny}\n")
+            # TODO: 可能会存在问题  # 确实有问题
+            if env_mp[nx][ny] == 0 or env_mp[nx][min(ny + 1, cfg.MAP_SIZE_2 - 1)] == 0 or env_mp[nx][max(0, ny - 1)] == 0:
+                return 0
+            
         # log.write("-------------------\n")
     
     return 1
