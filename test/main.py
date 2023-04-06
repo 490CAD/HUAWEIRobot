@@ -844,6 +844,7 @@ if __name__ == '__main__':
     d4 = time.time()
     finish()
     workbench_after_init()
+    # log.write(f"{workbench_taking_mp[1][]}")
     log.write(f"{'{:.10f}s.'.format(d2 - d1)}\n")
     log.write(f"{'{:.10f}s.'.format(d3 - d1)}\n")
     log.write(f"{'{:.10f}s.'.format(d4 - d1)}\n")
