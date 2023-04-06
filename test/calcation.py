@@ -30,10 +30,14 @@ def cal_point_x_y(origin_x: float, origin_y: float, target_x: float, target_y: f
     return math.sqrt((origin_x - target_x) ** 2 + (origin_y - target_y) ** 2)
 
 def drt_point_x_y(origin_x: float, origin_y: float, target_x: float, target_y: float, mode=0):    
-    eps = 1e-6 if mode != 2 else 1e-4
-    ans = math.atan2(target_y - origin_y, target_x - origin_x)
-    if abs(ans + cfg.PI) < eps:
-        return -ans
+    # eps = 1e-6 if mode != 2 else 1e-4
+    dy = target_y - origin_y
+    dx = target_x - origin_x
+    if dy == -0.0:
+        dy = abs(dy)
+    ans = math.atan2(dy, dx)
+    # if abs(ans + cfg.PI) < eps:
+    #     return -ans
     return ans
 
 # Input and Output Functions 
@@ -183,8 +187,6 @@ def ask_path(ed_pos, ans_mp, env_mp, mask_env_mp):
     path.reverse()
     path = path_better(env_mp, path, 1, mask_env_mp)
     log.write(f"{path}\n")
-    for i in range(len(path)):
-        path[i] = (cal_x(path[i][1] / 2), cal_y(path[i][0] / 2))
     log.write(f"{path}\n")
     log.write(f"-----------------\n")
     return path
@@ -257,11 +259,15 @@ def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
     return 1
 
 def path_better(env_mp, path_list, is_take_thing, mask_env_mp):
-    if len(path_list) <= 1:
-        return path_list
-    # log.write(f"{path_list}\n")
+    log.write(f"{path_list}\n")
     path_len = len(path_list)
     new_path = []
+    if path_len == 0:
+        return path_list
+    if path_len == 1:
+        log.write(f"path_len==1{path_list}\n")
+        path_list[0] = (cal_x(path_list[0][1] / 2), cal_y(path_list[0][0] / 2))
+        return path_list
     pre_point = path_list[0]
     new_path.append(pre_point)
     shr_point = path_list[1]
@@ -285,4 +291,6 @@ def path_better(env_mp, path_list, is_take_thing, mask_env_mp):
                     shr_point = nxt_point = path_list[pos + 1]
     new_path.append(nxt_point)
     # log.write(f"{new_path}\n")
+    for i in range(len(new_path)):
+        new_path[i] = (cal_x(new_path[i][1] / 2), cal_y(new_path[i][0] / 2))
     return new_path
