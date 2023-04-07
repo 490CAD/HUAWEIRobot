@@ -879,6 +879,7 @@ if __name__ == '__main__':
             robot_work, robot_take, robot_time, robot_crush, robot_angle, robot_line_x, robot_line_y, robot_toward, robot_x, robot_y = input().split()
             # update the robot state
             robots[robot].get_from_frame(robot_work, robot_take, robot_time, robot_crush, robot_angle, robot_line_x, robot_line_y, robot_toward, robot_x, robot_y)
+            robots[robot].anti_x, robots[robot].anti_y = int(anti_cal_y(robots[robot].y) * 2), int(anti_cal_x(robots[robot].x) * 2)
         for idx, robot in enumerate(robots):
             wall_list[idx].clear()
             for wall in walls:
@@ -959,8 +960,8 @@ if __name__ == '__main__':
             log.write(f"{robots[robot_id].x, robots[robot_id].y, robots[robot_id].state}\n")
             log.write(f'{robots[robot_id].move_list_target0}\n')
             log.write(f'{robots[robot_id].move_list_target1}\n')
-            log.write(f"~~\n")
             log.write(f'{robots[robot_id].move_history}\n')
+            log.write(f"~~~~~~~~~~~~~~~~~~~~~~~~\n")
             rotate, forward = None, None
             if robots[robot_id].target_workbench_ids[0] == -1:
                 continue
@@ -988,7 +989,7 @@ if __name__ == '__main__':
                             robots[robot_id].move_history.clear()
                             robots[robot_id].line_flag = 0
                             # robots[robot_id].move_list_target0.rotate(-1)
-                    elif end_flag == 0 and distance <= 0.4:
+                    elif end_flag == 0 and distance <= cfg.DIS_TOLERATE:
                             robots[robot_id].move_list_target0.rotate(-1)
 
                             robots[robot_id].move_history.clear()
@@ -1001,7 +1002,6 @@ if __name__ == '__main__':
                         if abs(direction - robots[robot_id].toward) <= cfg.PI / 4:
                             robots[robot_id].line_flag = 1
                             cfg.pid_list[robot_id] = [rotate, forward]
-                        # elif robots[robot_id].line_flag:
                         #     robots[robot_id].move_history = deque(path_better(env_mp, robots[robot_id].move_history, 1, mask_env_mp))
                         #     robots[robot_id].move_history.append((-1, -1))
                         #     if robots[robot_id].move_list_target0[-1] != (-1, -1):
@@ -1014,8 +1014,19 @@ if __name__ == '__main__':
                     speedy = robots[robot_id].line_speed_y
                     if cfg.pid_list[robot_id][1] != 0 and sqrt(speedx * speedx + speedy * speedy) < 0.5:
                         battle_time[robot_id] += 1
-                        if battle_time[robot_id] >= 50:
+                        if battle_time[robot_id] >= cfg.BATTLE_TIME[robots[robot_id].take_thing]:
+
+                            ## 回退一步
+                            # robots[robot_id].move_history = deque(path_better(env_mp, robots[robot_id].move_history, 1, mask_env_mp))
+                            # robots[robot_id].move_history.append((-1, -1))
+                            # if robots[robot_id].move_list_target0[-1] != (-1, -1):
+                            #     robots[robot_id].move_list_target0.rotate(1)
+                            # robots[robot_id].state = 6
+                            ###
+
+                            ## 回退一大步
                             robots[robot_id].state = 4
+                            ###
                 elif robots[robot_id].state == 1:
                     # buy
                     if workbenchs[robots[robot_id].target_workbench_ids[0]].output == 1 and robots[robot_id].work_space == robots[robot_id].target_workbench_ids[0]:
@@ -1050,7 +1061,7 @@ if __name__ == '__main__':
                             battle_time[robot_id] = 0
                             robots[robot_id].move_history.clear()
                             robots[robot_id].line_flag = 0
-                    elif end_flag == 0 and distance <= 0.4:
+                    elif end_flag == 0 and distance <= cfg.DIS_TOLERATE:
                             robots[robot_id].move_list_target1.rotate(-1)
                         # rotate, forward = robots[robot_id].move_to_target(direction, distance)
                         # cfg.pid_list[robot_id] = [rotate, forward]
@@ -1074,8 +1085,18 @@ if __name__ == '__main__':
                     speedy = robots[robot_id].line_speed_y
                     if cfg.pid_list[robot_id][1] != 0 and sqrt(speedx * speedx + speedy * speedy) < 0.5:
                         battle_time[robot_id] += 1
-                        if battle_time[robot_id] >= 50:
+                        if battle_time[robot_id] >= cfg.BATTLE_TIME[robots[robot_id].take_thing]:
+                            ## 回退一步
+                            # robots[robot_id].move_history = deque(path_better(env_mp, robots[robot_id].move_history, 1, mask_env_mp))
+                            # robots[robot_id].move_history.append((-1, -1))
+                            # if robots[robot_id].move_list_target0[-1] != (-1, -1):
+                            #     robots[robot_id].move_list_target0.rotate(1)
+                            # robots[robot_id].state = 7
+                            ###
+
+                            ## 回退一大步
                             robots[robot_id].state = 5
+                            ###
                 elif robots[robot_id].state == 3:
                     # sell and turn 0
                     take_thing = robots[robot_id].take_thing
@@ -1117,7 +1138,7 @@ if __name__ == '__main__':
                             cfg.pid_list[robot_id] = [0, 0]
                             battle_time[robot_id] = 0
                             robots[robot_id].state = 0
-                    elif end_flag == 0 and distance <= 0.4:
+                    elif end_flag == 0 and distance <= cfg.DIS_TOLERATE:
                             robots[robot_id].move_list_target0.rotate(1)
                     else:
                         rotate, forward = robots[robot_id].move_to_target(direction, distance)
@@ -1141,8 +1162,66 @@ if __name__ == '__main__':
                             cfg.pid_list[robot_id] = [0, 0]
                             battle_time[robot_id] = 0
                             robots[robot_id].state = 2
-                    elif end_flag == 0 and distance <= 0.4:
+                    elif end_flag == 0 and distance <= cfg.DIS_TOLERATE:
                             robots[robot_id].move_list_target1.rotate(1)
+                    else:
+                        rotate, forward = robots[robot_id].move_to_target(direction, distance)
+                        if abs(direction - robots[robot_id].toward) <= cfg.PI / 4:
+                            cfg.pid_list[robot_id] = [rotate, forward]
+                        else:
+                            cfg.pid_list[robot_id] = [rotate, 0]
+                elif robots[robot_id].state == 6:
+                    temp_target = robots[robot_id].move_history[0]
+                    end_flag = 1 if robots[robot_id].move_history[1] == (-1, -1) else 0
+                    distance = cal_point_x_y(robots[robot_id].x, robots[robot_id].y,  temp_target[0], temp_target[1])
+                    # direction to target
+                    direction = drt_point_x_y(robots[robot_id].x, robots[robot_id].y,  temp_target[0], temp_target[1])
+                    # remain_path_len = len(robots[robot_id].move_list_target1)
+
+                    # reach the target workbench
+                    if distance <= cfg.DIS_TOLERATE:
+                        if end_flag == 1:
+                            robots[robot_id].s_pid.clear()
+                            robots[robot_id].w_pid.clear()
+                            cfg.pid_list[robot_id] = [0, 0]
+
+                            # sys.stdout.write('forward %d %f\n' % (robot_id, 0))
+                            robots[robot_id].state = 0
+                            robots[robot_id].move_history.clear()
+                            robots[robot_id].line_flag = 0
+                        else:
+                            robots[robot_id].move_history.rotate(-1)
+                        # rotate, forward = robots[robot_id].move_to_target(direction, distance)
+                        # cfg.pid_list[robot_id] = [rotate, forward]
+                    else:
+                        rotate, forward = robots[robot_id].move_to_target(direction, distance)
+                        if abs(direction - robots[robot_id].toward) <= cfg.PI / 4:
+                            cfg.pid_list[robot_id] = [rotate, forward]
+                        else:
+                            cfg.pid_list[robot_id] = [rotate, 0]
+                elif robots[robot_id].state == 7:
+                    temp_target = robots[robot_id].move_history[0]
+                    end_flag = 1 if robots[robot_id].move_history[1] == (-1, -1) else 0
+                    distance = cal_point_x_y(robots[robot_id].x, robots[robot_id].y,  temp_target[0], temp_target[1])
+                    # direction to target
+                    direction = drt_point_x_y(robots[robot_id].x, robots[robot_id].y,  temp_target[0], temp_target[1])
+                    # remain_path_len = len(robots[robot_id].move_list_target1)
+
+                    # reach the target workbench
+                    if distance <= cfg.DIS_TOLERATE:
+                        if end_flag == 1:
+                            robots[robot_id].s_pid.clear()
+                            robots[robot_id].w_pid.clear()
+                            cfg.pid_list[robot_id] = [0, 0]
+
+                            # sys.stdout.write('forward %d %f\n' % (robot_id, 0))
+                            robots[robot_id].state = 2
+                            robots[robot_id].move_history.clear()
+                            robots[robot_id].line_flag = 0
+                        else:
+                            robots[robot_id].move_history.rotate(-1)
+                        # rotate, forward = robots[robot_id].move_to_target(direction, distance)
+                        # cfg.pid_list[robot_id] = [rotate, forward]
                     else:
                         rotate, forward = robots[robot_id].move_to_target(direction, distance)
                         if abs(direction - robots[robot_id].toward) <= cfg.PI / 4:
