@@ -2,6 +2,7 @@ import PID
 import math
 import sys
 import numpy as np
+from collections import deque
 from config import CFG
 PI = math.pi
 cfg = CFG()
@@ -34,6 +35,12 @@ class Robot():
         self.anti_x = None
         self.anti_y = None
         self.now_suppose_work_space = -1
+
+        ## 回退
+        self.move_history = deque()
+        self.line_flag = 0
+        ###
+
     def get_from_frame(self, work_space, take_thing, time_f, crush_f, angle_speed, line_speed_x, line_speed_y, toward, x, y):
         self.work_space = int(work_space)
         self.take_thing = int(take_thing)

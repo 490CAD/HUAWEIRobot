@@ -2,7 +2,7 @@
 Author: BigCiLeng w15516937650@outlook.com
 Date: 2023-03-22 16:27:44
 LastEditors: BigCiLeng && bigcileng@outlook.com
-LastEditTime: 2023-04-04 21:23:21
+LastEditTime: 2023-04-07 20:40:50
 FilePath: \HUAWEIRobot\test\config.py
 Description: 
 
@@ -19,6 +19,7 @@ class CFG():
     PI = math.pi
     THING_VALUE = [0, 3000, 3200, 3400, 7100, 7800, 8300, 29000]
     THING_VALUE_2 = [0, 3000, 3100, 3200, 8100, 8200, 8300, 29000]
+    BATTLE_TIME = [50, 100, 100, 100, 150, 150, 150, 200]
     THING_COEFF = [0, 1/6, 1/6, 1/6, 1/3, 1/3, 1/3, 1]
     HIGH_LEVEL_WORKBENCH = [4, 5, 6, 7]
     USEFUL_WORKBENCH = [1, 2, 3, 4, 5, 6, 7]
@@ -42,3 +43,4 @@ class CFG():
 
     MAX_STOP_DISTANCE_0 = 0.9160884177867836 + 0.4
     MAX_STOP_DISTANCE_1 = 1.270761662006457 + 0.4
+    DIS_TOLERATE = 0.6
