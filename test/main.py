@@ -857,17 +857,18 @@ if __name__ == '__main__':
     #     for j in range(cfg.MAP_SIZE_2):
     #         log.write(f"{new_env_mp[i][j]}")
     #     log.write(f"\n")
-    temp = [['.' for i in range(cfg.MAP_SIZE_2)] for j in range(cfg.MAP_SIZE_2)]
-    for i in range(cfg.MAP_SIZE_2):
-        for j in range(cfg.MAP_SIZE_2):
-            if workbench_nothing_mp[0][i][j] is None:
-                temp[i][j] = '#'
-            else:
-                temp[i][j] = '.'
-    for i in range(cfg.MAP_SIZE_2):
-        for j in range(cfg.MAP_SIZE_2):
-            log.write(f"{temp[i][j]}")
-        log.write(f"\n")
+    if workbench_nothing_mp[0] is not None:
+        temp = [['.' for i in range(cfg.MAP_SIZE_2)] for j in range(cfg.MAP_SIZE_2)]
+        for i in range(cfg.MAP_SIZE_2):
+            for j in range(cfg.MAP_SIZE_2):
+                if workbench_nothing_mp[0][i][j] is None:
+                    temp[i][j] = '#'
+                else:
+                    temp[i][j] = '.'
+        for i in range(cfg.MAP_SIZE_2):
+            for j in range(cfg.MAP_SIZE_2):
+                log.write(f"{temp[i][j]}")
+            log.write(f"\n")
 
     # exit()
     # log.write(f"{workbenchs[12].anti_x, workbenchs[12].anti_y}\n")

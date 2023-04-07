@@ -329,6 +329,9 @@ def path_better(env_mp, path_list, is_take_thing, mask_env_mp):
                 else:
                     shr_point = nxt_point = path_list[pos + 1]
     new_path.append(nxt_point)
+    for i in range(len(new_path)):
+        new_path[i] = (cal_x(new_path[i][1] / 2), cal_y(new_path[i][0] / 2))
+
     # log.write(f"{new_path}\n")
     return new_path
 
