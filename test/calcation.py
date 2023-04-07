@@ -6,7 +6,7 @@ from config import CFG
 from queue import Queue
 import numpy as np
 from collections import deque
-# import heapq
+import heapq
 cfg = CFG()
 log = open("path_better.txt", "w")
 
@@ -142,6 +142,44 @@ def get_ava_list(target_workbench_list, workbench_type_num):
         ava_list = ava_list + type_num_list
     return ava_list
 
+def astar(env_mp, st_pos, ed_pos, is_take_thing, mask_env_mp, map_limit):
+    q = []
+    heapq.heappush(q, (0, st_pos))
+    close_list = set()
+    open_list = {}
+    open_list[st_pos] = 0
+    ans_mp = [[None for i in range(cfg.MAP_SIZE_2)] for j in range(cfg.MAP_SIZE_2)]
+    vis_mp = [[0 for i in range(cfg.MAP_SIZE_2)] for j in range(cfg.MAP_SIZE_2)]
+    vis_mp[st_pos[0]][st_pos[1]] = 1
+    ans_mp[st_pos[0]][st_pos[1]] = st_pos
+    while len(q) != 0:
+        now_pos = heapq.heappop(q)
+        x, y, fvalue = now_pos[1][0], now_pos[1][1], now_pos[0], open_list[(x, y)]
+        if x == ed_pos[0] and y == ed_pos[1]:
+            # 返回路径这里
+            return 
+        if (x, y) in close_list:
+            continue
+        close_list.add((x, y))
+        for i in range(8):
+            nx, ny = x + cfg.DIS_HIGHER[i][0], y + cfg.DIS_HIGHER[i][1]
+            if nx < map_limit[0] or ny < map_limit[2] or nx > map_limit[1] or ny > map_limit[3] or vis_mp[nx][ny] != 0 or (nx, ny) not in close_list:
+                continue
+            if is_take_thing == 1 and mask_env_mp[nx][ny] == 0:
+                continue
+            if is_take_thing == 0 and check_points(env_mp, nx, ny, is_take_thing) == 0:
+                continue
+            gi = cfg.gvalue[i]
+            hi = abs(nx - ed_pos[0]) + abs(ny - ed_pos[1])
+            qi = 0 #周围墙的数量
+            if (nx, ny) not in open_list or fvalue < gi + hi + qi:
+                open_list[(nx, ny)] = gi + hi + qi
+                vis_mp[nx][ny] = vis_mp[x][y] + 1
+                ans_mp[nx][ny] = now_pos[1]
+                heapq.heappush(q, (gi + hi + qi, (nx, ny)))
+    return ans_mp, vis_mp
+    
+
 
 def bfs(env_mp, st_pos, is_take_thing, mask_env_mp, map_limit):
     q = deque()
@@ -165,8 +203,7 @@ def bfs(env_mp, st_pos, is_take_thing, mask_env_mp, map_limit):
                 continue
             vis_mp[nx][ny] = vis_mp[x][y] + 1
             ans_mp[nx][ny] = now_pos
-            q.append((nx, ny))      
-            
+            q.append((nx, ny))     
     return ans_mp, vis_mp
             
             
@@ -209,9 +246,9 @@ def check_points(env_mp, nx, ny, is_take_thing):
         return 0
     if env_mp[nx1][ny1] == '#' or env_mp[nx1][ny2] == '#' or env_mp[nx2][ny1] == '#' or env_mp[nx2][ny2] == '#':
         return 0
+    nx3, nx4 = max(0, nx - 2), min(cfg.MAP_SIZE_2 - 1, nx + 2)
+    ny3, ny4 = max(0, ny - 2), min(cfg.MAP_SIZE_2 - 1, ny + 2)
     if is_take_thing == 1:
-        nx3, nx4 = max(0, nx - 2), min(cfg.MAP_SIZE_2 - 1, nx + 2)
-        ny3, ny4 = max(0, ny - 2), min(cfg.MAP_SIZE_2 - 1, ny + 2)
         # log.write(f"{nx1, nx2, nx3, nx4}\n")
         # log.write(f"{ny1, ny2, ny3, ny4}\n")
         if env_mp[nx3][ny] == '#':

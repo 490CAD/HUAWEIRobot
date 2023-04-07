@@ -853,22 +853,18 @@ if __name__ == '__main__':
     log.write(f"{'{:.10f}s.'.format(d3 - d1)}\n")
     log.write(f"{'{:.10f}s.'.format(d4 - d1)}\n")
 
-    # for i in range(cfg.MAP_SIZE_2):
-    #     for j in range(cfg.MAP_SIZE_2):
-    #         log.write(f"{new_env_mp[i][j]}")
-    #     log.write(f"\n")
-    if workbench_nothing_mp[0] is not None:
-        temp = [['.' for i in range(cfg.MAP_SIZE_2)] for j in range(cfg.MAP_SIZE_2)]
-        for i in range(cfg.MAP_SIZE_2):
-            for j in range(cfg.MAP_SIZE_2):
-                if workbench_nothing_mp[0][i][j] is None:
-                    temp[i][j] = '#'
-                else:
-                    temp[i][j] = '.'
-        for i in range(cfg.MAP_SIZE_2):
-            for j in range(cfg.MAP_SIZE_2):
-                log.write(f"{temp[i][j]}")
-            log.write(f"\n")
+    for i in range(cfg.MAP_SIZE_2):
+        for j in range(cfg.MAP_SIZE_2):
+            if mask_env_mp[i][j] == 1:
+                log.write(f".")
+            else:
+                log.write(f"#")
+            # log.write(f"{mask_env_mp[i][j]}")
+        log.write(f"\n")
+    for i in range(cfg.MAP_SIZE_2):
+        for j in range(cfg.MAP_SIZE_2):
+            log.write(f"{new_env_mp[i][j]}")
+        log.write(f"\n")
 
     # exit()
     # log.write(f"{workbenchs[12].anti_x, workbenchs[12].anti_y}\n")
@@ -1039,22 +1035,22 @@ if __name__ == '__main__':
                         else:
                             cfg.pid_list[robot_id] = [rotate, 0]
                         # cfg.pid_list[robot_id] = [rotate, forward]
-                    speedx = robots[robot_id].line_speed_x
-                    speedy = robots[robot_id].line_speed_y
-                    if cfg.pid_list[robot_id][1] != 0 and sqrt(speedx * speedx + speedy * speedy) < 0.5:
-                        battle_time[robot_id] += 1
-                        if battle_time[robot_id] >= cfg.BATTLE_TIME[robots[robot_id].take_thing]:
+                    # speedx = robots[robot_id].line_speed_x
+                    # speedy = robots[robot_id].line_speed_y
+                    # if cfg.pid_list[robot_id][1] != 0 and sqrt(speedx * speedx + speedy * speedy) < 0.5:
+                    #     battle_time[robot_id] += 1
+                    #     if battle_time[robot_id] >= cfg.BATTLE_TIME[robots[robot_id].take_thing]:
 
-                            ## 回退一步
-                            # robots[robot_id].move_history = deque(path_better(env_mp, robots[robot_id].move_history, 1, mask_env_mp))
-                            # robots[robot_id].move_history.append((-1, -1))
-                            # if robots[robot_id].move_list_target0[-1] != (-1, -1):
-                            #     robots[robot_id].move_list_target0.rotate(1)
-                            # robots[robot_id].state = 6
-                            ###
+                    #         ## 回退一步
+                    #         # robots[robot_id].move_history = deque(path_better(env_mp, robots[robot_id].move_history, 1, mask_env_mp))
+                    #         # robots[robot_id].move_history.append((-1, -1))
+                    #         # if robots[robot_id].move_list_target0[-1] != (-1, -1):
+                    #         #     robots[robot_id].move_list_target0.rotate(1)
+                    #         # robots[robot_id].state = 6
+                    #         ###
 
-                            ## 回退一大步
-                            robots[robot_id].state = 4
+                    #         ## 回退一大步
+                    #         robots[robot_id].state = 4
                             ###
                 elif robots[robot_id].state == 1:
                     # buy
@@ -1110,21 +1106,21 @@ if __name__ == '__main__':
                         #     robots[robot_id].state = 5
                         else:
                             cfg.pid_list[robot_id] = [rotate, 0]
-                    speedx = robots[robot_id].line_speed_x
-                    speedy = robots[robot_id].line_speed_y
-                    if cfg.pid_list[robot_id][1] != 0 and sqrt(speedx * speedx + speedy * speedy) < 0.5:
-                        battle_time[robot_id] += 1
-                        if battle_time[robot_id] >= cfg.BATTLE_TIME[robots[robot_id].take_thing]:
-                            ## 回退一步
-                            # robots[robot_id].move_history = deque(path_better(env_mp, robots[robot_id].move_history, 1, mask_env_mp))
-                            # robots[robot_id].move_history.append((-1, -1))
-                            # if robots[robot_id].move_list_target0[-1] != (-1, -1):
-                            #     robots[robot_id].move_list_target0.rotate(1)
-                            # robots[robot_id].state = 7
-                            ###
+                    # speedx = robots[robot_id].line_speed_x
+                    # speedy = robots[robot_id].line_speed_y
+                    # if cfg.pid_list[robot_id][1] != 0 and sqrt(speedx * speedx + speedy * speedy) < 0.5:
+                    #     battle_time[robot_id] += 1
+                    #     if battle_time[robot_id] >= cfg.BATTLE_TIME[robots[robot_id].take_thing]:
+                    #         ## 回退一步
+                    #         # robots[robot_id].move_history = deque(path_better(env_mp, robots[robot_id].move_history, 1, mask_env_mp))
+                    #         # robots[robot_id].move_history.append((-1, -1))
+                    #         # if robots[robot_id].move_list_target0[-1] != (-1, -1):
+                    #         #     robots[robot_id].move_list_target0.rotate(1)
+                    #         # robots[robot_id].state = 7
+                    #         ###
 
-                            ## 回退一大步
-                            robots[robot_id].state = 5
+                    #         ## 回退一大步
+                    #         robots[robot_id].state = 5
                             ###
                 elif robots[robot_id].state == 3:
                     # sell and turn 0
