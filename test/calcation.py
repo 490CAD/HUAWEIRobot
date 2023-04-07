@@ -6,6 +6,7 @@ from config import CFG
 from queue import Queue
 import numpy as np
 from collections import deque
+# import heapq
 cfg = CFG()
 log = open("path_better.txt", "w")
 
@@ -152,16 +153,15 @@ def bfs(env_mp, st_pos, is_take_thing, mask_env_mp, map_limit):
         for i in range(8):
             nx, ny = x + cfg.DIS_HIGHER[i][0], y + cfg.DIS_HIGHER[i][1]
             # nx, ny = now_pos[0][0] + cfg.DIS_NORMAL[i][0], now_pos[0][1] + cfg.DIS_NORMAL[i][1]
-            if nx < map_limit[0] or ny < map_limit[2] or nx > map_limit[1] or ny > map_limit[3] or vis_mp[nx][ny] != 0 or mask_env_mp[nx][ny] == 0:
+            if nx < map_limit[0] or ny < map_limit[2] or nx > map_limit[1] or ny > map_limit[3] or vis_mp[nx][ny] != 0:
+                continue
+            if is_take_thing == 1 and mask_env_mp[nx][ny] == 0:
+                continue
+            if is_take_thing == 0 and check_points(env_mp, nx, ny, is_take_thing) == 0:
                 continue
             vis_mp[nx][ny] = vis_mp[x][y] + 1
             ans_mp[nx][ny] = now_pos
-            q.append((nx, ny))
-        # for i in range(4):
-        #     nx, ny = now_pos[0][0] + cfg.HALF_DIS_2[i][0], now_pos[0][1] + cfg.HALF_DIS_2[i][2]
-        #     if nx < 0 or ny < 0 or nx >= cfg.MAP_SIZE or ny >= cfg.MAP_SIZE or env_mp[nx][ny] == '#' or vis_mp[nx][ny] != 0:
-        #         continue
-            
+            q.append((nx, ny))      
             
     return ans_mp, vis_mp
             
@@ -181,6 +181,7 @@ def ask_path(ed_pos, ans_mp, env_mp, mask_env_mp):
         log.write(f"{nx, ny}\n")
         path.append(pos)
     path.reverse()
+    # return path
     path = path_better(env_mp, path, 1, mask_env_mp)
     log.write(f"{path}\n")
     for i in range(len(path)):
@@ -219,21 +220,27 @@ def check_points(env_mp, nx, ny, is_take_thing):
             return 0
         if env_mp[nx3][ny1] == '#' or env_mp[nx3][ny2] == '#' or env_mp[nx4][ny1] == '#' or env_mp[nx4][ny2] == '#' or env_mp[nx1][ny3] == '#' or env_mp[nx1][ny4] == '#' or env_mp[nx2][ny3] == '#' or env_mp[nx2][ny4] == '#':
             return 0
+        if env_mp[nx3][ny3] == '#' or env_mp[nx3][ny4] == '#' or env_mp[nx4][ny3] == '#' or env_mp[nx4][ny4] == '#':
+            return 0
     return 1
 
-def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
+def ignore_now_point(env_mp, point1, point2, point3, is_take_thing, mask_env_mp):
     # x_1 == x_3, y_1 == y_3
     min_x, max_x = min(point1[0], point3[0]), max(point1[0], point3[0])
     min_y, max_y = min(point1[1], point3[1]), max(point1[1], point3[1])
     if point1[0] == point3[0]:
         for i in range(min_y, max_y + 1):
             nx, ny = min_x, i
-            if env_mp[nx][ny] == 0:
+            if is_take_thing == 1 and mask_env_mp[nx][ny]:
+                return 0
+            if is_take_thing == 0 and check_points(env_mp, nx, ny, is_take_thing) == 0:
                 return 0
     elif point1[1] == point3[1]:
         for i in range(min_x, max_x + 1):
             nx, ny = i, min_y
-            if env_mp[nx][ny] == 0:
+            if is_take_thing == 1 and mask_env_mp[nx][ny]:
+                return 0
+            if is_take_thing == 0 and check_points(env_mp, nx, ny, is_take_thing) == 0:
                 return 0
     else:
         # return 0
@@ -251,27 +258,37 @@ def ignore_now_point(env_mp, point1, point2, point3, is_take_thing):
             ny1 = (k * nx + b1)
             ny2 = (k * nx + b2)
             ny3 = (k * nx + b3)
-
             int_ny = int(ny1)
+
+            # if int_ny == ny1:
+            #     ny = int_ny
+            #     if is_take_thing == 1 and mask_env_mp[nx][ny] == 0:
+            #         return 0
+            #     if is_take_thing == 0 and check_points(env_mp, nx, ny, is_take_thing) == 0:
+            #         return 0
+            # else:
             ny = max(0, int_ny)
             ny = min(ny, cfg.MAP_SIZE_2 - 1)
-            # log.write(f"{nx, ny}\n")
-            # TODO: 可能会存在问题  # 确实有问题
-            if env_mp[nx][ny] == 0 or env_mp[nx][min(ny + 1, cfg.MAP_SIZE_2 - 1)] == 0 or env_mp[nx][max(0, ny - 1)] == 0:
+            
+            if is_take_thing == 1 and (mask_env_mp[nx][ny] == 0 or mask_env_mp[nx][min(ny + 1, cfg.MAP_SIZE_2 - 1)] == 0 or mask_env_mp[nx][max(0, ny - 1)] == 0):
+                return 0
+            if is_take_thing == 0 and (check_points(env_mp, nx, ny, is_take_thing) == 0 or check_points(env_mp, nx, min(ny + 1, cfg.MAP_SIZE_2 - 1), is_take_thing) == 0 or check_points(env_mp, nx, max(0, ny - 1), is_take_thing) == 0):
                 return 0
             int_ny = int(ny2)
             ny = max(0, int_ny)
             ny = min(ny, cfg.MAP_SIZE_2 - 1)
-            # log.write(f"{nx, ny}\n")
-            # TODO: 可能会存在问题  # 确实有问题
-            if env_mp[nx][ny] == 0 or env_mp[nx][min(ny + 1, cfg.MAP_SIZE_2 - 1)] == 0 or env_mp[nx][max(0, ny - 1)] == 0:
+            
+            if is_take_thing == 1 and (mask_env_mp[nx][ny] == 0 or mask_env_mp[nx][min(ny + 1, cfg.MAP_SIZE_2 - 1)] == 0 or mask_env_mp[nx][max(0, ny - 1)] == 0):
+                return 0
+            if is_take_thing == 0 and (check_points(env_mp, nx, ny, is_take_thing) == 0 or check_points(env_mp, nx, min(ny + 1, cfg.MAP_SIZE_2 - 1), is_take_thing) == 0 or check_points(env_mp, nx, max(0, ny - 1), is_take_thing) == 0):
                 return 0
             int_ny = int(ny3)
             ny = max(0, int_ny)
             ny = min(ny, cfg.MAP_SIZE_2 - 1)
-            # log.write(f"{nx, ny}\n")
-            # TODO: 可能会存在问题  # 确实有问题
-            if env_mp[nx][ny] == 0 or env_mp[nx][min(ny + 1, cfg.MAP_SIZE_2 - 1)] == 0 or env_mp[nx][max(0, ny - 1)] == 0:
+            
+            if is_take_thing == 1 and (mask_env_mp[nx][ny] == 0 or mask_env_mp[nx][min(ny + 1, cfg.MAP_SIZE_2 - 1)] == 0 or mask_env_mp[nx][max(0, ny - 1)] == 0):
+                return 0
+            if is_take_thing == 0 and (check_points(env_mp, nx, ny, is_take_thing) == 0 or check_points(env_mp, nx, min(ny + 1, cfg.MAP_SIZE_2 - 1), is_take_thing) == 0 or check_points(env_mp, nx, max(0, ny - 1), is_take_thing) == 0):
                 return 0
             
         # log.write("-------------------\n")
@@ -295,7 +312,7 @@ def path_better(env_mp, path_list, is_take_thing, mask_env_mp):
             nxt_point = shr_point
             continue
         else:
-            if ignore_now_point(mask_env_mp, pre_point, shr_point, now_point, is_take_thing) == 1:
+            if ignore_now_point(env_mp, pre_point, shr_point, now_point, is_take_thing, mask_env_mp) == 1:
                 nxt_point = now_point
                 continue
             else:
@@ -308,3 +325,96 @@ def path_better(env_mp, path_list, is_take_thing, mask_env_mp):
     new_path.append(nxt_point)
     # log.write(f"{new_path}\n")
     return new_path
+
+def path_better_sxw(env_mp, path_list, is_take_thing, mask_env_mp):
+    path_len = len(path_list)
+    if path_len <= 1:
+        return path_list
+    
+    log.write(f"{path_list}\n")
+    # temp_path, new_path, added_path = OrderedDict(), OrderedDict(), []
+    temp_path, new_path, added_path, vis_path = {}, {}, [], {}
+    val_path = {}
+    temp_path[0], temp_path[path_len - 1] = path_list[0], path_list[path_len - 1]
+    for i in range(path_len):
+        vis_path[i] = -1
+    vis_path[0], vis_path[path_len - 1] = 0, 0
+    val_path[0], val_path[path_len - 1] = 5, 1
+    while True:
+        pre_point, pre_key, aft_point, aft_key = None, 0, None, 0
+        temp_path_list = sorted(temp_path.items())
+
+        for key in temp_path_list:
+            log.write(f"{key[0]} ")
+        log.write(f"\n")
+
+        for key, point in temp_path_list:
+            if pre_point is None:
+                pre_point, pre_key = point, key
+            elif aft_point is None:
+                aft_point, aft_key = point, key
+            else:
+                if (val_path[pre_key] == 1 or val_path[pre_key] == 6) and (val_path[aft_key] == 5 or val_path[aft_key] == 6):
+                    pass
+                elif ignore_now_point(env_mp, pre_point, aft_point, aft_point, is_take_thing, mask_env_mp) == 1:
+                    new_path[pre_key] = pre_point
+                    val_path[pre_key] += 1
+                    val_path[aft_key] += 5
+                else:
+                    kk = int((pre_key + aft_key) / 2)
+                    if vis_path[kk] == -1:
+                        vis_path[kk] = 0
+                        val_path[kk] = 0
+                        added_path.append(kk)
+                log.write(f"{pre_key, val_path[pre_key], aft_key, val_path[aft_key]}\n")
+                pre_point, pre_key = aft_point, aft_key
+                aft_point, aft_key = point, key
+        log.write(f"\n")
+
+        if (val_path[pre_key] == 1 or val_path[pre_key] == 6) and (val_path[aft_key] == 5 or val_path[aft_key] == 6):
+            pass
+        elif ignore_now_point(env_mp, pre_point, aft_point, aft_point, is_take_thing, mask_env_mp) == 1:
+            new_path[pre_key], new_path[aft_key] = pre_point, aft_point
+            val_path[pre_key] += 1
+            val_path[aft_key] += 5
+        else:
+            kk = int((pre_key + aft_key) / 2)
+            val_path[kk] = 0
+            added_path.append(kk)
+        # log.write(f"{new_path}\n")
+        if len(added_path) != 0:
+            for key in added_path:
+                temp_path[key] = path_list[key]
+            added_path.clear()
+        # temp_path = sorted(temp_path.items())
+        flag = 0
+        for key in val_path:
+            log.write(f"{key}:{ val_path[key]}; ")
+            if val_path[key] != 6:
+                flag = 1
+        log.write(f"\n")
+        if flag == 0:
+            break
+    new_path_list = []
+    for key in new_path:
+        new_path_list.append(new_path[key])
+
+    return new_path_list
+
+def ask_path_sxw(ed_pos, ans_mp, env_mp, mask_env_mp, is_take_thing):
+    path = []
+    path.append(ed_pos)
+    pos = ed_pos
+    nx, ny = pos[0], pos[1]
+    while ans_mp[nx][ny] != pos:
+        pos = ans_mp[nx][ny]
+        nx, ny = pos[0], pos[1]
+        path.append(pos)
+    path.reverse()
+    # return path
+    path = path_better_sxw(env_mp, path, is_take_thing, mask_env_mp)
+
+    for i in range(len(path)):
+        path[i] = (cal_x(path[i][1] / 2), cal_y(path[i][0] / 2))
+
+    return path

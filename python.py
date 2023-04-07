@@ -1,15 +1,9 @@
-import functools
-THING_VALUE = [0, 3000, 3200, 3400, 7100, 7800, 8300, 29000]
-    
-
-def workbench_cmp(x, y):
-    if THING_VALUE[x] > THING_VALUE[y]:
-        return -1
-    if THING_VALUE[x] < THING_VALUE[y]:
-        return 1
-    return 0
-
-
-a = [1, 2, 3, 4, 5, 6]
-a = sorted(a, key=functools.cmp_to_key(workbench_cmp))
-print(a)
+n = int(input())
+for i in range(1, n+1):
+    for j in range(1, i+1):
+        print(chr(65 +j-1),end='')
+    print(' ' *(2*(n-i)+1), end='')
+    for j in range(1,i+1):
+        print(chr(65+j-1),end='')
+    print()
+    # print('\n')
