@@ -847,6 +847,8 @@ if __name__ == '__main__':
     finish()
     workbench_after_init()
     log.write(f"{useful_workbench_cnt}\n")
+    log.write(f"{path_better(new_env_mp, astar(new_env_mp, (50, 100), (82, 162), 1, mask_env_mp, map_limit), 1, mask_env_mp)}\n")
+    log.write(f"{path_better(new_env_mp, astar(new_env_mp, (50, 100), (82, 162), 0, mask_env_mp, map_limit), 0, mask_env_mp)}\n")
     # log.write(f"{ask_path_sxw((workbenchs[4].anti_x, workbenchs[4].anti_y), workbench_nothing_mp[0], new_env_mp, mask_env_mp, 0)}\n")
     # log.write(f"{workbench_taking_mp[1][]}")
     log.write(f"{'{:.10f}s.'.format(d2 - d1)}\n")

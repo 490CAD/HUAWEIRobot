@@ -7,6 +7,7 @@ from queue import Queue
 import numpy as np
 from collections import deque
 import heapq
+import time
 cfg = CFG()
 log = open("path_better.txt", "w")
 
@@ -143,27 +144,35 @@ def get_ava_list(target_workbench_list, workbench_type_num):
     return ava_list
 
 def astar(env_mp, st_pos, ed_pos, is_take_thing, mask_env_mp, map_limit):
-    q = []
-    heapq.heappush(q, (0, st_pos))
-    close_list = set()
-    open_list = {}
+    log.write("ASTART!\n")
+    d1 = time.time()
+    q, ans_mp, vis_mp, open_list, close_list = [], {}, {}, {}, set()
+    heapq.heappush(q, (0, 0, st_pos))
     open_list[st_pos] = 0
-    ans_mp = [[None for i in range(cfg.MAP_SIZE_2)] for j in range(cfg.MAP_SIZE_2)]
-    vis_mp = [[0 for i in range(cfg.MAP_SIZE_2)] for j in range(cfg.MAP_SIZE_2)]
-    vis_mp[st_pos[0]][st_pos[1]] = 1
-    ans_mp[st_pos[0]][st_pos[1]] = st_pos
+    vis_mp[st_pos] = 1
+    ans_path = []
     while len(q) != 0:
         now_pos = heapq.heappop(q)
-        x, y, fvalue = now_pos[1][0], now_pos[1][1], now_pos[0], open_list[(x, y)]
+        x, y = now_pos[2][0], now_pos[2][1]
+        log.write(f"{x, y}\n")
+        fvalue = open_list[(x, y)]
         if x == ed_pos[0] and y == ed_pos[1]:
             # 返回路径这里
-            return 
+            while (x, y) in ans_mp:
+                ans_path.append((x, y))
+                x, y = ans_mp[(x, y)][0], ans_mp[(x, y)][1]
+            ans_path.append(st_pos)
+            ans_path.reverse()
+            d2 = time.time()
+            log.write(f"{'{:.10f}s.'.format(d2 - d1)}\n")
+            log.write("AENDED!\n")
+            return ans_path
         if (x, y) in close_list:
             continue
         close_list.add((x, y))
         for i in range(8):
             nx, ny = x + cfg.DIS_HIGHER[i][0], y + cfg.DIS_HIGHER[i][1]
-            if nx < map_limit[0] or ny < map_limit[2] or nx > map_limit[1] or ny > map_limit[3] or vis_mp[nx][ny] != 0 or (nx, ny) not in close_list:
+            if nx < map_limit[0] or ny < map_limit[2] or nx > map_limit[1] or ny > map_limit[3] or (nx, ny) in close_list:
                 continue
             if is_take_thing == 1 and mask_env_mp[nx][ny] == 0:
                 continue
@@ -174,10 +183,10 @@ def astar(env_mp, st_pos, ed_pos, is_take_thing, mask_env_mp, map_limit):
             qi = 0 #周围墙的数量
             if (nx, ny) not in open_list or fvalue < gi + hi + qi:
                 open_list[(nx, ny)] = gi + hi + qi
-                vis_mp[nx][ny] = vis_mp[x][y] + 1
-                ans_mp[nx][ny] = now_pos[1]
-                heapq.heappush(q, (gi + hi + qi, (nx, ny)))
-    return ans_mp, vis_mp
+                vis_mp[(nx, ny)] = vis_mp[(x, y)] + 1
+                ans_mp[(nx, ny)] = now_pos[2]
+                heapq.heappush(q, (gi + hi + qi, qi, (nx, ny)))
+    return ans_path
     
 
 
