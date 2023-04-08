@@ -52,7 +52,7 @@ class Robot():
         self.x, self.y = float(x), float(y)
 
     def move(self, steering, distance,
-                tolerance0=0.001, tolerance1=0.2):
+                tolerance0=0.001, tolerance1=0.4):
         """
         steering = front wheel steering angle, limited by max_steering_angle
         distance = total distance driven, most be non-negative
