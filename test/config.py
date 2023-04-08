@@ -2,7 +2,7 @@
 Author: BigCiLeng w15516937650@outlook.com
 Date: 2023-03-22 16:27:44
 LastEditors: BigCiLeng && bigcileng@outlook.com
-LastEditTime: 2023-04-08 22:13:52
+LastEditTime: 2023-04-08 22:22:27
 FilePath: \HUAWEIRobot\test\config.py
 Description: 
 

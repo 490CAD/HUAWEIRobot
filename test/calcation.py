@@ -637,3 +637,47 @@ def ignore_now_point_half(env_mp, point1, point3, is_take_thing):
             
     
     return 1
+
+
+def astar_half(env_mp, st_pos, ed_pos, is_take_thing, map_limit):
+    log.write("ASTART!\n")
+    d1 = time.time()
+    q, ans_mp, vis_mp, open_list, close_list = [], {}, {}, {}, set()
+    heapq.heappush(q, (0, 0, st_pos))
+    open_list[st_pos] = 0
+    vis_mp[st_pos] = 1
+    ans_path = []
+    while len(q) != 0:
+        now_pos = heapq.heappop(q)
+        x, y = now_pos[2][0], now_pos[2][1]
+        log.write(f"{x, y}\n")
+        fvalue = open_list[(x, y)]
+        if x == ed_pos[0] and y == ed_pos[1]:
+            # 返回路径这里
+            while (x, y) in ans_mp:
+                ans_path.append((x, y))
+                x, y = ans_mp[(x, y)][0], ans_mp[(x, y)][1]
+            ans_path.append(st_pos)
+            ans_path.reverse()
+            d2 = time.time()
+            log.write(f"{'{:.10f}s.'.format(d2 - d1)}\n")
+            log.write("AENDED!\n")
+            return ans_path
+        if (x, y) in close_list:
+            continue
+        close_list.add((x, y))
+        for i in range(8):
+            nx, ny = x + cfg.DIS_HIGHER[i][0], y + cfg.DIS_HIGHER[i][1]
+            if nx < map_limit[0] or ny < map_limit[2] or nx > map_limit[1] or ny > map_limit[3] or (nx, ny) in close_list:
+                continue
+            if check_points_half(env_mp, nx, ny, is_take_thing) == 0:
+                continue
+            gi = cfg.gvalue[i]
+            hi = abs(nx - ed_pos[0]) + abs(ny - ed_pos[1])
+            qi = 0 #周围墙的数量
+            if (nx, ny) not in open_list or fvalue > gi + hi + qi:
+                open_list[(nx, ny)] = gi + hi + qi
+                vis_mp[(nx, ny)] = vis_mp[(x, y)] + 1
+                ans_mp[(nx, ny)] = now_pos[2]
+                heapq.heappush(q, (gi + hi + qi, qi, (nx, ny)))
+    return ans_path
