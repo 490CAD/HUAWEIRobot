@@ -473,3 +473,167 @@ def ask_path_sxw(ed_pos, ans_mp, env_mp, mask_env_mp, is_take_thing):
         path[i] = (cal_x(path[i][1] / 2), cal_y(path[i][0] / 2))
 
     return path
+
+def check_points_half(env_mp, nx, ny, is_take_thing):
+    # log.write('-\n')
+    # log.write(f"{len(env_mp[0]), len(env_mp)}\n")
+    int_nx, int_ny = int(nx), int(ny)
+    if int(nx * 10) == int_nx * 10 and int(ny * 10) == int_ny:
+        # log.write(f"1: {nx, int_nx}, {ny, int_ny}\n")
+        nx, ny = int_nx, int_ny
+        nx1, nx2, nx3, nx4 = min(cfg.MAP_SIZE - 1, int_nx + 1), max(0, int_nx - 1), min(cfg.MAP_SIZE - 1, int_nx + 2), max(0, int_nx - 2)
+        ny1, ny2, ny3, ny4 = min(cfg.MAP_SIZE - 1, int_ny + 1), max(0, int_ny - 1), min(cfg.MAP_SIZE - 1, int_ny + 2), max(0, int_ny - 2)
+        if env_mp[nx][ny1] == '#' or env_mp[nx][ny2] == '#' or env_mp[nx1][ny] == '#' or env_mp[nx2][ny] == '#':
+            return 0
+        if env_mp[nx1][ny1] == '#' or env_mp[nx1][ny2] == '#' or env_mp[nx2][ny1] == '#' or env_mp[nx2][ny2] == '#':
+            return 0
+        if is_take_thing == 1 and (env_mp[nx][ny3] == '#' or env_mp[nx][ny4] == '#' or env_mp[nx3][ny] == '#' or env_mp[nx4][ny] == '#'):
+            return 0
+        if is_take_thing == 1 and (env_mp[nx1][ny3] == '#' or env_mp[nx2][ny4] == '#' or env_mp[nx3][ny1] == '#' or env_mp[nx4][ny2] == '#'):
+            return 0
+    elif int(nx * 10) == int_nx * 10:
+        # log.write(f"2: {nx, int_nx}, {ny, int_ny}\n")
+        nx = int_nx
+        int_ny = int(ny - 0.5)
+        nx1, nx2 = min(cfg.MAP_SIZE - 1, int_nx + 1), max(0, int_nx - 1)
+        ny1, ny2, ny3, ny4 = min(cfg.MAP_SIZE - 1, int_ny + 1), max(0, int_ny), min(cfg.MAP_SIZE - 1, int_ny + 2), max(0, int_ny - 1)
+        # log.write(f"{nx1, nx2}\n")
+        # log.write(f"{nx, ny, ny1, ny2, ny3, ny4}\n")
+        if env_mp[nx][ny2] == '#' or env_mp[nx][ny1] == '#' or env_mp[nx1][ny2] == '#' or env_mp[nx1][ny1] == '#' or env_mp[nx2][ny2] == '#' or env_mp[nx2][ny1] == '#':
+            return 0
+        if is_take_thing == 1 and (env_mp[nx][ny3] == '#' or env_mp[nx][ny4] == '#'):
+            return 0
+    elif int(ny * 10) == int_ny * 10:
+
+        # log.write(f"3: {nx, int_nx}, {ny, int_ny}\n")
+        int_nx = int(nx - 0.5)
+        ny = int_ny
+        nx1, nx2, nx3, nx4 = min(cfg.MAP_SIZE - 1, int_nx + 1), max(0, int_nx), min(cfg.MAP_SIZE - 1, int_nx + 2), max(0, int_nx - 1)
+        ny1, ny2 = min(cfg.MAP_SIZE - 1, int_ny + 1), max(0, int_ny - 1)
+        if env_mp[nx1][ny] == '#' or env_mp[nx2][ny] == '#' or env_mp[nx1][ny1] == '#' or env_mp[nx2][ny1] == '#' or env_mp[nx1][ny2] == '#' or env_mp[nx2][ny2] == '#':
+            return 0
+        if is_take_thing == 1 and (env_mp[nx3][ny] == '#' or env_mp[nx4][ny] == '#'):
+            return 0
+    else:
+        # log.write(f"4: {nx, int_nx}, {ny, int_ny}\n")
+        int_nx, int_ny = int(nx - 0.5), int(ny - 0.5)
+        nx1, nx2, nx3, nx4 = min(cfg.MAP_SIZE - 1, int_nx + 1), max(0, int_nx), min(cfg.MAP_SIZE - 1, int_nx + 2), max(0, int_nx - 1)
+        ny1, ny2, ny3, ny4 = min(cfg.MAP_SIZE - 1, int_ny + 1), max(0, int_ny), min(cfg.MAP_SIZE - 1, int_ny + 2), max(0, int_ny - 1)
+        if env_mp[nx2][ny2] == '#' or env_mp[nx2][ny1] == '#' or env_mp[nx1][ny2] == '#' or env_mp[nx1][ny1] == '#':
+            return 0
+        if is_take_thing == 1 and (env_mp[nx2][ny3] == '#' or env_mp[nx2][ny4] == '#' or env_mp[nx1][ny3] == '#' or env_mp[nx1][ny4] == '#' or env_mp[nx3][ny2] == '#' or env_mp[nx3][ny1] == '#' or env_mp[nx4][ny1] == '#' or env_mp[nx4][ny2] == '#'):
+            return 0
+
+    return 1
+
+def bfs_half(env_mp, st_pos, is_take_thing, map_limit):
+    q = deque()
+    q.append(st_pos)
+    ans_mp, vis_mp = {}, {}
+    vis_mp[st_pos] = 1
+    ans_mp[st_pos] = st_pos
+    while len(q) != 0:
+        now_pos = q.popleft()
+        x, y = now_pos[0], now_pos[1]
+        for i in range(8):
+            nx, ny = x + cfg.DIS_HALF[i][0], y + cfg.DIS_HALF[i][1]
+            # nx, ny = now_pos[0][0] + cfg.DIS_NORMAL[i][0], now_pos[0][1] + cfg.DIS_NORMAL[i][1]
+            if nx < map_limit[0] or ny < map_limit[2] or nx >= map_limit[1] or ny >= map_limit[3] or vis_mp.get((nx, ny)) is not None:
+                continue
+            if check_points_half(env_mp, nx, ny, is_take_thing) == 0:
+                continue
+            vis_mp[(nx, ny)]= vis_mp[(x, y)] + 1
+            ans_mp[(nx, ny)]= now_pos
+            q.append((nx, ny))     
+    return ans_mp, vis_mp
+
+
+def ask_path_half(ed_pos, ans_mp, env_mp, is_take_thing):
+    path = []
+    path.append(ed_pos)
+    pos = ed_pos
+    nx, ny = pos[0], pos[1]
+    while ans_mp[(nx, ny)] != pos:
+        pos = ans_mp[(nx, ny)]
+        nx, ny = pos[0], pos[1]
+        path.append(pos)
+    path.reverse()
+    path = path_better_half(env_mp, path, is_take_thing)
+
+    # for i in range(len(path)):
+    #     path[i] = (cal_x(path[i][1]), cal_y(path[i][0]))
+
+    return path
+
+def path_better_half(env_mp, path_list, is_take_thing):
+    log.write(f"{path_list}\n")
+    path_len = len(path_list)
+    new_path = []
+    if path_len == 0:
+        return path_list
+    if path_len == 1:
+        log.write(f"path_len==1{path_list}\n")
+        path_list[0] = (cal_x(path_list[0][1]), cal_y(path_list[0][0]))
+        return path_list
+    pre_point = path_list[0]
+    new_path.append(pre_point)
+    shr_point = path_list[1]
+    nxt_point = shr_point
+    for pos in range(2, path_len):
+        now_point = path_list[pos]
+        if check_one_line(pre_point, shr_point, now_point) == 1:
+            shr_point = now_point
+            nxt_point = shr_point
+            continue
+        else:
+            if ignore_now_point_half(env_mp, pre_point, now_point, is_take_thing) == 1:
+                nxt_point = now_point
+                continue
+            else:
+                new_path.append(nxt_point)
+                pre_point = nxt_point
+                if pos + 1 >= path_len:
+                    break
+                else:
+                    shr_point = nxt_point = path_list[pos + 1]
+    new_path.append(nxt_point)
+    for i in range(len(new_path)):
+        new_path[i] = (cal_x(new_path[i][1]), cal_y(new_path[i][0]))
+
+    # log.write(f"{new_path}\n")
+    return new_path
+
+
+def ignore_now_point_half(env_mp, point1, point3, is_take_thing):
+    # x_1 == x_3, y_1 == y_3
+    min_x, max_x = min(point1[0], point3[0]), max(point1[0], point3[0])
+    min_y, max_y = min(point1[1], point3[1]), max(point1[1], point3[1])
+    if point1[0] == point3[0]:
+        for i in range(min_y, max_y + 1):
+            nx, ny = min_x, i
+            if check_points_half(env_mp, nx, ny, is_take_thing) == 0:
+                return 0
+    elif point1[1] == point3[1]:
+        for i in range(min_x, max_x + 1):
+            nx, ny = i, min_y
+            if check_points_half(env_mp, nx, ny, is_take_thing) == 0:
+                return 0
+    else:
+        # k = (point3[1] - point1[1]) / (point3[0] - point1[0])
+        # b1 = point3[1] - point3[0] * k
+        # # b2 = (2.4) * math.sqrt(k * k + 1) + b1
+        # # b3 = -(2.4) * math.sqrt(k * k + 1) + b1
+        # for i in range(int(min_x),int(max_x)):
+        #     nx = i
+        #     ny1 = (k * nx + b1)
+        #     # ny2 = (k * nx + b2)
+        #     # ny3 = (k * nx + b3)
+        #     int_ny = int(ny1)
+        #     ny = max(0, int_ny)
+        #     ny = min(ny, cfg.MAP_SIZE - 1)
+
+        #     if check_points_half(env_mp, nx, ny, is_take_thing) == 0 or check_points_half(env_mp, nx, min(ny + 1, cfg.MAP_SIZE - 1), is_take_thing) == 0 or check_points_half(env_mp, nx, max(0, ny - 1), is_take_thing) == 0:
+                return 0
+            
+    
+    return 1

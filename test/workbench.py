@@ -25,6 +25,9 @@ class WorkBench():
         self.up_down_flag = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.anti_x = None
         self.anti_y = None
+        self.half_x = None
+        self.half_y = None
+        
     def get_from_frame(self, work_type, x, y, remain_time, origin_thing, output):
         self.work_type = int(work_type)
         self.x, self.y = float(x), float(y)
