@@ -713,7 +713,7 @@ def find_nearest_robot_workbench(robot_ids, workbench_id):
     min_dis = 40000
     min_id = -1
     for robot_id in robot_ids:
-        if robot_taking_mp[robot_id][(workbenchs[workbench_id].half_x, workbenchs[workbench_id].half_y)] == None:
+        if robot_taking_mp[robot_id].get((workbenchs[workbench_id].half_x, workbenchs[workbench_id].half_y)) is None:
             continue
         if robots[robot_id].now_suppose_work_space == -1:
             dis = robot_index_taking_mp[robot_id][(workbenchs[workbench_id].half_x, workbenchs[workbench_id].half_y)] * 0.5
@@ -866,10 +866,11 @@ def bfs_half_init():
 
 def workbench_after_half_init():
     for id0 in range(workbench_ids):
-        if refuse_workbench_dist[id0] == 1:
-            continue
+        # if refuse_workbench_dist[id0] == 1:
+        #     continue
         for id1 in range(id0, workbench_ids):
-            if refuse_workbench_dist[id1] == 1:
+            if refuse_workbench_dist[id1] == 1 or refuse_workbench_dist[id0] == 1:
+                DIS_MP_dict[(id0, id1)] = DIS_MP_dict[(id1, id0)] = 40000
                 continue
             # log.write(f"{id0, id1}\n")
             # log.write(f"{index_taking_mp[id0]}")
@@ -1059,17 +1060,18 @@ if __name__ == '__main__':
         for i in range(free_robot_len):
             # if workbench_mode == 1:
             #     employ_robot, target0, target1 = up_down_policy(free_robots)
-            updata_LOCK_MAP()
-            update_GRA_MAP()
-            employ_robot, target0, target1 = up_down_policy_sxw(free_robots)
             # log.write(f"{employ_robot, target0, target1}!!!!!!!\n")
             # employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
             # if employ_robot == -1:
             #     employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
-
-            # employ_robot, target0, target1 = get_price_by_targets_half(free_robots, 2, frame_id)
-            # if employ_robot == -1:
-            #     employ_robot, target0, target1 = get_price_by_targets_half(free_robots, 1, frame_id)
+            if len(workbench_type_num[7]) == 1:
+                updata_LOCK_MAP()
+                update_GRA_MAP()
+                employ_robot, target0, target1 = up_down_policy_sxw(free_robots)
+            else:
+                employ_robot, target0, target1 = get_price_by_targets_half(free_robots, 2, frame_id)
+                if employ_robot == -1:
+                    employ_robot, target0, target1 = get_price_by_targets_half(free_robots, 1, frame_id)
 
             log.write(f"{employ_robot, target0, target1}\n")
             if employ_robot != -1:
@@ -1427,7 +1429,7 @@ if __name__ == '__main__':
             if battle_time[i] >= 50:
                 other_robots = robots[0:i] + robots[i:4]
                 for other_robot in other_robots:
-                    if battle_time[other_robot.robot_id] >= 50 and cfg.THING_VALUE_2[robots[i].take_thing] < cfg.THING_VALUE_2[other_robot.take_thing] and cal_point_x_y(robots[i].x, robots[i].y, other_robot.x, other_robot.y) <= 1.5:
+                    if battle_time[other_robot.robot_id] >= 50 and cfg.THING_VALUE[robots[i].take_thing] < cfg.THING_VALUE[other_robot.take_thing] and cal_point_x_y(robots[i].x, robots[i].y, other_robot.x, other_robot.y) <= 1.5:
                         if robots[i].state == 0:
                             robots[i].state = 4
                         elif robots[i].state == 2:

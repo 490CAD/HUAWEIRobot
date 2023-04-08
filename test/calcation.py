@@ -660,31 +660,44 @@ def ignore_now_point_half(env_mp, point1, point3, is_take_thing):
     min_x, max_x = min(point1[0], point3[0]), max(point1[0], point3[0])
     min_y, max_y = min(point1[1], point3[1]), max(point1[1], point3[1])
     if point1[0] == point3[0]:
-        for i in range(min_y, max_y + 1):
+        for i in range(int(min_x),int(max_x)):
             nx, ny = min_x, i
             if check_points_half(env_mp, nx, ny, is_take_thing) == 0:
                 return 0
     elif point1[1] == point3[1]:
-        for i in range(min_x, max_x + 1):
+        for i in range(int(min_x),int(max_x)):
             nx, ny = i, min_y
             if check_points_half(env_mp, nx, ny, is_take_thing) == 0:
                 return 0
     else:
-        # k = (point3[1] - point1[1]) / (point3[0] - point1[0])
-        # b1 = point3[1] - point3[0] * k
-        # # b2 = (2.4) * math.sqrt(k * k + 1) + b1
-        # # b3 = -(2.4) * math.sqrt(k * k + 1) + b1
-        # for i in range(int(min_x),int(max_x)):
-        #     nx = i
-        #     ny1 = (k * nx + b1)
-        #     # ny2 = (k * nx + b2)
-        #     # ny3 = (k * nx + b3)
-        #     int_ny = int(ny1)
-        #     ny = max(0, int_ny)
-        #     ny = min(ny, cfg.MAP_SIZE - 1)
+        k = (point3[1] - point1[1]) / (point3[0] - point1[0])
+        b1 = point3[1] - point3[0] * k
+        b2 = (1) * math.sqrt(k * k + 1) + b1
+        b3 = -(1) * math.sqrt(k * k + 1) + b1
+        for i in range(int(min_x),int(max_x)):
+            nx = i
+            ny1 = (k * nx + b1)
+            ny2 = (k * nx + b2)
+            ny3 = (k * nx + b3)
+            int_ny = int(ny1)
+            ny = max(0, int_ny)
+            ny = min(ny, cfg.MAP_SIZE - 1)
 
-        #     if check_points_half(env_mp, nx, ny, is_take_thing) == 0 or check_points_half(env_mp, nx, min(ny + 1, cfg.MAP_SIZE - 1), is_take_thing) == 0 or check_points_half(env_mp, nx, max(0, ny - 1), is_take_thing) == 0:
+            if check_points_half(env_mp, nx, ny, is_take_thing) == 0 or check_points_half(env_mp, nx, min(ny + 1, cfg.MAP_SIZE - 1), is_take_thing) == 0 or check_points_half(env_mp, nx, max(0, ny - 1), is_take_thing) == 0:
                 return 0
+            int_ny = int(ny2)
+            ny = max(0, int_ny)
+            ny = min(ny, cfg.MAP_SIZE - 1)
+
+            if check_points_half(env_mp, nx, ny, is_take_thing) == 0 or check_points_half(env_mp, nx, min(ny + 1, cfg.MAP_SIZE - 1), is_take_thing) == 0 or check_points_half(env_mp, nx, max(0, ny - 1), is_take_thing) == 0:
+                return 0
+            int_ny = int(ny3)
+            ny = max(0, int_ny)
+            ny = min(ny, cfg.MAP_SIZE - 1)
+
+            if check_points_half(env_mp, nx, ny, is_take_thing) == 0 or check_points_half(env_mp, nx, min(ny + 1, cfg.MAP_SIZE - 1), is_take_thing) == 0 or check_points_half(env_mp, nx, max(0, ny - 1), is_take_thing) == 0:
+                return 0
+            
             
     
     return 1
