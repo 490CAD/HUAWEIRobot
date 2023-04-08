@@ -382,12 +382,12 @@ def path_better(env_mp, path_list, is_take_thing, mask_env_mp):
     # log.write(f"{new_path}\n")
     return new_path
 
-def path_better_sxw(env_mp, path_list, is_take_thing, mask_env_mp):
+def path_better_sxw(path_list, is_take_thing, walls):
     path_len = len(path_list)
     if path_len <= 1:
         return path_list
     
-    log.write(f"{path_list}\n")
+    # log.write(f"{path_list}\n")
     # temp_path, new_path, added_path = OrderedDict(), OrderedDict(), []
     temp_path, new_path, added_path, vis_path = {}, {}, [], {}
     val_path = {}
@@ -396,13 +396,17 @@ def path_better_sxw(env_mp, path_list, is_take_thing, mask_env_mp):
         vis_path[i] = -1
     vis_path[0], vis_path[path_len - 1] = 0, 0
     val_path[0], val_path[path_len - 1] = 5, 1
+    cnt = 0
     while True:
+        # cnt += 1
+        # if cnt >= 500:
+        #     break
         pre_point, pre_key, aft_point, aft_key = None, 0, None, 0
         temp_path_list = sorted(temp_path.items())
 
-        for key in temp_path_list:
-            log.write(f"{key[0]} ")
-        log.write(f"\n")
+        # for key in temp_path_list:
+        #     log.write(f"{key[0]} ")
+        # log.write(f"\n")
 
         for key, point in temp_path_list:
             if pre_point is None:
@@ -412,7 +416,7 @@ def path_better_sxw(env_mp, path_list, is_take_thing, mask_env_mp):
             else:
                 if (val_path[pre_key] == 1 or val_path[pre_key] == 6) and (val_path[aft_key] == 5 or val_path[aft_key] == 6):
                     pass
-                elif ignore_now_point(env_mp, pre_point, aft_point, aft_point, is_take_thing, mask_env_mp) == 1:
+                elif is_line_valid(walls, (cal_x(pre_point[1]), cal_y(pre_point[0])), (cal_x(aft_point[1]), cal_y(aft_point[0])), is_take_thing=is_take_thing) == True:
                     new_path[pre_key] = pre_point
                     val_path[pre_key] += 1
                     val_path[aft_key] += 5
@@ -422,21 +426,23 @@ def path_better_sxw(env_mp, path_list, is_take_thing, mask_env_mp):
                         vis_path[kk] = 0
                         val_path[kk] = 0
                         added_path.append(kk)
-                log.write(f"{pre_key, val_path[pre_key], aft_key, val_path[aft_key]}\n")
+                # log.write(f"{pre_key, val_path[pre_key], aft_key, val_path[aft_key]}\n")
                 pre_point, pre_key = aft_point, aft_key
                 aft_point, aft_key = point, key
-        log.write(f"\n")
+        # log.write(f"\n")
 
         if (val_path[pre_key] == 1 or val_path[pre_key] == 6) and (val_path[aft_key] == 5 or val_path[aft_key] == 6):
             pass
-        elif ignore_now_point(env_mp, pre_point, aft_point, aft_point, is_take_thing, mask_env_mp) == 1:
+        elif is_line_valid(walls, (cal_x(pre_point[1]), cal_y(pre_point[0])), (cal_x(aft_point[1]), cal_y(aft_point[0])), is_take_thing=is_take_thing) == True:
             new_path[pre_key], new_path[aft_key] = pre_point, aft_point
             val_path[pre_key] += 1
             val_path[aft_key] += 5
         else:
             kk = int((pre_key + aft_key) / 2)
-            val_path[kk] = 0
-            added_path.append(kk)
+            if vis_path[kk] == -1:
+                vis_path[kk] = 0
+                val_path[kk] = 0
+                added_path.append(kk)
         # log.write(f"{new_path}\n")
         if len(added_path) != 0:
             for key in added_path:
@@ -444,36 +450,165 @@ def path_better_sxw(env_mp, path_list, is_take_thing, mask_env_mp):
             added_path.clear()
         # temp_path = sorted(temp_path.items())
         flag = 0
-        for key in val_path:
-            log.write(f"{key}:{ val_path[key]}; ")
+        for key in val_path.keys():
+            # log.write(f"{key}:{ val_path[key]}; ")
             if val_path[key] != 6:
                 flag = 1
-        log.write(f"\n")
+                break
+        # log.write(f"\n")
         if flag == 0:
             break
-    new_path_list = []
-    for key in new_path:
-        new_path_list.append(new_path[key])
+        log.write(f"val_path is {val_path}\n")
+        log.write(f"temp is {temp_path_list}\n")
+    new_path_list = sorted(new_path.items())
+    _path = []
+    for point in new_path_list:
+        _path.append(point[1])
+    log.write(f"new_path_list is {_path}\n")
 
-    return new_path_list
+    return _path
 
-def ask_path_sxw(ed_pos, ans_mp, env_mp, mask_env_mp, is_take_thing):
+def ask_path_sxw(ed_pos, ans_mp, is_take_thing, walls):
     path = []
     path.append(ed_pos)
     pos = ed_pos
     nx, ny = pos[0], pos[1]
-    while ans_mp[nx][ny] != pos:
-        pos = ans_mp[nx][ny]
+    while ans_mp[(nx, ny)] != pos:
+        pos = ans_mp[(nx, ny)]
         nx, ny = pos[0], pos[1]
         path.append(pos)
     path.reverse()
     # return path
-    path = path_better_sxw(env_mp, path, is_take_thing, mask_env_mp)
+    log.write(f"origin path is {path}\n")
+    _len = len(path)
+    if _len > 2:
+        for i in range(1):
+            path = path_better_sxw(path, is_take_thing, walls)
+    len_ = len(path)
+    path_ = []
+    if len_ > 2:
+        pre, now, aft = path[0], path[1], path[2]
+        cnt = 2
+        while cnt < len_:
+            if check_one_line(pre, now, aft) == 1:
+                if cnt == len_ - 1:
+                    path_.append(pre)
+                    path_.append(now)
+                    path_.append(aft)
+                    cnt += 1
+                else:
+                    now, aft = aft, path[cnt + 1]
+                    cnt += 1
+            else:
+                if cnt == len_ - 1:
+                    path_.append(pre)
+                    path_.append(now)
+                    path_.append(aft)
+                    cnt += 1
+                else:
+                    path_.append(pre)
+                    pre, now, aft = now, aft, path[cnt + 1]
+                    cnt += 1
+    else:
+        path_ = path
+                    
+                
+    log.write(f"better path is {path_}\n")
 
-    for i in range(len(path)):
-        path[i] = (cal_x(path[i][1] / 2), cal_y(path[i][0] / 2))
+    for i in range(len(path_)):
+        path_[i] = (cal_x(path_[i][1]), cal_y(path_[i][0]))
 
-    return path
+    return path_
+
+def find_block(point0:list, point1:list, d=0.45+np.sqrt(2)*0.25) -> list:
+    """
+    找到一条线段附近的区域
+    d: 平移的距离
+    """
+    x0, y0 = point0[0], point0[1]
+    x1, y1 = point1[0], point1[1]
+    if x0 == x1:
+        x_min, x_max = x0 - d, x0 + d
+        if y0 < y1:
+            y_min, y_max = y0, y1
+        else:
+            y_min, y_max = y1, y0
+    elif y0 == y1:
+        y_min, y_max = y0 - d, y0 + d
+        if x0 < x1:
+            x_min, x_max = x0, x1
+        else:
+            x_min, x_max = x1, x0
+    else:
+        k = (y1 - y0) / (x1 - x0)
+        b = (x1 * y0 - x0 * y1)/(x1 - x0)
+        line1_1_x = (math.sqrt(k * k + 1) * d + y0 + x0 / k - b) / (k + 1 / k)
+        line1_1_y = (x0 - line1_1_x) / k + y0
+        line1_2_x = (y0 + x0 / k - b - math.sqrt(k * k + 1) * d) / (k + 1 / k)
+        line1_2_y = (x0 - line1_2_x) / k + y0
+        line2_1_x = (math.sqrt(k * k + 1) * d + y1 + x1 / k - b) / (k + 1 / k)
+        line2_1_y = (x1 - line2_1_x) / k + y1
+        line2_2_x = (y1 + x1/ k - b - math.sqrt(k * k + 1) * d) / (k + 1 / k)
+        line2_2_y = (x1 - line2_2_x) / k + y1
+        x_collection = [line1_1_x, line1_2_x, line2_1_x, line2_2_x]
+        y_collection = [line1_1_y, line1_2_y, line2_1_y, line2_2_y]
+        x_min = min(x_collection)
+        x_max = max(x_collection)
+        y_min = min(y_collection)
+        y_max = max(y_collection)
+    return [x_min, x_max, y_min, y_max]
+
+def is_line_crash_wall(wall:object, point0:tuple, point1:tuple, angle:float, tolerance=0.45)->bool:
+    log.write(f"angle is {angle}\n")
+    x0, y0 = point0[0], point0[1]
+    x1, y1 = point1[0], point1[1]
+    dis_point = 0
+    if x0 == x1:
+        dis_point = abs(x0 - wall.x)
+    elif y0 == y1:
+        dis_point = abs(y0 - wall.y)
+    else:
+        k = (y1 - y0) / (x1 - x0)
+        b = (x1 * y0 - x0 * y1)/(x1 - x0)
+        dis_point = abs((-k*wall.x + wall.y - b)/math.sqrt(k**2 + 1))
+    if angle >=0 and angle < cfg.PI / 2:
+        dis_final = dis_point - math.sqrt(2) * 0.25 * math.cos(abs(cfg.PI / 4 - angle))
+    elif angle >= cfg.PI / 2 and angle <= cfg.PI:
+        dis_final = dis_point - math.sqrt(2) * 0.25 * math.cos(abs(cfg.PI / 4 * 3 - angle))
+    log.write(f"dis_final is {dis_final}\n")
+    if dis_final > tolerance:
+        return True
+    else:
+        return False
+    
+
+def is_line_valid(walls:list, point0:tuple, point1:tuple, d=0.45+math.sqrt(2)*0.25, is_take_thing = 0)->bool:
+    if point0 == point1 or (abs(point0[0] - point1[0])<=0.25 and abs(point0[1] - point1[1])<=0.25):
+        return True
+    log.write(f"is_take_thing is {is_take_thing}\n")
+    x0, y0 = point0[0], point0[1]
+    x1, y1 = point1[0], point1[1]
+    tolerance = 0.45
+    if is_take_thing == 1:
+        d = 0.53 + math.sqrt(2) * 0.25
+        tolerance = 0.53
+    y_dis = y1 - y0
+    x_dis = x1 - x0
+    if y_dis == -0.0:
+        y_dis = 0.0
+    angle = math.atan2(y_dis, x_dis)
+    if angle < 0:
+        angle = angle + cfg.PI
+    [x_min, x_max, y_min, y_max] = find_block(point0, point1, d=d)
+    log.write(f"x_min, x_max, y_min, y_max is {x_min}, {x_max}, {y_min}, {y_max}\n")
+    for wall in walls:
+        if wall.x > x_min and wall.x < x_max and wall.y > y_min and wall.y < y_max:
+            log.write(f"wall_id is {wall.wall_id}\n")
+            if is_line_crash_wall(wall, point0, point1, angle, tolerance=tolerance) == False:
+                # log.write(f"return false, point0, point1 is {point0}, {point1}\n")
+                return False
+    return True    
+    
 
 def check_points_half(env_mp, nx, ny, is_take_thing, debug_mode=0):
     # log.write('-\n')
