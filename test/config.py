@@ -2,7 +2,7 @@
 Author: BigCiLeng w15516937650@outlook.com
 Date: 2023-03-22 16:27:44
 LastEditors: BigCiLeng && bigcileng@outlook.com
-LastEditTime: 2023-04-07 20:40:50
+LastEditTime: 2023-04-08 22:13:52
 FilePath: \HUAWEIRobot\test\config.py
 Description: 
 
@@ -46,3 +46,4 @@ class CFG():
     MAX_STOP_DISTANCE_0 = 0.9160884177867836 + 0.4
     MAX_STOP_DISTANCE_1 = 1.270761662006457 + 0.4
     DIS_TOLERATE = 0.2
+    BACK_DISTANCE = 10
