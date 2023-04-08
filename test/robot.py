@@ -48,11 +48,13 @@ class Robot():
         self.crush_f = float(crush_f)
         self.angle_speed = float(angle_speed)
         self.line_speed_x, self.line_speed_y = float(line_speed_x), float(line_speed_y)
-        self.toward = float(toward)
+        eps = 1e-4
+        self.toward = PI if abs(abs(float(toward)) - PI) <= eps else float(toward)
+        # self.toward = float(toward)
         self.x, self.y = float(x), float(y)
 
     def move(self, steering, distance,
-                tolerance0=0.001, tolerance1=0.4):
+                tolerance0=0.001, tolerance1=0.2):
         """
         steering = front wheel steering angle, limited by max_steering_angle
         distance = total distance driven, most be non-negative

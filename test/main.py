@@ -1099,6 +1099,19 @@ def workbench_after_half_init():
                     workbench_minest_sell[workbench_a][cnt] = workbench_b
             
 
+def astar_half_init():
+    global env_mp, astar_workbench_taking_mp, astar_workbench_nothing_mp, refuse_workbench_dist
+    for id0 in range(workbench_ids):
+        if refuse_workbench_dist[id0] == 1:
+            continue
+        for id1 in range(id0, workbench_ids):
+            if refuse_workbench_dist[id1] == 1:
+                continue
+            temp_taking= astar_half(env_mp, (workbenchs[id0].half_x, workbenchs[id0].half_y), (workbenchs[id1].half_x, workbenchs[id1].half_y), 1, map_limit)
+            temp_nothing= astar_half(env_mp, (workbenchs[id0].half_x, workbenchs[id0].half_y), (workbenchs[id1].half_x, workbenchs[id1].half_y), 0, map_limit)
+            astar_workbench_taking_mp[id0][id1] = temp_taking
+            astar_workbench_nothing_mp[id0][id1] = temp_nothing
+
 def astar_init():
     global env_mp, mask_env_mp, new_env_mp, workbenchs
     global astar_workbench_taking_mp, astar_workbench_nothing_mp, refuse_workbench_dist
@@ -1112,6 +1125,37 @@ def astar_init():
             astar_workbench_nothing_mp[id0][id1] = astar(new_env_mp, (workbenchs[id0].anti_x, workbenchs[id0].anti_y), (workbenchs[id1].anti_x, workbenchs[id1].anti_y), 0, mask_env_mp, map_limit)
             # astar_workbench_taking_mp[id1][id0] = astar_workbench_taking_mp[id0][id1].reverse()
             # astar_workbench_nothing_mp[id1][id0] = astar_workbench_nothing_mp[id0][id1].reverse()
+
+
+def astar_half_workbench_init():
+    global env_mp, workbench_ids
+    for id0 in range(workbench_ids):
+        if refuse_workbench_dist[id0] == 1:
+            continue
+        for id1 in range(id0, workbench_ids):
+            if refuse_workbench_dist[id1] == 1:
+                continue
+            if astar_workbench_taking_mp[id0][id1] is not None:
+                DIS_MP[id0][id1] = DIS_MP[id1][id0] = len(astar_workbench_taking_mp[id0][id1]) * 0.5
+            if astar_workbench_nothing_mp[id0][id1] is not None:
+                DIS_MP_nothing[id0][id1] = DIS_MP_nothing[id1][id0] = len(astar_workbench_nothing_mp[id0][id1]) * 0.5
+
+    for workbench_a in range(workbench_ids):
+        if refuse_workbench_dist[workbench_a] == 1:
+            continue
+        target_workbench_type = choose_target_workbench_list(generate_product, workbenchs[workbench_a].work_type)
+        cnt = -1
+        for type in target_workbench_type:
+            workbench_minest_sell[workbench_a].append(-1)
+            cnt += 1
+            for workbench_b in workbench_type_num[type]:
+                if refuse_workbench_dist[workbench_b] == 1:
+                    continue
+                if workbench_minest_sell[workbench_a][cnt] == -1 or DIS_MP[workbench_a][workbench_b] < DIS_MP[workbench_a][workbench_minest_sell[workbench_a][cnt]]:
+                    workbench_minest_sell[workbench_a][cnt] = workbench_b
+
+    
+
 def astar_workbench_after_init():
     global env_mp, mask_env_mp, new_env_mp, astar_workbench_taking_mp, astar_workbench_nothing_mp
     global workbench_minest_sell, robot_taking_mp, robot_index_taking_mp, DIS_MP, DIS_MP_nothing
@@ -1201,17 +1245,18 @@ def robot_astar_init():
     global astar_robot_taking_mp, astar_robot_nothing_mp
     for id0 in range(4):
         for id1 in range(workbench_ids):
-            nx, ny = robots[id0].anti_x, robots[id0].anti_y
-            astar_robot_nothing_mp[id] = astar(new_env_mp, (nx, ny), (workbenchs[id1].anti_x, workbenchs[id1].anti_y), 0, mask_env_mp, map_limit)
+            nx, ny = robots[id0].half_x, robots[id0].half_y
+            astar_robot_nothing_mp[id0][id1] = astar_half(env_mp, (nx, ny), (workbenchs[id1].half_x, workbenchs[id1].half_y), 0, map_limit)
+            
     for id in range(workbench_ids):
         workbench = workbenchs[id]
-        if astar_robot_nothing_mp[0][id] == None and astar_robot_nothing_mp[1][id] == None and astar_robot_nothing_mp[2][id] == None and astar_robot_nothing_mp[3][id] == None:
+        if astar_robot_nothing_mp[0][id] is None and astar_robot_nothing_mp[1][id] is None and astar_robot_nothing_mp[2][id] is None and astar_robot_nothing_mp[3][id] is None:
             refuse_workbench_dist[id] = 1
-            useful_workbench_cnt += 1
         else:
+            useful_workbench_cnt += 1
             refuse_workbench_dist[id] = 0
         for i in range(4):
-            if astar_robot_nothing_mp[i][id] == None:
+            if astar_robot_nothing_mp[i][id] is None:
                 robot_index_taking_mp[i][workbench.anti_x][workbench.anti_y] = 40000
 
 
@@ -1236,13 +1281,14 @@ if __name__ == '__main__':
     d4 = time.time()
     finish()
     workbench_after_half_init()
+    bfs_half(env_mp, (workbenchs[2].half_x, workbenchs[2].half_y), 1, map_limit, debug_mode=1)
 
     # astar_workbench_after_init()
     # workbench_after_init()
     # log.write(f"{robot_taking_mp[2]}\n")
     # log.write(f"{robot_taking_mp[3]}\n")
     # log.write(f"{map_limit}\n")
-    # log.write(f"{ask_path_half((workbenchs[3].half_x, workbenchs[3].half_y), workbench_taking_mp[5], env_mp, 1)}\n")
+    # log.write(f"{ask_path_half((workbenchs[3].half_x, workbenchs[3].half_y), workbench_taking_mp[2], env_mp, 1)}\n")
     # log.write(f"{workbench_taking_mp[5]}\n")
     # log.write(f"{index_taking_mp[5]}\n")
     # log.write(f"{path_better(new_env_mp, astar(new_env_mp, (50, 100), (82, 162), 1, mask_env_mp, map_limit), 1, mask_env_mp)}\n")
