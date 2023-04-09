@@ -1389,7 +1389,7 @@ if __name__ == '__main__':
                             cfg.pid_list[robot_id] = [0, 0]
 
                             # sys.stdout.write('forward %d %f\n' % (robot_id, 0))
-                            robots[robot_id].state = 0
+                            robots[robot_id].state = 4
                             robots[robot_id].move_history.clear()
                             robots[robot_id].line_flag = 0
                         else:
@@ -1418,7 +1418,7 @@ if __name__ == '__main__':
                             cfg.pid_list[robot_id] = [0, 0]
 
                             # sys.stdout.write('forward %d %f\n' % (robot_id, 0))
-                            robots[robot_id].state = 2
+                            robots[robot_id].state = 5
                             robots[robot_id].move_history.clear()
                             robots[robot_id].line_flag = 0
                         else:
