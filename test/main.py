@@ -32,7 +32,7 @@ import time
 
 # hyperparameters
 cfg = CFG()
-log = open("log.txt", "w")
+# log = open("log.txt", "w")
 # global needs
 
 # map1 43
@@ -67,8 +67,9 @@ workbench_type_num = [[] for i in range(10)]
 workbench_minest_sell = []
 generate_product = {4:0, 5:0, 6:0}
 workbench_mode = 0
-new_env_mp = [['' for i in range(cfg.MAP_SIZE_2)] for j in range(cfg.MAP_SIZE_2)]
-mask_env_mp = [[0 for i in range(cfg.MAP_SIZE_2)] for j in range(cfg.MAP_SIZE_2)]
+new_env_mp = [['' for i in range(cfg.MAP_SIZE)] for j in range(cfg.MAP_SIZE)]
+# new_env_mp = [['' for i in range(cfg.MAP_SIZE_2)] for j in range(cfg.MAP_SIZE_2)]
+# mask_env_mp = [[0 for i in range(cfg.MAP_SIZE_2)] for j in range(cfg.MAP_SIZE_2)]
 map_limit = [0, 0, 0, 0]
 DIS_MP_dict, DIS_MP_nothing_dict = {}, {}
 
@@ -273,17 +274,17 @@ def get_price_by_targets_half(free_robots, work_mode, frame_id):
                 if workbench_taking_mp[target0].get((target1_workbench.half_x, target1_workbench.half_y)) is None:
                     continue
 
-                if id == 2 and target0 == 5 and target1 == 3:
-                    log.write('!: \n')
+                # if id == 2 and target0 == 5 and target1 == 3:
+                #     log.write('!: \n')
 
                 if target1_workbench.work_type in  cfg.HIGH_LEVEL_WORKBENCH:
                     if  target1_workbench.is_targeted_flag[target0_workbench.work_type] == 1 or ((1 << target0_workbench.work_type) & target1_workbench.origin_thing) != 0:
                         continue
                 
-                if id == 2:
-                    log.write(f"====\n")
-                    log.write(f"{id, target0, target1}\n")
-                    log.write(f"====\n")
+                # if id == 2:
+                #     log.write(f"====\n")
+                #     log.write(f"{id, target0, target1}\n")
+                #     log.write(f"====\n")
 
                 target0_target1_dis = DIS_MP_dict[(target0, target1)]
 
@@ -482,7 +483,7 @@ def map_init():
     wall_ids = 0
     for row in range(cfg.MAP_SIZE):
         for col in range(cfg.MAP_SIZE):
-            new_env_mp[row * 2][col * 2] = new_env_mp[row * 2 + 1][col * 2] = new_env_mp[row * 2][col * 2 + 1] = new_env_mp[row * 2 + 1][col * 2 + 1] = env_mp[row][col]
+            # new_env_mp[row * 2][col * 2] = new_env_mp[row * 2 + 1][col * 2] = new_env_mp[row * 2][col * 2 + 1] = new_env_mp[row * 2 + 1][col * 2 + 1] = env_mp[row][col]
             if env_mp[row][col] == '.':
                 continue
             elif '1' <= env_mp[row][col] <= '9':
@@ -516,7 +517,7 @@ def map_init():
                 flag = 1
                 break
         if flag == 1:
-            log.write(f"{row} ")
+            # log.write(f"{row} ")
             map_limit[0] = max(0, row - 5)
             break
     for row in range(cfg.MAP_SIZE - 1, 0, -1):
@@ -526,7 +527,7 @@ def map_init():
                 flag = 1
                 break
         if flag == 1:
-            log.write(f"{row} ")
+            # log.write(f"{row} ")
             map_limit[1] = min(cfg.MAP_SIZE - 1, row + 5)
             break
     for col in range(cfg.MAP_SIZE):
@@ -536,7 +537,7 @@ def map_init():
                 flag = 1
                 break
         if flag == 1:
-            log.write(f"{col} ")
+            # log.write(f"{col} ")
             map_limit[2] = max(0, col - 5)
             break
     for col in range(cfg.MAP_SIZE - 1, 0, -1):
@@ -546,7 +547,7 @@ def map_init():
                 flag = 1
                 break
         if flag == 1:
-            log.write(f"{col} \n")
+            # log.write(f"{col} \n")
             map_limit[3] = min(cfg.MAP_SIZE - 1, col + 5)
             break
     # log.write(f"{map_limit}\n")
@@ -564,12 +565,30 @@ def map_init():
 
     # for row in range(map_limit[0], map_limit[1] + 1):
     #     for col in range(map_limit[2], map_limit[3] + 1):
-    for row in range(cfg.MAP_SIZE_2):
-        for col in range(cfg.MAP_SIZE_2):
-            mask_env_mp[row][col] = check_points(new_env_mp, row, col, 1)
+    # for row in range(cfg.MAP_SIZE_2):
+    #     for col in range(cfg.MAP_SIZE_2):
+    #         mask_env_mp[row][col] = check_points(new_env_mp, row, col, 1)
 
     if workbench_ids == 9:
         workbench_mode = 1
+        # t_cnt = 0
+
+        # for row in range(cfg.MAP_SIZE):
+        #     for col in range(cfg.MAP_SIZE):
+        #         new_env_mp[row][col] = env_mp[row][col]
+
+        # for row in range(cfg.MAP_SIZE):
+        #     for col in range(cfg.MAP_SIZE):
+        #         if env_mp[row][col] == '#':
+        #             t_cnt += 1
+        #             if t_cnt == 11 or t_cnt >= 19:
+        #                 env_mp[row - 1][col] = env_mp[row + 1][col] = env_mp[row][col - 1] = env_mp[row][col + 1] = 'z'
+        #                 env_mp[row - 1][col - 1] = env_mp[row - 1][col + 1] = env_mp[row + 1][col - 1] = env_mp[row + 1][col + 1] = 'z'
+        
+        # for row in range(cfg.MAP_SIZE):
+        #     for col in range(cfg.MAP_SIZE):
+        #         if env_mp[row][col] == 'z':
+        #             env_mp[row][col] = '#'
     
     # if workbench_ids == 50:
     #     workbench_mode = 3
@@ -719,6 +738,8 @@ def find_nearest_robot_workbench(robot_ids, workbench_id):
     min_dis = 40000
     min_id = -1
     for robot_id in robot_ids:
+        if workbench_mode == 1 and robot_id != 3:
+            continue
         if robot_taking_mp[robot_id].get((workbenchs[workbench_id].half_x, workbenchs[workbench_id].half_y)) is None:
             continue
         if robots[robot_id].now_suppose_work_space == -1:
@@ -792,18 +813,18 @@ def updata_LOCK_MAP():
                 LOCK_MAP[st_workbench_id][ed_workbench_id] = 0
         
 def up_down_policy_sxw(free_robots):
-    log.write(f"free robots is {free_robots}\n")
+    # log.write(f"free robots is {free_robots}\n")
     global GRA_MP, LOCK_MAP, task_cache
     for robot in free_robots:
         for task in task_cache:
-            log.write(f"free robot is {robot}, robots[robot] is {robots[robot].robot_id}, now_suppose_work_space is {robots[robot].now_suppose_work_space}\n")
+            # log.write(f"free robot is {robot}, robots[robot] is {robots[robot].robot_id}, now_suppose_work_space is {robots[robot].now_suppose_work_space}\n")
             if robots[robot].robot_id == task[0]:
                 if LOCK_MAP[task[1]][task[2]] == 1:
-                    log.write(f"task_cache is {task_cache}, remove task is {task}\n")
+                    # log.write(f"task_cache is {task_cache}, remove task is {task}\n")
                     task_cache.remove(task)
                     return task[0], task[1], task[2]
                 else:
-                    log.write(f"task_cache is {task_cache}, remove task is {task}\n")
+                    # log.write(f"task_cache is {task_cache}, remove task is {task}\n")
                     task_cache.remove(task)
     father_dict = dict()
     task_list = []
@@ -829,7 +850,7 @@ def up_down_policy_sxw(free_robots):
                         if nearest_robot_id in free_robots:
                             return nearest_robot_id, top_id, father_dict[top_id]
                         else:
-                            log.write(f"task_cache is {task_cache}, append task is {(nearest_robot_id, top_id, father_dict[top_id])}\n")
+                            # log.write(f"task_cache is {task_cache}, append task is {(nearest_robot_id, top_id, father_dict[top_id])}\n")
                             for task in task_cache:
                                 if nearest_robot_id == task[0]:
                                     if DIS_MP_dict[(robots[nearest_robot_id].target_workbench_ids[1], task[1])] > DIS_MP_dict[(robots[nearest_robot_id].target_workbench_ids[1], top_id)]:
@@ -851,7 +872,7 @@ def up_down_policy_sxw(free_robots):
                             if nearest_robot_id in free_robots:
                                 return nearest_robot_id, top_id, min_id
                             else:
-                                log.write(f"task_cache is {task_cache}, append task is {(nearest_robot_id, top_id, min_id)}\n")
+                                # log.write(f"task_cache is {task_cache}, append task is {(nearest_robot_id, top_id, min_id)}\n")
                                 for task in task_cache:
                                     if nearest_robot_id == task[0]:
                                         if DIS_MP_dict[(robots[nearest_robot_id].target_workbench_ids[1], task[1])] > DIS_MP_dict[(robots[nearest_robot_id].target_workbench_ids[1], top_id)]:
@@ -870,7 +891,7 @@ def bfs_half_init():
         if useful_workbench_cnt <= 13:
             workbench_nothing_mp[id], index_nothing_mp[id] = bfs_half(env_mp, (workbenchs[id].half_x, workbenchs[id].half_y), 0, map_limit)
         
-        log.write(f"{workbench_taking_mp[id][(workbenchs[id].half_x, workbenchs[id].half_y)]}\n")
+        # log.write(f"{workbench_taking_mp[id][(workbenchs[id].half_x, workbenchs[id].half_y)]}\n")
 
 def workbench_after_half_init():
     for id0 in range(workbench_ids):
@@ -950,19 +971,32 @@ def astar_half_workbench_init():
 def robot_half_bfs_init():
     global env_mp, robot_taking_mp, robot_index_taking_mp, workbenchs, useful_workbench_cnt
     for id in range(4):
+        if id != 3 and workbench_mode == 1:
+            continue
         nx, ny = robots[id].half_x, robots[id].half_y
         robot_taking_mp[id], robot_index_taking_mp[id] = bfs_half(env_mp, (nx, ny), 0, map_limit)
 
     for id in range(workbench_ids):
         workbench = workbenchs[id]
-        if robot_taking_mp[0].get((workbench.half_x, workbench.half_y)) is None and robot_taking_mp[1].get((workbench.half_x, workbench.half_y)) is None and robot_taking_mp[2].get((workbench.half_x, workbench.half_y)) is None and robot_taking_mp[3].get((workbench.half_x, workbench.half_y)) is None:
-            refuse_workbench_dist[id] = 1
+        if workbench_mode != 1:
+            if robot_taking_mp[0].get((workbench.half_x, workbench.half_y)) is None and robot_taking_mp[1].get((workbench.half_x, workbench.half_y)) is None and robot_taking_mp[2].get((workbench.half_x, workbench.half_y)) is None and robot_taking_mp[3].get((workbench.half_x, workbench.half_y)) is None:
+                refuse_workbench_dist[id] = 1
+            else:
+                useful_workbench_cnt += 1
+                refuse_workbench_dist[id] = 0
+            for i in range(4):
+                if robot_taking_mp[i].get((workbench.half_x, workbench.half_y)) is None:
+                    robot_index_taking_mp[i][(workbench.half_x, workbench.half_y)] = 40000
         else:
-            useful_workbench_cnt += 1
-            refuse_workbench_dist[id] = 0
-        for i in range(4):
-            if robot_taking_mp[i].get((workbench.half_x, workbench.half_y)) is None:
-                robot_index_taking_mp[i][(workbench.half_x, workbench.half_y)] = 40000
+            if robot_taking_mp[3].get((workbench.half_x, workbench.half_y)) is None:
+                refuse_workbench_dist[id] = 1
+            else:
+                useful_workbench_cnt += 1
+                refuse_workbench_dist[id] = 0
+            for i in range(3, 4):
+                if robot_taking_mp[i].get((workbench.half_x, workbench.half_y)) is None:
+                    robot_index_taking_mp[i][(workbench.half_x, workbench.half_y)] = 40000
+        
         
 
 def robot_astar_init():
@@ -1232,9 +1266,9 @@ if __name__ == '__main__':
     # log.write(f"{ask_path_sxw((workbenchs[4].anti_x, workbenchs[4].anti_y), workbench_nothing_mp[0], new_env_mp, mask_env_mp, 0)}\n")
     # log.write(f"{refuse_workbench_dist}\n")
     # log.write(f"{workbench_taking_mp[5].get((workbenchs[3].half_x, workbenchs[3].half_y))}")
-    log.write(f"{'{:.10f}s.'.format(d2 - d1)}\n")
-    log.write(f"{'{:.10f}s.'.format(d3 - d1)}\n")
-    log.write(f"{'{:.10f}s.'.format(d4 - d1)}\n")
+    # log.write(f"{'{:.10f}s.'.format(d2 - d1)}\n")
+    # log.write(f"{'{:.10f}s.'.format(d3 - d1)}\n")
+    # log.write(f"{'{:.10f}s.'.format(d4 - d1)}\n")
 
     # exit()
     # log.write(f"{workbenchs[12].anti_x, workbenchs[12].anti_y}\n")
@@ -1269,7 +1303,7 @@ if __name__ == '__main__':
                 if cal_point_x_y(robot.x, robot.y, wall.x, wall.y) < 1.5:
                    wall_list[idx].append(wall) 
         # 分配任务
-        free_robots = find_free_robot(robots)
+        free_robots = find_free_robot(robots, workbench_mode)
         # free_jobs = find_free_job(workbenchs)
         
         # if workbench_mode == 1:
@@ -1283,16 +1317,16 @@ if __name__ == '__main__':
             # employ_robot, target0, target1 = get_price_by_targets(free_robots, 2, frame_id)
             # if employ_robot == -1:
             #     employ_robot, target0, target1 = get_price_by_targets(free_robots, 1, frame_id)
-            # if len(workbench_type_num[7]) == 1:
-            # updata_LOCK_MAP()
-            # update_GRA_MAP()
-            # employ_robot, target0, target1 = up_down_policy_sxw(free_robots)
-            # else:
-            employ_robot, target0, target1 = get_price_by_targets_half(free_robots, 2, frame_id)
-            if employ_robot == -1:
-                employ_robot, target0, target1 = get_price_by_targets_half(free_robots, 1, frame_id)
+            if len(workbench_type_num[7]) == 1: # or workbench_mode == 1:
+                updata_LOCK_MAP()
+                update_GRA_MAP()
+                employ_robot, target0, target1 = up_down_policy_sxw(free_robots)
+            else:
+                employ_robot, target0, target1 = get_price_by_targets_half(free_robots, 2, frame_id)
+                if employ_robot == -1:
+                    employ_robot, target0, target1 = get_price_by_targets_half(free_robots, 1, frame_id)
 
-            log.write(f"{employ_robot, target0, target1}\n")
+            # log.write(f"{employ_robot, target0, target1}\n")
             if employ_robot != -1:
                 robots[employ_robot].target_workbench_ids[0] = target0
 
@@ -1364,20 +1398,22 @@ if __name__ == '__main__':
         # exit()
         # do some operation
         sys.stdout.write('%d\n' % frame_id)
-        log.write(f"----------------------------{frame_id}----------------------------\n")
+        # log.write(f"----------------------------{frame_id}----------------------------\n")
         # if frame_id <=100:
         #     direction = -cfg.PI / 4
         #     distance = 10
         #     rotate, forward = robots[1].move_to_target(direction, distance)
         #     cfg.pid_list[1] = [rotate, forward]
         for robot_id in range(cfg.ROBOT_NUM):
+            if robot_id != 3 and workbench_mode == 1:
+                continue
             # if robot_id != 1:
             #     continue
-            log.write(f"{robot_id, robots[robot_id].x, robots[robot_id].y, robots[robot_id].state}\n")
-            log.write(f'{robots[robot_id].move_list_target0}\n')
-            log.write(f'{robots[robot_id].move_list_target1}\n')
-            log.write(f'{robots[robot_id].move_history}\n')
-            log.write(f"~~~~~~~~~~~~~~~~~~~~~~~~\n")
+            # log.write(f"{robot_id, robots[robot_id].x, robots[robot_id].y, robots[robot_id].state}\n")
+            # log.write(f'{robots[robot_id].move_list_target0}\n')
+            # log.write(f'{robots[robot_id].move_list_target1}\n')
+            # log.write(f'{robots[robot_id].move_history}\n')
+            # log.write(f"~~~~~~~~~~~~~~~~~~~~~~~~\n")
             rotate, forward = None, None
             if robots[robot_id].target_workbench_ids[0] == -1:
                 continue
@@ -1483,11 +1519,11 @@ if __name__ == '__main__':
                         robots[robot_id].move_history.appendleft((robots[robot_id].half_x, robots[robot_id].half_y))
                         # robots[robot_id].move_history.appendleft((robots[robot_id].anti_x, robots[robot_id].anti_y))
                         rotate, forward = robots[robot_id].move_to_target(direction, distance)
-                        log.write(f'direction:{robot_id} {direction} {robots[robot_id].toward}\n')
+                        # log.write(f'direction:{robot_id} {direction} {robots[robot_id].toward}\n')
                         if abs(direction - robots[robot_id].toward) <= cfg.PI / 4:
                             robots[robot_id].line_flag = 1
                             cfg.pid_list[robot_id] = [rotate, forward]
-                            log.write(f'pid_list:{robot_id} {cfg.pid_list[robot_id][0]} {cfg.pid_list[robot_id][1]}\n')
+                            # log.write(f'pid_list:{robot_id} {cfg.pid_list[robot_id][0]} {cfg.pid_list[robot_id][1]}\n')
                         else:
                             cfg.pid_list[robot_id] = [rotate, 0]
                         # cfg.pid_list[robot_id] = [rotate, forward]
@@ -1507,7 +1543,7 @@ if __name__ == '__main__':
                     #         ## 回退一大步
                     #         robots[robot_id].state = 5
                             ###
-                    log.write(f'robotid:{robot_id} {cfg.pid_list[robot_id][0]} {cfg.pid_list[robot_id][1]}\n')
+                    # log.write(f'robotid:{robot_id} {cfg.pid_list[robot_id][0]} {cfg.pid_list[robot_id][1]}\n')
                 elif robots[robot_id].state == 3:
                     # sell and turn 0
                     take_thing = robots[robot_id].take_thing

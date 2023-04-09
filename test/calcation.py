@@ -9,7 +9,7 @@ from collections import deque
 import heapq
 import time
 cfg = CFG()
-log = open("path_better.txt", "w")
+# log = open("path_better.txt", "w")
 
 
 # cal_function
@@ -62,11 +62,13 @@ def finish():
 
 
 # Useful function
-def find_free_robot(robots):
+def find_free_robot(robots, mode=0):
     # find workless robot
     free_robot = []
     for ids, robot in enumerate(robots):
         if robot.target_workbench_ids[0] == -1:
+            if mode == 1 and ids != 3:
+                continue
             free_robot.append(ids)
     return free_robot
 
@@ -145,7 +147,7 @@ def get_ava_list(target_workbench_list, workbench_type_num):
     return ava_list
 
 def astar(env_mp, st_pos, ed_pos, is_take_thing, mask_env_mp, map_limit):
-    log.write("ASTART!\n")
+    # log.write("ASTART!\n")
     d1 = time.time()
     q, ans_mp, vis_mp, open_list, close_list = [], {}, {}, {}, set()
     heapq.heappush(q, (0, 0, st_pos))
@@ -155,7 +157,7 @@ def astar(env_mp, st_pos, ed_pos, is_take_thing, mask_env_mp, map_limit):
     while len(q) != 0:
         now_pos = heapq.heappop(q)
         x, y = now_pos[2][0], now_pos[2][1]
-        log.write(f"{x, y}\n")
+        # log.write(f"{x, y}\n")
         fvalue = open_list[(x, y)]
         if x == ed_pos[0] and y == ed_pos[1]:
             # 返回路径这里
@@ -165,8 +167,8 @@ def astar(env_mp, st_pos, ed_pos, is_take_thing, mask_env_mp, map_limit):
             ans_path.append(st_pos)
             ans_path.reverse()
             d2 = time.time()
-            log.write(f"{'{:.10f}s.'.format(d2 - d1)}\n")
-            log.write("AENDED!\n")
+            # log.write(f"{'{:.10f}s.'.format(d2 - d1)}\n")
+            # log.write("AENDED!\n")
             return ans_path
         if (x, y) in close_list:
             continue
@@ -222,21 +224,21 @@ def ask_path(ed_pos, ans_mp, env_mp, mask_env_mp):
     path.append(ed_pos)
     pos = ed_pos
     nx, ny = pos[0], pos[1]
-    log.write(f"{ans_mp[nx][ny]}\n")
-    log.write(f"{env_mp[nx][ny]}\n")
-    log.write(f"{nx, ny}\n")
+    # log.write(f"{ans_mp[nx][ny]}\n")
+    # log.write(f"{env_mp[nx][ny]}\n")
+    # log.write(f"{nx, ny}\n")
     while ans_mp[nx][ny] != pos:
         pos = ans_mp[nx][ny]
         nx, ny = pos[0], pos[1]
         
-        log.write(f"{nx, ny}\n")
+        # log.write(f"{nx, ny}\n")
         path.append(pos)
     path.reverse()
     # return path
     path = path_better(env_mp, path, 1, mask_env_mp)
-    log.write(f"{path}\n")
-    log.write(f"{path}\n")
-    log.write(f"-----------------\n")
+    # log.write(f"{path}\n")
+    # log.write(f"{path}\n")
+    # log.write(f"-----------------\n")
     return path
 
 def check_one_line(point1, point2, point3):
@@ -345,13 +347,13 @@ def ignore_now_point(env_mp, point1, point2, point3, is_take_thing, mask_env_mp)
     return 1
 
 def path_better(env_mp, path_list, is_take_thing, mask_env_mp):
-    log.write(f"{path_list}\n")
+    # log.write(f"{path_list}\n")
     path_len = len(path_list)
     new_path = []
     if path_len == 0:
         return path_list
     if path_len == 1:
-        log.write(f"path_len==1{path_list}\n")
+        # log.write(f"path_len==1{path_list}\n")
         path_list[0] = (cal_x(path_list[0][1] / 2), cal_y(path_list[0][0] / 2))
         return path_list
     pre_point = path_list[0]
@@ -458,13 +460,13 @@ def path_better_sxw(path_list, is_take_thing, walls):
         # log.write(f"\n")
         if flag == 0:
             break
-        log.write(f"val_path is {val_path}\n")
-        log.write(f"temp is {temp_path_list}\n")
+        # log.write(f"val_path is {val_path}\n")
+        # log.write(f"temp is {temp_path_list}\n")
     new_path_list = sorted(new_path.items())
     _path = []
     for point in new_path_list:
         _path.append(point[1])
-    log.write(f"new_path_list is {_path}\n")
+    # log.write(f"new_path_list is {_path}\n")
 
     return _path
 
@@ -479,7 +481,7 @@ def ask_path_sxw(ed_pos, ans_mp, is_take_thing, walls):
         path.append(pos)
     path.reverse()
     # return path
-    log.write(f"origin path is {path}\n")
+    # log.write(f"origin path is {path}\n")
     _len = len(path)
     if _len > 2:
         for i in range(1):
@@ -513,7 +515,7 @@ def ask_path_sxw(ed_pos, ans_mp, is_take_thing, walls):
         path_ = path
                     
                 
-    log.write(f"better path is {path_}\n")
+    # log.write(f"better path is {path_}\n")
 
     for i in range(len(path_)):
         path_[i] = (cal_x(path_[i][1]), cal_y(path_[i][0]))
@@ -559,7 +561,7 @@ def find_block(point0:list, point1:list, d=0.45+np.sqrt(2)*0.25) -> list:
     return [x_min, x_max, y_min, y_max]
 
 def is_line_crash_wall(wall:object, point0:tuple, point1:tuple, angle:float, tolerance=0.45)->bool:
-    log.write(f"angle is {angle}\n")
+    # log.write(f"angle is {angle}\n")
     x0, y0 = point0[0], point0[1]
     x1, y1 = point1[0], point1[1]
     dis_point = 0
@@ -575,7 +577,7 @@ def is_line_crash_wall(wall:object, point0:tuple, point1:tuple, angle:float, tol
         dis_final = dis_point - math.sqrt(2) * 0.25 * math.cos(abs(cfg.PI / 4 - angle))
     elif angle >= cfg.PI / 2 and angle <= cfg.PI:
         dis_final = dis_point - math.sqrt(2) * 0.25 * math.cos(abs(cfg.PI / 4 * 3 - angle))
-    log.write(f"dis_final is {dis_final}\n")
+    # log.write(f"dis_final is {dis_final}\n")
     if dis_final > tolerance:
         return True
     else:
@@ -585,7 +587,7 @@ def is_line_crash_wall(wall:object, point0:tuple, point1:tuple, angle:float, tol
 def is_line_valid(walls:list, point0:tuple, point1:tuple, d=0.45+math.sqrt(2)*0.25, is_take_thing = 0)->bool:
     if point0 == point1 or (abs(point0[0] - point1[0])<=0.25 and abs(point0[1] - point1[1])<=0.25):
         return True
-    log.write(f"is_take_thing is {is_take_thing}\n")
+    # log.write(f"is_take_thing is {is_take_thing}\n")
     x0, y0 = point0[0], point0[1]
     x1, y1 = point1[0], point1[1]
     tolerance = 0.45
@@ -600,10 +602,10 @@ def is_line_valid(walls:list, point0:tuple, point1:tuple, d=0.45+math.sqrt(2)*0.
     if angle < 0:
         angle = angle + cfg.PI
     [x_min, x_max, y_min, y_max] = find_block(point0, point1, d=d)
-    log.write(f"x_min, x_max, y_min, y_max is {x_min}, {x_max}, {y_min}, {y_max}\n")
+    # log.write(f"x_min, x_max, y_min, y_max is {x_min}, {x_max}, {y_min}, {y_max}\n")
     for wall in walls:
-        if wall.x > x_min and wall.x < x_max and wall.y > y_min and wall.y < y_max:
-            log.write(f"wall_id is {wall.wall_id}\n")
+        # if wall.x > x_min and wall.x < x_max and wall.y > y_min and wall.y < y_max:
+        #     log.write(f"wall_id is {wall.wall_id}\n")
             if is_line_crash_wall(wall, point0, point1, angle, tolerance=tolerance) == False:
                 # log.write(f"return false, point0, point1 is {point0}, {point1}\n")
                 return False
@@ -620,23 +622,23 @@ def check_points_half(env_mp, nx, ny, is_take_thing, debug_mode=0):
         nx1, nx2, nx3, nx4 = min(cfg.MAP_SIZE - 1, int_nx + 1), max(0, int_nx - 1), min(cfg.MAP_SIZE - 1, int_nx + 2), max(0, int_nx - 2)
         ny1, ny2, ny3, ny4 = min(cfg.MAP_SIZE - 1, int_ny + 1), max(0, int_ny - 1), min(cfg.MAP_SIZE - 1, int_ny + 2), max(0, int_ny - 2)
 
-        if int_nx == 37 and int_ny == 22 and debug_mode == 1:
-            log.write('~\n')
-            log.write(f"{nx1, nx2, nx3, nx4}\n")
-            log.write(f"{ny1, ny, ny2}\n")
-            for i in range(ny2, ny1 + 1):
-                log.write(f"{env_mp[nx4][i]}")
-            log.write("\n")
-            for i in range(ny2, ny1 + 1):
-                log.write(f"{env_mp[nx2][i]}")
-            log.write("\n")
-            for i in range(ny2, ny1 + 1):
-                log.write(f"{env_mp[nx1][i]}")
-            log.write("\n")
-            for i in range(ny2, ny1 + 1):
-                log.write(f"{env_mp[nx3][i]}")
-            log.write("\n")
-            log.write('~\n')
+        # if int_nx == 37 and int_ny == 22 and debug_mode == 1:
+            # log.write('~\n')
+            # log.write(f"{nx1, nx2, nx3, nx4}\n")
+            # log.write(f"{ny1, ny, ny2}\n")
+            # for i in range(ny2, ny1 + 1):
+            #     log.write(f"{env_mp[nx4][i]}")
+            # log.write("\n")
+            # for i in range(ny2, ny1 + 1):
+            #     log.write(f"{env_mp[nx2][i]}")
+            # log.write("\n")
+            # for i in range(ny2, ny1 + 1):
+            #     log.write(f"{env_mp[nx1][i]}")
+            # log.write("\n")
+            # for i in range(ny2, ny1 + 1):
+            #     log.write(f"{env_mp[nx3][i]}")
+            # log.write("\n")
+            # log.write('~\n')
         if env_mp[nx][ny1] == '#' or env_mp[nx][ny2] == '#' or env_mp[nx1][ny] == '#' or env_mp[nx2][ny] == '#':
             return 0
         if env_mp[nx1][ny1] == '#' or env_mp[nx1][ny2] == '#' or env_mp[nx2][ny1] == '#' or env_mp[nx2][ny2] == '#':
@@ -647,8 +649,8 @@ def check_points_half(env_mp, nx, ny, is_take_thing, debug_mode=0):
         #     return 0
     elif int(nx * 10) == int_nx * 10:
 
-        if debug_mode == 1 and nx == 37.0 and ny == 22.0:
-            log.write(f"sb\n")
+        # if debug_mode == 1 and nx == 37.0 and ny == 22.0:
+        #     log.write(f"sb\n")
         # log.write(f"2: {nx, int_nx}, {ny, int_ny}\n")
         nx = int_nx
         int_ny = int(ny - 0.5)
@@ -669,23 +671,23 @@ def check_points_half(env_mp, nx, ny, is_take_thing, debug_mode=0):
         nx1, nx2, nx3, nx4 = min(cfg.MAP_SIZE - 1, int_nx + 1), max(0, int_nx), min(cfg.MAP_SIZE - 1, int_nx + 2), max(0, int_nx - 1)
         ny1, ny2 = min(cfg.MAP_SIZE - 1, int_ny + 1), max(0, int_ny - 1)
         if env_mp[nx1][ny] == '#' or env_mp[nx2][ny] == '#' or env_mp[nx1][ny1] == '#' or env_mp[nx2][ny1] == '#' or env_mp[nx1][ny2] == '#' or env_mp[nx2][ny2] == '#':
-            if nx == 36.5 and ny == 22 and debug_mode == 1:
-                log.write('~\n')
-                log.write(f"{nx1, nx2, nx3, nx4}\n")
-                log.write(f"{ny1, ny, ny2}\n")
-                for i in range(ny2, ny1 + 1):
-                    log.write(f"{env_mp[nx4][i]}")
-                log.write("\n")
-                for i in range(ny2, ny1 + 1):
-                    log.write(f"{env_mp[nx2][i]}")
-                log.write("\n")
-                for i in range(ny2, ny1 + 1):
-                    log.write(f"{env_mp[nx1][i]}")
-                log.write("\n")
-                for i in range(ny2, ny1 + 1):
-                    log.write(f"{env_mp[nx3][i]}")
-                log.write("\n")
-                log.write('~\n')
+            # if nx == 36.5 and ny == 22 and debug_mode == 1:
+            #     log.write('~\n')
+            #     log.write(f"{nx1, nx2, nx3, nx4}\n")
+            #     log.write(f"{ny1, ny, ny2}\n")
+            #     for i in range(ny2, ny1 + 1):
+            #         log.write(f"{env_mp[nx4][i]}")
+            #     log.write("\n")
+            #     for i in range(ny2, ny1 + 1):
+            #         log.write(f"{env_mp[nx2][i]}")
+            #     log.write("\n")
+            #     for i in range(ny2, ny1 + 1):
+            #         log.write(f"{env_mp[nx1][i]}")
+            #     log.write("\n")
+            #     for i in range(ny2, ny1 + 1):
+            #         log.write(f"{env_mp[nx3][i]}")
+            #     log.write("\n")
+            #     log.write('~\n')
             return 0
         if is_take_thing == 1 and (env_mp[nx3][ny] == '#' or env_mp[nx4][ny] == '#'):
             return 0
@@ -702,8 +704,8 @@ def check_points_half(env_mp, nx, ny, is_take_thing, debug_mode=0):
     return 1
 
 def bfs_half(env_mp, st_pos, is_take_thing, map_limit, debug_mode=0):
-    if debug_mode==1:
-        log.write("----\n")
+    # if debug_mode==1:
+    #     log.write("----\n")
     q = deque()
     q.append(st_pos)
     ans_mp, vis_mp = {}, {}
@@ -716,21 +718,21 @@ def bfs_half(env_mp, st_pos, is_take_thing, map_limit, debug_mode=0):
         for i in range(8):
             nx, ny = x + cfg.DIS_HALF[i][0], y + cfg.DIS_HALF[i][1]
             # nx, ny = now_pos[0][0] + cfg.DIS_NORMAL[i][0], now_pos[0][1] + cfg.DIS_NORMAL[i][1]
-            if x == 36.5 and y == 22 and debug_mode == 1:
-                log.write(f"{nx, ny, cnt, vis_mp.get((nx, ny))}.\n")
+            # if x == 36.5 and y == 22 and debug_mode == 1:
+                # log.write(f"{nx, ny, cnt, vis_mp.get((nx, ny))}.\n")
             if nx < map_limit[0] or ny < map_limit[2] or nx >= map_limit[1] or ny >= map_limit[3] or vis_mp.get((nx, ny)) is not None:
                 continue
             if check_points_half(env_mp, nx, ny, is_take_thing, debug_mode) == 0:
                 continue
-            if x == 36.5 and y == 22 and debug_mode==1:
-                log.write(f"{nx, ny, cnt}!!\n")
+            # if x == 36.5 and y == 22 and debug_mode==1:
+                # log.write(f"{nx, ny, cnt}!!\n")
             cnt += 1
             vis_mp[(nx, ny)]= vis_mp[(x, y)] + 1
             ans_mp[(nx, ny)]= now_pos
             q.append((nx, ny))     
     
-    if debug_mode==1:
-        log.write("----\n")
+    # if debug_mode==1:
+    #     log.write("----\n")
     return ans_mp, vis_mp
 
 
@@ -839,7 +841,7 @@ def ignore_now_point_half(env_mp, point1, point3, is_take_thing):
 
 
 def astar_half(env_mp, st_pos, ed_pos, is_take_thing, map_limit):
-    log.write("ASTART!\n")
+    # log.write("ASTART!\n")
     d1 = time.time()
     q, ans_mp, vis_mp, open_list, close_list = [], {}, {}, {}, set()
     heapq.heappush(q, (0, 0, st_pos))
@@ -849,7 +851,7 @@ def astar_half(env_mp, st_pos, ed_pos, is_take_thing, map_limit):
     while len(q) != 0:
         now_pos = heapq.heappop(q)
         x, y = now_pos[2][0], now_pos[2][1]
-        log.write(f"{x, y}\n")
+        # log.write(f"{x, y}\n")
         fvalue = open_list[(x, y)]
         if x == ed_pos[0] and y == ed_pos[1]:
             # 返回路径这里
@@ -859,8 +861,8 @@ def astar_half(env_mp, st_pos, ed_pos, is_take_thing, map_limit):
             ans_path.append(st_pos)
             ans_path.reverse()
             d2 = time.time()
-            log.write(f"{'{:.10f}s.'.format(d2 - d1)}\n")
-            log.write("AENDED!\n")
+            # log.write(f"{'{:.10f}s.'.format(d2 - d1)}\n")
+            # log.write("AENDED!\n")
             return ans_path
         if (x, y) in close_list:
             continue
