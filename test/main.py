@@ -21,7 +21,7 @@ from workbench import WorkBench
 from config import CFG
 from calcation import *
 # import argparse
-from pyorca import Agent, get_avoidance_velocity, orca, normalized, perp
+from contraception import Agent, get_avoidance_velocity, orca, normalized, perp
 from numpy import array, rint, linspace, pi, cos, sin, sqrt
 import numpy as np
 import queue
@@ -84,6 +84,7 @@ path_better_taking_mp, path_better_nothing_mp = [], []
 wall_list = [[] for i in range(4)]
 battle_time = [0, 0, 0, 0]
 back_distannce = [0, 0, 0, 0]
+back_waittime = [0, 0, 0, 0]
 astar_workbench_taking_mp, astar_workbench_nothing_mp = [], []
 astar_robot_taking_mp, astar_robot_nothing_mp = [], []
 task_list, task_cache = [], []
@@ -1438,7 +1439,7 @@ if __name__ == '__main__':
             if battle_time[i] >= 50:
                 other_robots = robots[0:i] + robots[i:4]
                 for other_robot in other_robots:
-                    if battle_time[other_robot.robot_id] >= 50 and cfg.THING_VALUE[robots[i].take_thing] < cfg.THING_VALUE[other_robot.take_thing] and cal_point_x_y(robots[i].x, robots[i].y, other_robot.x, other_robot.y) <= 1.5:
+                    if battle_time[other_robot.robot_id] >= 50 and (cfg.THING_VALUE[robots[i].take_thing] <= cfg.THING_VALUE[other_robot.take_thing] or other_robot.state in [4, 5, 6, 7]) and cal_point_x_y(robots[i].x, robots[i].y, other_robot.x, other_robot.y) <= 1.5:
                         if robots[i].state == 0:
                             robots[i].state = 4
                         elif robots[i].state == 2:
