@@ -54,7 +54,7 @@ class Robot():
         self.x, self.y = float(x), float(y)
 
     def move(self, steering, distance,
-                tolerance0=0.001, tolerance1=0.2):
+                tolerance0=0.001, tolerance1=0.2, mode=0):
         """
         steering = front wheel steering angle, limited by max_steering_angle
         distance = total distance driven, most be non-negative
@@ -78,18 +78,21 @@ class Robot():
             if distance >= 6:
                 forward = 6
             else:
-                forward = max(distance / 3, 1)
+                # forward = max(distance / 3, 1)
             # if distance >= 9:
             #     forward = 6
             # else:
-            #     forward = 4 / (1 + math.exp(-15 * (distance - 8))) + 2
+                if mode != 1:
+                    forward = max(distance / 3, 1)
+                else:
+                    forward = 4 / (1 + math.exp(-15 * (distance - 8))) + 3
         if rotate > 0:
             rotate = min(PI, rotate)
         else:
             rotate = max(-PI, rotate)
         return rotate, forward
 
-    def move_to_target(self, direction, distance, mode=1):
+    def move_to_target(self, direction, distance, mode=0):
         direction1=direction-self.toward
         if direction1 > PI:
             direction1 += -2*PI
@@ -115,4 +118,4 @@ class Robot():
         steering = self.w_pid.control(-direction1)
         move_distance = self.s_pid.control(-distance)
         # log.write(f'{self.s_pid.accumulated_error} {self.s_pid.previous_error}\n')
-        return self.move(steering, move_distance)
+        return self.move(steering, move_distance, mode)
